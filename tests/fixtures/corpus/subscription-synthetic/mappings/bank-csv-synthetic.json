@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "parser_ref": "csv-synthetic-parser@1.0.0",
+  "synthetic": true,
+  "encoding": "utf-8",
+  "delimiter": ",",
+  "limits": {
+    "max_bytes": 10000000,
+    "max_rows": 100000
+  },
+  "valid_time_format": "iso8601_utc_z",
+  "mapping_ref": "bank-csv-synthetic@1.0.0",
+  "source_id": "bank-synthetic",
+  "fact_type": "cash_settled",
+  "columns": [
+    "payment_ref",
+    "order_ref",
+    "account_ref",
+    "amount",
+    "currency",
+    "status",
+    "value_time",
+    "revision"
+  ],
+  "record_key_column": "payment_ref",
+  "revision_column": "revision",
+  "operation_ref_column": "order_ref",
+  "valid_time_column": "value_time",
+  "status": {
+    "column": "status",
+    "assertion_values": [
+      "SETTLED"
+    ],
+    "retraction_values": [
+      "RETRACTED"
+    ]
+  },
+  "payload": {
+    "account_ref": {
+      "kind": "identifier",
+      "column": "account_ref"
+    },
+    "payment_ref": {
+      "kind": "identifier",
+      "column": "payment_ref"
+    },
+    "amount": {
+      "kind": "quantity",
+      "column": "amount",
+      "unit": "USD",
+      "unit_column": "currency",
+      "scale": 2,
+      "decimals": "exact",
+      "sign": "non_negative"
+    }
+  }
+}

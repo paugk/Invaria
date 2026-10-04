@@ -1,0 +1,113 @@
+{
+  "$defs": {
+    "IdentityLink": {
+      "additionalProperties": false,
+      "description": "Approved link between an institutional account reference and a chain address.",
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "address": {
+          "title": "Address",
+          "type": "string"
+        },
+        "approval_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Approval Ref",
+          "type": "string"
+        },
+        "link_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Link Id",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "stellar:testnet",
+            "stellar:pubnet"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "valid_from": {
+          "format": "date-time",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "schema_version",
+        "link_id",
+        "account_ref",
+        "network",
+        "address",
+        "valid_from",
+        "valid_to",
+        "approval_ref",
+        "recorded_at"
+      ],
+      "title": "IdentityLink",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:identity-link-set:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpus_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Corpus Id",
+      "type": "string"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/IdentityLink"
+      },
+      "minItems": 1,
+      "title": "Links",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "synthetic": {
+      "const": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "synthetic",
+    "links"
+  ],
+  "title": "IdentityLinkSet",
+  "type": "object"
+}

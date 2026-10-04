@@ -1,0 +1,342 @@
+{
+  "$defs": {
+    "ControlOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "delta": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "reason_code": {
+          "enum": [
+            "EXACT_MATCH",
+            "CASH_AMOUNT_MISMATCH",
+            "UNITS_MISMATCH",
+            "ORDER_TERMS_INCONSISTENT",
+            "MISSING_EVIDENCE",
+            "INSUFFICIENT_COVERAGE",
+            "LOSS_OF_SUPPORT",
+            "SOURCE_CONFLICT",
+            "AMBIGUOUS_MATCH",
+            "QUARANTINED_INPUT",
+            "UNSUPPORTED_CAPABILITY",
+            "EVALUATION_ERROR",
+            "NOT_APPLICABLE_BY_PROFILE"
+          ],
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "mandatory",
+        "status",
+        "reason_code",
+        "delta"
+      ],
+      "title": "ControlOutcome",
+      "type": "object"
+    },
+    "ExpectedOutcome": {
+      "additionalProperties": false,
+      "description": "Expected result for a corpus scenario, written before any evaluator exists.",
+      "properties": {
+        "controls": {
+          "items": {
+            "$ref": "#/$defs/ControlOutcome"
+          },
+          "minItems": 1,
+          "title": "Controls",
+          "type": "array"
+        },
+        "effective_observation_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 10000,
+          "title": "Effective Observation Ids",
+          "type": "array"
+        },
+        "result": {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "title": "Result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "result",
+        "controls",
+        "effective_observation_ids"
+      ],
+      "title": "ExpectedOutcome",
+      "type": "object"
+    },
+    "Quantity": {
+      "additionalProperties": false,
+      "description": "``{\"atoms\": \"1000000000\", \"scale\": 7, \"unit\": \"FUND_SHARE\"}`` is 100 shares.",
+      "properties": {
+        "atoms": {
+          "maxLength": 79,
+          "pattern": "^(0|-?[1-9][0-9]*)$",
+          "title": "Atoms",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "atoms",
+        "scale",
+        "unit"
+      ],
+      "title": "Quantity",
+      "type": "object"
+    },
+    "Scenario": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_refs": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Acceptance Refs",
+          "type": "array"
+        },
+        "expected": {
+          "$ref": "#/$defs/ExpectedOutcome"
+        },
+        "query_mode": {
+          "enum": [
+            "as_known",
+            "as_known_now"
+          ],
+          "title": "Query Mode",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "scenario_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/SnapshotRef"
+        },
+        "timeline_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Timeline Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "title",
+        "timeline_id",
+        "query_mode",
+        "snapshot",
+        "expected",
+        "rationale",
+        "acceptance_refs"
+      ],
+      "title": "Scenario",
+      "type": "object"
+    },
+    "SnapshotRef": {
+      "additionalProperties": false,
+      "description": "Closed snapshot: explicit membership, two times and an explicit evaluation clock.\n\nReplay uses this membership, never \"everything recorded before known_at\" re-queried\nlater, and never the wall clock.",
+      "properties": {
+        "coverage_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 10000,
+          "title": "Coverage Ids",
+          "type": "array"
+        },
+        "evaluation_clock": {
+          "format": "date-time",
+          "title": "Evaluation Clock",
+          "type": "string"
+        },
+        "identity_link_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 10000,
+          "title": "Identity Link Ids",
+          "type": "array"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "mapping_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Mapping Refs",
+          "type": "array"
+        },
+        "observation_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 10000,
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "rules_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Rules Ref",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "tenant_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "snapshot_id",
+        "tenant_id",
+        "operation_ref",
+        "valid_at",
+        "known_at",
+        "evaluation_clock",
+        "observation_ids",
+        "coverage_ids",
+        "identity_link_ids",
+        "profile_ref",
+        "rules_ref",
+        "mapping_refs"
+      ],
+      "title": "SnapshotRef",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:scenario-catalog:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpus_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Corpus Id",
+      "type": "string"
+    },
+    "profile_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Profile Ref",
+      "type": "string"
+    },
+    "scenarios": {
+      "items": {
+        "$ref": "#/$defs/Scenario"
+      },
+      "minItems": 1,
+      "title": "Scenarios",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "synthetic": {
+      "const": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "synthetic",
+    "profile_ref",
+    "scenarios"
+  ],
+  "title": "ScenarioCatalog",
+  "type": "object"
+}

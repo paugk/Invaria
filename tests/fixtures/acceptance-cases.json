@@ -1,0 +1,125 @@
+{
+  "kind": "declarative_acceptance_catalog_not_executed_product_tests",
+  "cases": [
+    {
+      "id": "C01",
+      "scenario": "Complete evidence",
+      "expected": "MATCH",
+      "implemented": false
+    },
+    {
+      "id": "C02",
+      "scenario": "Bank evidence missing",
+      "expected": "UNKNOWN",
+      "implemented": false
+    },
+    {
+      "id": "C03",
+      "scenario": "Authoritative bank amount insufficient",
+      "expected": "BREAK",
+      "implemented": false
+    },
+    {
+      "id": "C04",
+      "scenario": "Replay K2 after K3 correction",
+      "expected": "MATCH",
+      "implemented": false
+    },
+    {
+      "id": "C05",
+      "scenario": "Source coverage incomplete, no demonstrated contradiction",
+      "expected": "UNKNOWN",
+      "implemented": false
+    },
+    {
+      "id": "C06",
+      "scenario": "Ambiguous operation identity",
+      "expected": "UNKNOWN",
+      "implemented": false
+    },
+    {
+      "id": "C07",
+      "scenario": "Scale mismatch unresolved",
+      "expected": "UNKNOWN",
+      "implemented": false
+    },
+    {
+      "id": "C08",
+      "scenario": "Duplicate delivery",
+      "expected": "NO_DUPLICATE_EFFECT",
+      "implemented": false
+    },
+    {
+      "id": "C09",
+      "scenario": "Classic and SAC same economic effect",
+      "expected": "NO_DUPLICATE_EFFECT",
+      "implemented": false
+    },
+    {
+      "id": "C10",
+      "scenario": "Failed Stellar transaction",
+      "expected": "NO_SUCCESS_EFFECT",
+      "implemented": false
+    },
+    {
+      "id": "C11",
+      "scenario": "Unsupported custom contract",
+      "expected": "UNKNOWN",
+      "implemented": false
+    },
+    {
+      "id": "C12",
+      "scenario": "Withdraw sole cash support",
+      "expected": "UNKNOWN",
+      "implemented": false
+    },
+    {
+      "id": "C13",
+      "scenario": "Offline replay",
+      "expected": "REPRODUCED",
+      "implemented": false
+    },
+    {
+      "id": "C14",
+      "scenario": "Altered bundle byte",
+      "expected": "REJECT",
+      "implemented": false
+    },
+    {
+      "id": "C15",
+      "scenario": "Path traversal in bundle",
+      "expected": "REJECT",
+      "implemented": false
+    },
+    {
+      "id": "C16",
+      "scenario": "Source schema drift",
+      "expected": "QUARANTINE",
+      "implemented": false
+    },
+    {
+      "id": "C17",
+      "scenario": "Obsolete epoch worker completion",
+      "expected": "NOT_CURRENT",
+      "implemented": false
+    },
+    {
+      "id": "C18",
+      "scenario": "New observation matches absence predicate",
+      "expected": "INVALIDATE",
+      "implemented": false
+    },
+    {
+      "id": "C19",
+      "scenario": "Rule changes",
+      "expected": "NEW_EVALUATION",
+      "implemented": false
+    },
+    {
+      "id": "C20",
+      "scenario": "Prompt injection in CSV",
+      "expected": "NO_TOOL_ESCALATION",
+      "implemented": false
+    }
+  ]
+}

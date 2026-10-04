@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "bundle_id": "oeb-synthetic-K2-draft",
+  "tenant_id": "tenant-synthetic-demo",
+  "operation_ref": "SUB-0001",
+  "snapshot_id": "snap-K2",
+  "query": {
+    "valid_at": "2026-10-01T17:00:00Z",
+    "known_at": "2026-10-01T18:00:00Z",
+    "mode": "as_known"
+  },
+  "versions": null,
+  "expected_result": "MATCH",
+  "artifacts": [
+    {
+      "path": "coverage.json",
+      "sha256": "7dafbcaa78e3e48f19dbabb52e792251017e822f7066df667cefbb827be065e0",
+      "media_type": "application/json",
+      "required_for": [
+        "R1",
+        "R2"
+      ]
+    },
+    {
+      "path": "identity_links.json",
+      "sha256": "67a25daeb39face6120f57d0778b3a1519e8dc7d472c0d5fb500d351430d3216",
+      "media_type": "application/json",
+      "required_for": [
+        "R1",
+        "R2"
+      ]
+    },
+    {
+      "path": "mappings/bank-csv-synthetic.json",
+      "sha256": "e999851d43f1584a2f9bbee11b2d25d83541d44edb6f9a145d6f87dc6fb71aa9",
+      "media_type": "application/json",
+      "required_for": [
+        "R2"
+      ]
+    },
+    {
+      "path": "mappings/oms-csv-synthetic.json",
+      "sha256": "15fc45d65dd032f3116cb2099d683ab0843ade2bb8764420fc095708f0f10908",
+      "media_type": "application/json",
+      "required_for": [
+        "R2"
+      ]
+    },
+    {
+      "path": "mappings/ta-csv-synthetic.json",
+      "sha256": "cb2ce05bd672d4de2e573ee75c9b9b438b479c6d1a578fa5b2a37e9c37eddfe7",
+      "media_type": "application/json",
+      "required_for": [
+        "R2"
+      ]
+    },
+    {
+      "path": "observations/main.json",
+      "sha256": "c37e37bac36fc8b141c73ee6aa4dc10fac9a9ca675c4b9f50779d2c4833d241a",
+      "media_type": "application/json",
+      "required_for": [
+        "R1",
+        "R2"
+      ]
+    },
+    {
+      "path": "profile.json",
+      "sha256": "9d546421b835b068cd1453460498c5da5a48919d056edd5bae2c38ac008bfd9d",
+      "media_type": "application/json",
+      "required_for": [
+        "R1",
+        "R2"
+      ]
+    },
+    {
+      "path": "raw/bank_statement_2026-10-01.csv",
+      "sha256": "204ff715e2a9b1ddf0f5803cdbd3867b7f02a998f4f6937bc1e6d62b144225d7",
+      "media_type": "text/csv",
+      "required_for": [
+        "R2"
+      ]
+    },
+    {
+      "path": "raw/oms_orders_2026-10-01.csv",
+      "sha256": "8e854f5833ecb66cd48a827b26f1108d9dcfd09b09577bde8a50075d5faa66af",
+      "media_type": "text/csv",
+      "required_for": [
+        "R2"
+      ]
+    },
+    {
+      "path": "raw/stellar_frozen_2026-10-01.json",
+      "sha256": "4548f1ba8fbe1cf11923685ac156b34d07c65ab35517fae0487e50e764f1dd97",
+      "media_type": "application/json",
+      "required_for": [
+        "R2"
+      ]
+    },
+    {
+      "path": "raw/ta_register_2026-10-01.csv",
+      "sha256": "8852591227d3872f19c1dd1f90423119744b5c7e7386aea5379507572e9fbdbd",
+      "media_type": "text/csv",
+      "required_for": [
+        "R2"
+      ]
+    }
+  ],
+  "disclosure": "synthetic_public",
+  "integrity": {
+    "signature": "not_implemented",
+    "replay": "not_implemented",
+    "export_format": "not_implemented"
+  }
+}

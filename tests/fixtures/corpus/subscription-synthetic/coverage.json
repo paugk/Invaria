@@ -1,0 +1,319 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-subscription-synthetic",
+  "synthetic": true,
+  "certificates": [
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-oms-k1",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "oms-synthetic",
+      "fact_types": [
+        "order_accepted"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T09:45:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "8e854f5833ecb66cd48a827b26f1108d9dcfd09b09577bde8a50075d5faa66af"
+      ],
+      "recorded_at": "2026-10-01T09:50:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-k1",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T09:45:00Z"
+      },
+      "ledger_range": {
+        "first": 1000001,
+        "last": 1000180
+      },
+      "level": "internally_checked",
+      "method": "synthetic fixture: contiguous frozen ledger range",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "4548f1ba8fbe1cf11923685ac156b34d07c65ab35517fae0487e50e764f1dd97"
+      ],
+      "recorded_at": "2026-10-01T09:50:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-ambiguous-k1",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T09:45:00Z"
+      },
+      "ledger_range": {
+        "first": 1000001,
+        "last": 1000180
+      },
+      "level": "internally_checked",
+      "method": "synthetic fixture: contiguous frozen ledger range",
+      "records_received": 2,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "568234355822af1790b9d4e8d09eb6a5451031b222f8a23d4e1cd83f8339209b"
+      ],
+      "recorded_at": "2026-10-01T09:50:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-oms-k2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "oms-synthetic",
+      "fact_types": [
+        "order_accepted"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "8e854f5833ecb66cd48a827b26f1108d9dcfd09b09577bde8a50075d5faa66af"
+      ],
+      "recorded_at": "2026-10-01T17:20:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-k2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": {
+        "first": 1000001,
+        "last": 1007300
+      },
+      "level": "internally_checked",
+      "method": "synthetic fixture: contiguous frozen ledger range",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "4548f1ba8fbe1cf11923685ac156b34d07c65ab35517fae0487e50e764f1dd97"
+      ],
+      "recorded_at": "2026-10-01T17:45:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-ambiguous-k2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": {
+        "first": 1000001,
+        "last": 1007300
+      },
+      "level": "internally_checked",
+      "method": "synthetic fixture: contiguous frozen ledger range",
+      "records_received": 2,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "568234355822af1790b9d4e8d09eb6a5451031b222f8a23d4e1cd83f8339209b"
+      ],
+      "recorded_at": "2026-10-01T17:45:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-k2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "204ff715e2a9b1ddf0f5803cdbd3867b7f02a998f4f6937bc1e6d62b144225d7"
+      ],
+      "recorded_at": "2026-10-01T17:30:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-resent-k2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "de785921965bf2200a6db6bb0714cd944afbcd2b491da09368a483119dc0b357"
+      ],
+      "recorded_at": "2026-10-01T17:35:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-k2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "8852591227d3872f19c1dd1f90423119744b5c7e7386aea5379507572e9fbdbd"
+      ],
+      "recorded_at": "2026-10-01T17:40:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-scale-ambiguous-k2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export, 1 row quarantined (units without 7 decimals)",
+      "records_received": 1,
+      "records_quarantined": 1,
+      "gaps": [],
+      "raw_sha256": [
+        "48f145214c6d4c250753308178b79df72737348188647ec7bbe4f34147d564ec"
+      ],
+      "recorded_at": "2026-10-01T17:40:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-k3",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: corrected statement for the same period",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "2a29904c0b97d0d1772ddd7168950aed8cad5c5fc308c5628b586513ab17dc8c"
+      ],
+      "recorded_at": "2026-10-02T09:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-retraction-k3",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-10-01T17:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: bank withdrew PAY-0001 for the same period",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "316ed4c717a74c22ea1c243e1cc917bb4913d5bc6f0896b6a44fe585636c64c6"
+      ],
+      "recorded_at": "2026-10-02T09:00:00Z",
+      "synthetic": true
+    }
+  ]
+}

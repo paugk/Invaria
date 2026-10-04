@@ -1,0 +1,601 @@
+{
+  "$defs": {
+    "ControlSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "comparison": {
+          "const": "exact_equal",
+          "title": "Comparison",
+          "type": "string"
+        },
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "failure_code": {
+          "enum": [
+            "CASH_AMOUNT_MISMATCH",
+            "UNITS_MISMATCH",
+            "ORDER_TERMS_INCONSISTENT"
+          ],
+          "title": "Failure Code",
+          "type": "string"
+        },
+        "left": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Left",
+          "type": "string"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "on_conflict": {
+          "const": "UNKNOWN",
+          "title": "On Conflict",
+          "type": "string"
+        },
+        "on_unsupported": {
+          "const": "UNKNOWN",
+          "title": "On Unsupported",
+          "type": "string"
+        },
+        "requires": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requires",
+          "type": "array"
+        },
+        "right": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Right",
+          "type": "string"
+        },
+        "when_missing": {
+          "const": "UNKNOWN",
+          "title": "When Missing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "mandatory",
+        "requires",
+        "comparison",
+        "left",
+        "right",
+        "failure_code",
+        "when_missing",
+        "on_conflict",
+        "on_unsupported"
+      ],
+      "title": "ControlSpec",
+      "type": "object"
+    },
+    "Correlation": {
+      "additionalProperties": false,
+      "properties": {
+        "account_link": {
+          "const": "approved_identity_link",
+          "title": "Account Link",
+          "type": "string"
+        },
+        "chain_link": {
+          "const": "explicit_execution_link_only",
+          "title": "Chain Link",
+          "type": "string"
+        },
+        "institutional_link": {
+          "const": "operation_ref_equals_order_ref",
+          "title": "Institutional Link",
+          "type": "string"
+        },
+        "operation_key": {
+          "const": "order_ref",
+          "title": "Operation Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_key",
+        "institutional_link",
+        "chain_link",
+        "account_link"
+      ],
+      "title": "Correlation",
+      "type": "object"
+    },
+    "CoverageRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "fact_types": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Types",
+          "type": "array"
+        },
+        "gaps_allowed": {
+          "const": false,
+          "title": "Gaps Allowed",
+          "type": "boolean"
+        },
+        "min_level": {
+          "enum": [
+            "provider_claimed",
+            "internally_checked",
+            "independently_verified"
+          ],
+          "title": "Min Level",
+          "type": "string"
+        },
+        "must_cover": {
+          "const": "order_valid_time_to_valid_at",
+          "title": "Must Cover",
+          "type": "string"
+        },
+        "quarantined_records_allowed": {
+          "const": false,
+          "title": "Quarantined Records Allowed",
+          "type": "boolean"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "fact_types",
+        "min_level",
+        "must_cover",
+        "gaps_allowed",
+        "quarantined_records_allowed"
+      ],
+      "title": "CoverageRequirement",
+      "type": "object"
+    },
+    "EvidencePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "absent": {
+          "const": "UNKNOWN",
+          "title": "Absent",
+          "type": "string"
+        },
+        "conflicting_authoritative": {
+          "const": "UNKNOWN",
+          "title": "Conflicting Authoritative",
+          "type": "string"
+        },
+        "correction": {
+          "const": "latest_revision_known_at_snapshot",
+          "title": "Correction",
+          "type": "string"
+        },
+        "duplicate_different_content": {
+          "const": "SOURCE_CONFLICT",
+          "title": "Duplicate Different Content",
+          "type": "string"
+        },
+        "duplicate_same_content": {
+          "const": "single_effect",
+          "title": "Duplicate Same Content",
+          "type": "string"
+        },
+        "failed_chain_transaction": {
+          "const": "no_economic_effect",
+          "title": "Failed Chain Transaction",
+          "type": "string"
+        },
+        "retraction_without_replacement": {
+          "const": "UNKNOWN_LOSS_OF_SUPPORT",
+          "title": "Retraction Without Replacement",
+          "type": "string"
+        },
+        "technical_error": {
+          "const": "UNKNOWN",
+          "title": "Technical Error",
+          "type": "string"
+        }
+      },
+      "required": [
+        "absent",
+        "conflicting_authoritative",
+        "correction",
+        "retraction_without_replacement",
+        "duplicate_same_content",
+        "duplicate_different_content",
+        "failed_chain_transaction",
+        "technical_error"
+      ],
+      "title": "EvidencePolicy",
+      "type": "object"
+    },
+    "InstrumentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "instrument_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Instrument Id",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instrument_id",
+        "unit",
+        "scale",
+        "description",
+        "synthetic"
+      ],
+      "title": "InstrumentRef",
+      "type": "object"
+    },
+    "Pricing": {
+      "additionalProperties": false,
+      "properties": {
+        "cash_scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Cash Scale",
+          "type": "integer"
+        },
+        "cash_unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Cash Unit",
+          "type": "string"
+        },
+        "fees": {
+          "const": "none",
+          "title": "Fees",
+          "type": "string"
+        },
+        "price_per_unit": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "rounding": {
+          "const": "reject",
+          "title": "Rounding",
+          "type": "string"
+        },
+        "tolerance": {
+          "const": "none",
+          "title": "Tolerance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cash_unit",
+        "cash_scale",
+        "price_per_unit",
+        "fees",
+        "rounding",
+        "tolerance"
+      ],
+      "title": "Pricing",
+      "type": "object"
+    },
+    "Quantity": {
+      "additionalProperties": false,
+      "description": "``{\"atoms\": \"1000000000\", \"scale\": 7, \"unit\": \"FUND_SHARE\"}`` is 100 shares.",
+      "properties": {
+        "atoms": {
+          "maxLength": 79,
+          "pattern": "^(0|-?[1-9][0-9]*)$",
+          "title": "Atoms",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "atoms",
+        "scale",
+        "unit"
+      ],
+      "title": "Quantity",
+      "type": "object"
+    },
+    "SourceAuthority": {
+      "additionalProperties": false,
+      "description": "Authority is per fact type. No source is a universal source of truth.",
+      "properties": {
+        "authoritative_for": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Authoritative For",
+          "type": "array"
+        },
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "order_management",
+            "bank",
+            "transfer_agent",
+            "stellar_ledger"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "mapping_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "parser_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Parser Ref",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "kind",
+        "authoritative_for",
+        "mapping_ref",
+        "parser_ref",
+        "description"
+      ],
+      "title": "SourceAuthority",
+      "type": "object"
+    },
+    "StellarClassicRepresentation": {
+      "additionalProperties": false,
+      "description": "A Stellar Classic asset: network + asset code + issuer.\n\nClassic amounts carry 7 decimals. Access through the Stellar Asset Contract (SAC) is\nthe same underlying asset and must never be counted as a second issuance; the\nsynthetic profile does not ingest SAC events at all (declared unsupported).",
+      "properties": {
+        "amount_scale": {
+          "const": 7,
+          "title": "Amount Scale",
+          "type": "integer"
+        },
+        "asset_code": {
+          "pattern": "^[A-Za-z0-9]{1,12}$",
+          "title": "Asset Code",
+          "type": "string"
+        },
+        "instrument_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Instrument Id",
+          "type": "string"
+        },
+        "issuer": {
+          "title": "Issuer",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "stellar:testnet",
+            "stellar:pubnet"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "network_passphrase": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Network Passphrase",
+          "type": "string"
+        },
+        "representation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Representation Id",
+          "type": "string"
+        },
+        "standard": {
+          "const": "stellar_classic",
+          "title": "Standard",
+          "type": "string"
+        }
+      },
+      "required": [
+        "representation_id",
+        "instrument_id",
+        "standard",
+        "network",
+        "network_passphrase",
+        "asset_code",
+        "issuer",
+        "amount_scale"
+      ],
+      "title": "StellarClassicRepresentation",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:operation-profile:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "controls": {
+      "items": {
+        "$ref": "#/$defs/ControlSpec"
+      },
+      "minItems": 1,
+      "title": "Controls",
+      "type": "array"
+    },
+    "correlation": {
+      "$ref": "#/$defs/Correlation"
+    },
+    "coverage_requirements": {
+      "items": {
+        "$ref": "#/$defs/CoverageRequirement"
+      },
+      "title": "Coverage Requirements",
+      "type": "array"
+    },
+    "disclaimer": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "evidence_policy": {
+      "$ref": "#/$defs/EvidencePolicy"
+    },
+    "instrument": {
+      "$ref": "#/$defs/InstrumentRef"
+    },
+    "operation_type": {
+      "const": "subscription",
+      "title": "Operation Type",
+      "type": "string"
+    },
+    "pricing": {
+      "$ref": "#/$defs/Pricing"
+    },
+    "profile_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Profile Ref",
+      "type": "string"
+    },
+    "representation_ratio": {
+      "const": "1:1",
+      "title": "Representation Ratio",
+      "type": "string"
+    },
+    "representations": {
+      "items": {
+        "$ref": "#/$defs/StellarClassicRepresentation"
+      },
+      "minItems": 1,
+      "title": "Representations",
+      "type": "array"
+    },
+    "result_precedence": {
+      "const": "BREAK>UNKNOWN>MATCH",
+      "title": "Result Precedence",
+      "type": "string"
+    },
+    "rules_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Rules Ref",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceAuthority"
+      },
+      "minItems": 1,
+      "title": "Sources",
+      "type": "array"
+    },
+    "synthetic": {
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "unsupported": {
+      "items": {
+        "enum": [
+          "fees",
+          "partial_fill",
+          "multiple_cash_payments",
+          "variable_nav",
+          "fx_conversion",
+          "rounding",
+          "omnibus_account",
+          "distributor_delivery",
+          "sac_events",
+          "soroban_custom_token",
+          "redemption",
+          "amount_time_matching"
+        ],
+        "type": "string"
+      },
+      "title": "Unsupported",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "profile_ref",
+    "operation_type",
+    "synthetic",
+    "disclaimer",
+    "instrument",
+    "representations",
+    "representation_ratio",
+    "pricing",
+    "correlation",
+    "sources",
+    "coverage_requirements",
+    "controls",
+    "rules_ref",
+    "result_precedence",
+    "evidence_policy",
+    "unsupported"
+  ],
+  "title": "OperationProfile",
+  "type": "object"
+}

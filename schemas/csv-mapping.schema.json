@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "CsvLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "max_bytes": {
+          "maximum": 100000000,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_rows": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Rows",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_bytes",
+        "max_rows"
+      ],
+      "title": "CsvLimits",
+      "type": "object"
+    },
+    "IdentifierField": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "kind": {
+          "const": "identifier",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "column"
+      ],
+      "title": "IdentifierField",
+      "type": "object"
+    },
+    "QuantityField": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "decimals": {
+          "enum": [
+            "exact",
+            "up_to_scale"
+          ],
+          "title": "Decimals",
+          "type": "string"
+        },
+        "kind": {
+          "const": "quantity",
+          "title": "Kind",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "sign": {
+          "const": "non_negative",
+          "title": "Sign",
+          "type": "string"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        },
+        "unit_column": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unit Column"
+        }
+      },
+      "required": [
+        "kind",
+        "column",
+        "unit",
+        "unit_column",
+        "scale",
+        "decimals",
+        "sign"
+      ],
+      "title": "QuantityField",
+      "type": "object"
+    },
+    "StatusSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "assertion_values": {
+          "items": {
+            "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assertion Values",
+          "type": "array"
+        },
+        "column": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "retraction_values": {
+          "items": {
+            "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+            "type": "string"
+          },
+          "title": "Retraction Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "column",
+        "assertion_values",
+        "retraction_values"
+      ],
+      "title": "StatusSpec",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:csv-mapping:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "columns": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$",
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Columns",
+      "type": "array"
+    },
+    "delimiter": {
+      "enum": [
+        ",",
+        ";"
+      ],
+      "title": "Delimiter",
+      "type": "string"
+    },
+    "encoding": {
+      "const": "utf-8",
+      "title": "Encoding",
+      "type": "string"
+    },
+    "fact_type": {
+      "enum": [
+        "order_accepted",
+        "cash_settled",
+        "units_registered"
+      ],
+      "title": "Fact Type",
+      "type": "string"
+    },
+    "limits": {
+      "$ref": "#/$defs/CsvLimits"
+    },
+    "mapping_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Mapping Ref",
+      "type": "string"
+    },
+    "operation_ref_column": {
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "title": "Operation Ref Column",
+      "type": "string"
+    },
+    "parser_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Parser Ref",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": {
+        "discriminator": {
+          "mapping": {
+            "identifier": "#/$defs/IdentifierField",
+            "quantity": "#/$defs/QuantityField"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/QuantityField"
+          },
+          {
+            "$ref": "#/$defs/IdentifierField"
+          }
+        ]
+      },
+      "title": "Payload",
+      "type": "object"
+    },
+    "record_key_column": {
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "title": "Record Key Column",
+      "type": "string"
+    },
+    "revision_column": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Revision Column"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StatusSpec"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "synthetic": {
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "valid_time_column": {
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "title": "Valid Time Column",
+      "type": "string"
+    },
+    "valid_time_format": {
+      "const": "iso8601_utc_z",
+      "title": "Valid Time Format",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "mapping_ref",
+    "parser_ref",
+    "source_id",
+    "fact_type",
+    "synthetic",
+    "encoding",
+    "delimiter",
+    "columns",
+    "limits",
+    "record_key_column",
+    "revision_column",
+    "operation_ref_column",
+    "valid_time_column",
+    "valid_time_format",
+    "status",
+    "payload"
+  ],
+  "title": "CsvMapping",
+  "type": "object"
+}

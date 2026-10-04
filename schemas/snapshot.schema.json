@@ -1,0 +1,106 @@
+{
+  "$id": "urn:invaria:schema:snapshot:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Closed snapshot: explicit membership, two times and an explicit evaluation clock.\n\nReplay uses this membership, never \"everything recorded before known_at\" re-queried\nlater, and never the wall clock.",
+  "properties": {
+    "coverage_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "maxItems": 10000,
+      "title": "Coverage Ids",
+      "type": "array"
+    },
+    "evaluation_clock": {
+      "format": "date-time",
+      "title": "Evaluation Clock",
+      "type": "string"
+    },
+    "identity_link_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "maxItems": 10000,
+      "title": "Identity Link Ids",
+      "type": "array"
+    },
+    "known_at": {
+      "format": "date-time",
+      "title": "Known At",
+      "type": "string"
+    },
+    "mapping_refs": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Mapping Refs",
+      "type": "array"
+    },
+    "observation_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "maxItems": 10000,
+      "title": "Observation Ids",
+      "type": "array"
+    },
+    "operation_ref": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Operation Ref",
+      "type": "string"
+    },
+    "profile_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Profile Ref",
+      "type": "string"
+    },
+    "rules_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Rules Ref",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Snapshot Id",
+      "type": "string"
+    },
+    "tenant_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "valid_at": {
+      "format": "date-time",
+      "title": "Valid At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "tenant_id",
+    "operation_ref",
+    "valid_at",
+    "known_at",
+    "evaluation_clock",
+    "observation_ids",
+    "coverage_ids",
+    "identity_link_ids",
+    "profile_ref",
+    "rules_ref",
+    "mapping_refs"
+  ],
+  "title": "SnapshotRef",
+  "type": "object"
+}

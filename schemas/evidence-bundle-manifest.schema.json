@@ -1,0 +1,242 @@
+{
+  "$defs": {
+    "BundleArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "media_type": {
+          "enum": [
+            "application/json",
+            "text/csv"
+          ],
+          "title": "Media Type",
+          "type": "string"
+        },
+        "path": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "required_for": {
+          "items": {
+            "enum": [
+              "R1",
+              "R2"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Required For",
+          "type": "array"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "media_type",
+        "required_for"
+      ],
+      "title": "BundleArtifact",
+      "type": "object"
+    },
+    "BundleIntegrity": {
+      "additionalProperties": false,
+      "properties": {
+        "export_format": {
+          "const": "not_implemented",
+          "title": "Export Format",
+          "type": "string"
+        },
+        "replay": {
+          "const": "not_implemented",
+          "title": "Replay",
+          "type": "string"
+        },
+        "signature": {
+          "const": "not_implemented",
+          "title": "Signature",
+          "type": "string"
+        }
+      },
+      "required": [
+        "signature",
+        "replay",
+        "export_format"
+      ],
+      "title": "BundleIntegrity",
+      "type": "object"
+    },
+    "BundleQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "as_known",
+            "as_known_now"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "valid_at",
+        "known_at",
+        "mode"
+      ],
+      "title": "BundleQuery",
+      "type": "object"
+    },
+    "EvaluationVersions": {
+      "additionalProperties": false,
+      "properties": {
+        "casm": {
+          "const": "1.0",
+          "title": "Casm",
+          "type": "string"
+        },
+        "engine_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Engine Ref",
+          "type": "string"
+        },
+        "mapping_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Mapping Refs",
+          "type": "array"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "rules_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Rules Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "casm",
+        "profile_ref",
+        "rules_ref",
+        "mapping_refs",
+        "engine_ref"
+      ],
+      "title": "EvaluationVersions",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:evidence-bundle-manifest:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/BundleArtifact"
+      },
+      "maxItems": 10000,
+      "minItems": 1,
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "bundle_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Bundle Id",
+      "type": "string"
+    },
+    "disclosure": {
+      "enum": [
+        "synthetic_public",
+        "private"
+      ],
+      "title": "Disclosure",
+      "type": "string"
+    },
+    "expected_result": {
+      "anyOf": [
+        {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Expected Result"
+    },
+    "integrity": {
+      "$ref": "#/$defs/BundleIntegrity"
+    },
+    "operation_ref": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Operation Ref",
+      "type": "string"
+    },
+    "query": {
+      "$ref": "#/$defs/BundleQuery"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Snapshot Id",
+      "type": "string"
+    },
+    "tenant_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "versions": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EvaluationVersions"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "tenant_id",
+    "operation_ref",
+    "snapshot_id",
+    "query",
+    "versions",
+    "expected_result",
+    "artifacts",
+    "disclosure",
+    "integrity"
+  ],
+  "title": "EvidenceBundleManifest",
+  "type": "object"
+}

@@ -1,0 +1,44 @@
+[project]
+name = "invaria"
+version = "0.0.0"
+description = "Invaria core: canonical contracts, JSON Schemas and deterministic CSV ingestion. Evaluator not implemented."
+requires-python = ">=3.13,<3.14"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+dependencies = [
+    "pydantic>=2.12,<3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "hypothesis>=6",
+    "ruff>=0.14",
+    "mypy>=1.18",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "--strict-markers"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tests/contracts", "tests/ingest"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true

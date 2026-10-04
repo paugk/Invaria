@@ -1,0 +1,736 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-subscription-synthetic",
+  "synthetic": true,
+  "profile_ref": "fund-subscription-synthetic@1.0.0",
+  "scenarios": [
+    {
+      "scenario_id": "K1",
+      "title": "Order and token delivery known; bank and TA evidence not yet received",
+      "timeline_id": "main",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-K1",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T09:45:00Z",
+        "known_at": "2026-10-01T10:00:00Z",
+        "evaluation_clock": "2026-10-01T10:00:00Z",
+        "observation_ids": [
+          "obs-O1",
+          "obs-T1"
+        ],
+        "coverage_ids": [
+          "cov-chain-k1",
+          "cov-oms-k1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-O1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "The order terms are internally consistent (1,000 x USD 100.00 = USD 100,000.00) and 1,000 DEMOA reached the linked investor address in a successful transaction whose memo links it to SUB-0001. No bank or TA observation and no bank/TA coverage exist at known_at, so both controls are UNKNOWN (MISSING_EVIDENCE). Absence is never MATCH.",
+      "acceptance_refs": [
+        "C02"
+      ]
+    },
+    {
+      "scenario_id": "K2",
+      "title": "Bank USD 100,000.00 and TA 1,000 units with sufficient coverage",
+      "timeline_id": "main",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-K2",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-01T18:00:00Z",
+        "evaluation_clock": "2026-10-01T18:00:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-chain-k2",
+          "cov-oms-k2",
+          "cov-ta-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "Every mandatory control compares exact quantities that are equal: cash 10000000 atoms (scale 2) on both sides, units 10000000000 atoms (scale 7) for TA and token. All four sources have gap-free internally_checked coverage from the order time to valid_at. No fees, no rounding, no tolerance.",
+      "acceptance_refs": [
+        "C01"
+      ]
+    },
+    {
+      "scenario_id": "K3",
+      "title": "Bank correction replaces USD 100,000.00 with USD 99,500.00",
+      "timeline_id": "main",
+      "query_mode": "as_known_now",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-K3",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-02T09:30:00Z",
+        "evaluation_clock": "2026-10-02T09:30:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-B2",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-bank-k3",
+          "cov-chain-k2",
+          "cov-oms-k2",
+          "cov-ta-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "CASH_AMOUNT_MISMATCH",
+            "delta": {
+              "atoms": "-50000",
+              "scale": 2,
+              "unit": "USD"
+            }
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-B2",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "obs-B2 is revision 2 of bank record PAY-0001 and supersedes obs-B1, which stays in the journal. Settled cash 9950000 atoms vs required 10000000 atoms: delta -50000 atoms = USD -500.00 (equivalently 5 shares = 50000000 atoms at scale 7). The contradiction comes from the authoritative cash source with complete coverage, so it is a demonstrated BREAK. TA and token stay at 1,000: blockchain data is not adjusted to force a match.",
+      "acceptance_refs": [
+        "C03"
+      ]
+    },
+    {
+      "scenario_id": "K2-historical",
+      "title": "Replay of the K2 question after the K3 correction exists",
+      "timeline_id": "main",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-K2-historical",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-01T18:00:00Z",
+        "evaluation_clock": "2026-10-02T09:30:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-chain-k2",
+          "cov-oms-k2",
+          "cov-ta-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "Asked on 2026-10-02 (evaluation_clock) about what was justifiable at K2 (known_at 2026-10-01T18:00Z). obs-B2 was recorded at 2026-10-02T09:00Z, after known_at, so it is not a member of this closed snapshot. The historical MATCH is preserved; the current view (K3) is BREAK. History is not rewritten.",
+      "acceptance_refs": [
+        "C04"
+      ]
+    },
+    {
+      "scenario_id": "RETRACTION",
+      "title": "Bank withdraws its only cash confirmation without replacement",
+      "timeline_id": "retraction",
+      "query_mode": "as_known_now",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RETRACTION",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-02T09:30:00Z",
+        "evaluation_clock": "2026-10-02T09:30:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-B1-retraction",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-bank-retraction-k3",
+          "cov-chain-k2",
+          "cov-oms-k2",
+          "cov-ta-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "obs-B1-retraction is revision 2 of PAY-0001 with no payload. The cash control loses its only support and no alternative cash evidence is admissible, so it becomes UNKNOWN (LOSS_OF_SUPPORT). A withdrawn confirmation does not prove non-payment, so this is not BREAK.",
+      "acceptance_refs": [
+        "C12"
+      ]
+    },
+    {
+      "scenario_id": "DUPLICATE-DELIVERY",
+      "title": "The same Stellar observation is delivered twice",
+      "timeline_id": "duplicate-delivery",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-DUPLICATE-DELIVERY",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-01T18:00:00Z",
+        "evaluation_clock": "2026-10-01T18:00:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1",
+          "obs-T1-redelivery"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-chain-k2",
+          "cov-oms-k2",
+          "cov-ta-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "obs-T1-redelivery has the same source record (tx hash + operation index), revision, raw bytes and payload as obs-T1; only the delivery time differs. It is the same economic effect, applied once: delivered units are 1,000, not 2,000.",
+      "acceptance_refs": [
+        "C08"
+      ]
+    },
+    {
+      "scenario_id": "SOURCE-CONFLICT",
+      "title": "Bank resends PAY-0001 revision 1 with a different amount",
+      "timeline_id": "source-conflict",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-SOURCE-CONFLICT",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-01T18:00:00Z",
+        "evaluation_clock": "2026-10-01T18:00:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-B1-conflicting-resend",
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-bank-resent-k2",
+          "cov-chain-k2",
+          "cov-oms-k2",
+          "cov-ta-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "SOURCE_CONFLICT",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-O1",
+          "obs-R1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "Two deliveries claim to be revision 1 of the same bank record with different amounts (USD 100,000.00 vs USD 100,500.00). Without a recognised revision neither replaces the other; picking one would be silent overwrite. The profile maps this SOURCE_CONFLICT to UNKNOWN until the bank clarifies.",
+      "acceptance_refs": []
+    },
+    {
+      "scenario_id": "AMBIGUOUS-IDENTITY",
+      "title": "Two unlinked 1,000-unit deliveries could match the order",
+      "timeline_id": "ambiguous-identity",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-AMBIGUOUS-IDENTITY",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-01T18:00:00Z",
+        "evaluation_clock": "2026-10-01T18:00:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1",
+          "obs-TA1",
+          "obs-TA2"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-chain-ambiguous-k2",
+          "cov-oms-k2",
+          "cov-ta-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-R1"
+        ]
+      },
+      "rationale": "Both movements carry 1,000 DEMOA from the issuer to the linked investor address but neither has an execution link (no memo). Amount and time are candidate hints only (amount_time_matching is unsupported); choosing one, or summing both to 2,000, would resolve identity silently. Token control is UNKNOWN (AMBIGUOUS_MATCH).",
+      "acceptance_refs": [
+        "C06"
+      ]
+    },
+    {
+      "scenario_id": "AMBIGUOUS-SCALE",
+      "title": "TA row has units without the declared 7 decimals",
+      "timeline_id": "ambiguous-scale",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-AMBIGUOUS-SCALE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "SUB-0001",
+        "valid_at": "2026-10-01T17:00:00Z",
+        "known_at": "2026-10-01T18:00:00Z",
+        "evaluation_clock": "2026-10-01T18:00:00Z",
+        "observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-T1"
+        ],
+        "coverage_ids": [
+          "cov-bank-k2",
+          "cov-chain-k2",
+          "cov-oms-k2",
+          "cov-ta-scale-ambiguous-k2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-subscription-synthetic@1.0.0",
+        "rules_ref": "subscription-synthetic-rules@1.0.0",
+        "mapping_refs": [
+          "bank-csv-synthetic@1.0.0",
+          "oms-csv-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-csv-synthetic@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "QUARANTINED_INPUT",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-B1",
+          "obs-O1",
+          "obs-T1"
+        ]
+      },
+      "rationale": "The TA export contains units '1000' while mapping ta-csv-synthetic@1.0.0 requires exactly 7 decimals: it could mean 1,000 shares or 1,000 atoms. The row is quarantined, no observation is produced and the TA coverage records 1 quarantined record, so the TA control is UNKNOWN (QUARANTINED_INPUT), never a guessed scale.",
+      "acceptance_refs": [
+        "C07"
+      ]
+    }
+  ]
+}

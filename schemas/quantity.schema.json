@@ -1,0 +1,32 @@
+{
+  "$id": "urn:invaria:schema:quantity:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "``{\"atoms\": \"1000000000\", \"scale\": 7, \"unit\": \"FUND_SHARE\"}`` is 100 shares.",
+  "properties": {
+    "atoms": {
+      "maxLength": 79,
+      "pattern": "^(0|-?[1-9][0-9]*)$",
+      "title": "Atoms",
+      "type": "string"
+    },
+    "scale": {
+      "maximum": 38,
+      "minimum": 0,
+      "title": "Scale",
+      "type": "integer"
+    },
+    "unit": {
+      "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+      "title": "Unit",
+      "type": "string"
+    }
+  },
+  "required": [
+    "atoms",
+    "scale",
+    "unit"
+  ],
+  "title": "Quantity",
+  "type": "object"
+}

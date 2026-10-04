@@ -1,0 +1,35 @@
+{
+  "synthetic": true,
+  "notice": "Synthetic frozen Stellar observations. Not fetched from any network; hashes and accounts are derived from invaria:synthetic labels.",
+  "network": "stellar:testnet",
+  "records": [
+    {
+      "tx_hash": "38f369cafcc4dc32aaf9409683406dc8dcbfa6ea9cb28b7748069552b70e4b44",
+      "ledger": 1000123,
+      "closed_at": "2026-10-01T09:30:00Z",
+      "successful": true,
+      "memo_text": null,
+      "operation_index": 0,
+      "operation_type": "payment",
+      "asset_code": "DEMOA",
+      "asset_issuer": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "from": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "to": "GA2JRO6WKTHMJTH7TDAXHNDHWT5SF72VKABPO2G6RL5BCGKTNIPIBEKW",
+      "amount": "1000.0000000"
+    },
+    {
+      "tx_hash": "dc2fa755df47e9d6ae3dbe017a72283484eae7325962418af80a3aff144d7ca9",
+      "ledger": 1000140,
+      "closed_at": "2026-10-01T09:31:30Z",
+      "successful": true,
+      "memo_text": null,
+      "operation_index": 0,
+      "operation_type": "payment",
+      "asset_code": "DEMOA",
+      "asset_issuer": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "from": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "to": "GA2JRO6WKTHMJTH7TDAXHNDHWT5SF72VKABPO2G6RL5BCGKTNIPIBEKW",
+      "amount": "1000.0000000"
+    }
+  ]
+}
