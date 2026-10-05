@@ -585,7 +585,10 @@ def resolve_sac_contract(target: ChainTarget, horizon: Horizon | None = None) ->
         page = horizon.asset(target.asset_code, target.asset_issuer)
         records = page.document.get("_embedded", {}).get("records", [])
         published = {r.get("contract_id") for r in records}
-        if published != {derived}:
+        # Horizon shows contract_id only once the SAC is deployed. Undeployed Classic assets
+        # still emit CAP-67 unified events under the derived id (observed on testnet), so an
+        # absent id is accepted; any different id is a contradiction.
+        if not published <= {derived, None}:
             raise ValueError(
                 f"Horizon publishes SAC {sorted(map(str, published))}, derived {derived}"
             )

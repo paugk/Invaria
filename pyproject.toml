@@ -1,7 +1,7 @@
 [project]
 name = "invaria"
 version = "0.0.0"
-description = "Invaria core: canonical contracts, CSV ingestion, pure evaluator, offline R1 bundle replay and a read-only Stellar testnet adapter."
+description = "Invaria core: canonical contracts, CSV ingestion, pure evaluator, offline R1 bundle replay, read-only Stellar testnet adapter and append-only PostgreSQL persistence."
 requires-python = ">=3.13,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
@@ -9,11 +9,17 @@ dependencies = [
     "pydantic>=2.12,<3",
 ]
 
+[project.optional-dependencies]
+db = [
+    "psycopg[binary]>=3.2,<4",
+]
+
 [project.scripts]
 invaria = "invaria.cli:main"
 
 [dependency-groups]
 dev = [
+    "psycopg[binary]>=3.2,<4",
     "pytest>=8",
     "hypothesis>=6",
     "ruff>=0.14",
@@ -34,13 +40,16 @@ select = ["E", "F", "W", "I", "B", "UP", "RUF"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["--import-mode=importlib", "--strict-markers"]
-markers = ["live_testnet: queries the public Stellar testnet; opt-in via INVARIA_LIVE_TESTNET=1"]
+markers = [
+    "live_testnet: queries the public Stellar testnet; opt-in via INVARIA_LIVE_TESTNET=1",
+    "postgres: needs a real PostgreSQL; opt-in via INVARIA_TEST_DATABASE_URL",
+]
 
 [tool.mypy]
 python_version = "3.13"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["src", "tests/contracts", "tests/ingest", "tests/engine", "tests/bundle", "tests/stellar"]
+files = ["src", "tests/contracts", "tests/ingest", "tests/engine", "tests/bundle", "tests/stellar", "tests/persistence"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

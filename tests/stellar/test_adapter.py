@@ -708,3 +708,80 @@ def test_sac_cursor_pagination_stops_at_end_ledger(tmp_path: Path) -> None:
     assert all(not o.source.record_key.startswith("ab" * 32) for o in store.observations())
     checkpoint = store.get_checkpoint("testnet-usdc-gclcz", "rpc_sac_events")
     assert checkpoint is not None and checkpoint.records_received == len(events)
+
+
+# ------------------------------------------------- own testnet issuance (DEMOA)
+
+DEMOA_ISSUER = "GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP"
+T1 = "87835238a663f716a6065a3f588000c4f2a92fa7d03a33e13a5b494d7fae99a2"
+T2_FAILED = "29bca5708470cb6e912b1e97f3c55f64c038b74a9d3c266639ddd6bce6fb6126"
+T3_DUPLICATE = "00fd0148b4dc7d334169406bdc0af3829ffe53c72396c563b0077da4300d34bf"
+
+
+def _ingest_demoa(store: IngestStore) -> Any:
+    from invaria.contracts.chain import ExecutionLinkSet
+
+    links = parse_contract(
+        ExecutionLinkSet, (FIXTURES / "links/demoa-own.json").read_text("utf-8")
+    ).links
+    horizon, rpc = clients("demoa-own")
+    check = verify_network(horizon, rpc, "stellar:testnet")
+    own = target("demoa-own")
+    classic = ingest_horizon_payments(
+        own,
+        horizon,
+        store,
+        start_ledger=5027650,
+        end_ledger=5027672,
+        history=(check.horizon_elder_ledger, check.horizon_latest_ledger),
+        recorded_at=RECORDED_AT,
+        links=links,
+        page_limit=2,
+    )
+    sac = ingest_sac_events(
+        own,
+        rpc,
+        horizon,
+        store,
+        start_ledger=5027650,
+        end_ledger=5027672,
+        recorded_at=RECORDED_AT,
+        links=links,
+        page_limit=200,
+    )
+    return classic, sac
+
+
+def test_own_issuance_links_only_the_approved_delivery(tmp_path: Path) -> None:
+    store = IngestStore(tmp_path)
+    classic, sac = _ingest_demoa(store)
+    by_tx = {movement(o).chain.tx_hash: o for o in classic.appended}
+    assert set(by_tx) == {T1, T2_FAILED, T3_DUPLICATE}
+    delivery = by_tx[T1]
+    assert delivery.operation_ref == "SUB-0001"  # explicit ExecutionLink
+    assert movement(delivery).units.to_decimal_text() == "1000.0000000"
+    assert movement(delivery).from_address == DEMOA_ISSUER
+    assert by_tx[T3_DUPLICATE].operation_ref is None  # same memo, no link: not attributed
+    failed = movement(by_tx[T2_FAILED])
+    assert not failed.chain.tx_successful and by_tx[T2_FAILED].operation_ref is None
+    # unified mint events (memo text as to_muxed_id string) are the same effects
+    assert sac.complete and sac.appended == () and sac.duplicates == 2
+    assert classic.coverage is not None and classic.coverage.is_gap_free
+
+
+def test_undeployed_sac_is_accepted_but_a_different_published_id_is_not() -> None:
+    horizon, _ = clients("demoa-own")
+    own = target("demoa-own")
+    page = horizon.asset(own.asset_code, own.asset_issuer)
+    assert "contract_id" not in page.document["_embedded"]["records"][0]  # absent until deployed
+    assert resolve_sac_contract(own, horizon) == own.expected_sac_contract_id
+
+    class _Published(Horizon):
+        def asset(self, code: str, issuer: str) -> Page:
+            document = copy.deepcopy(page.document)
+            document["_embedded"]["records"][0]["contract_id"] = USDC_SAC
+            raw = json.dumps(document).encode()
+            return Page(page.locator, raw, hashlib.sha256(raw).hexdigest(), document)
+
+    with pytest.raises(ValueError, match="Horizon publishes SAC"):
+        resolve_sac_contract(own, _Published(horizon.base_url, horizon.client))

@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "links": [
+    {
+      "schema_version": "1.0",
+      "network": "stellar:testnet",
+      "tx_hash": "87835238a663f716a6065a3f588000c4f2a92fa7d03a33e13a5b494d7fae99a2",
+      "operation_index": 0,
+      "ordinal": 0,
+      "operation_ref": "SUB-0001",
+      "approval_ref": "approval-owner-2026-10-05-testnet-demo",
+      "recorded_at": "2026-10-05T01:00:00+00:00"
+    }
+  ]
+}

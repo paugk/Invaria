@@ -1,6 +1,10 @@
-# Fixtures Stellar testnet (datos reales de terceros)
+# Fixtures Stellar testnet
 
-**Estos datos son reales y públicos de Stellar testnet. No son nuestros y no tienen relación con la suscripción sintética DEMO-A ni con `SUB-0001`.** Ninguna observación de estas muestras tiene `operation_ref`: vincular un efecto on-chain a una operación exige un `ExecutionLink` explícito y aprobado, y aquí no existe ninguno. El corpus sintético (`tests/fixtures/corpus/`) usa cuentas y hashes derivados de etiquetas `invaria:synthetic:*`, que no existen en la red.
+Hay dos tipos de datos reales de testnet:
+- muestras de **terceros** (USDC), descritas en las secciones siguientes;
+- **nuestra emisión propia** de DEMOA (`demoa-own`), descrita al final.
+
+**Las muestras USDC son datos reales y públicos de terceros en Stellar testnet. No son nuestras y no tienen relación con la suscripción sintética DEMO-A ni con `SUB-0001`.** Ninguna observación de esas muestras tiene `operation_ref`: vincular un efecto on-chain a una operación exige un `ExecutionLink` explícito y aprobado, y aquí no existe ninguno. El corpus sintético (`tests/fixtures/corpus/`) usa cuentas y hashes derivados de etiquetas `invaria:synthetic:*`, que no existen en la red.
 
 ## Captura
 - **Fecha:** 2026-10-05T00:41 UTC. Cada intercambio guarda su propio `captured_at`.
@@ -37,6 +41,27 @@ USDC de testnet:
   - RPC muestra sus dos efectos sobre USDC: `mint` del emisor a GB4MM y `transfer` de GB4MM a `GAYF33…`.
 
 Los hashes completos están en las grabaciones y se verifican en `tests/stellar/test_adapter.py`.
+
+## Emisión propia: `demoa-own` (creada el 2026-10-05 con autorización de la responsable)
+
+| Elemento | Valor |
+|---|---|
+| Emisor `DEMOA` (`credit_alphanum12`) | `GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP` |
+| Inversor de prueba | `GC6XNJNZOULFUZJBYORCTVNWI6UX5AVOEDC7EXDQM77BPFMQA3VWOYLK` |
+| SAC derivado | `CC5E43MS34OKBBNBK7X56CZDTDODKJ3NO3O2UDFCNQ2FFQLK74EGFDRS`. No está desplegado: Horizon no publica `contract_id`, pero testnet emite igualmente los eventos unificados con este id. |
+
+**Claves.** Se generaron con Stellar CLI 28.1.0 en el almacén seguro del sistema (`stellar keys ... --secure-store`) y no están en el repositorio. Ambas cuentas se fondearon con friendbot.
+
+Transacciones (ledgers 5027650–5027672):
+
+| Ledger | Tx | Qué es | Resultado esperado y observado |
+|---|---|---|---|
+| 5027652 | `335a5271…a713` | Trustline del inversor a DEMOA | No es un movimiento |
+| 5027658 | `87835238…99a2` | Pago del emisor al inversor de 1.000,0000000 DEMOA, memo `SUB-0001` | Enlazado a `SUB-0001` **solo** por `links/demoa-own.json`. RPC: evento `mint` con `to_muxed_id` texto, mismo efecto. |
+| 5027664 | `29bca570…6126` | Inversor → emisor, 2.000 DEMOA con saldo 1.000 | **Fallida** (`op_underfunded`, comisión cobrada): `tx_successful=false`, sin efecto y sin evento. |
+| 5027669 | `00fd0148…34bf` | Segundo pago de 1.000 DEMOA con el mismo memo | **Sin enlace:** el memo no enlaza. RPC: `mint`, mismo efecto. |
+
+El enlace explícito (`links/demoa-own.json`, `approval-owner-2026-10-05-testnet-demo`) es el único motivo por el que T1 lleva `operation_ref = SUB-0001`. La institución, el banco y el TA de `SUB-0001` siguen siendo sintéticos; esta emisión no representa un fondo real.
 
 ## Límites
 - Testnet se reinicia periódicamente. Las grabaciones permiten reproducir todo offline; la prueba real (`INVARIA_LIVE_TESTNET=1`) se omite si la historia ya no contiene la muestra.

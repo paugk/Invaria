@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-05T00:59:49+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "f34ba4e12d193555885653e2f1f96bc534c27ca4d390279cd52b5791460d9cf4",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/assets?asset_code=DEMOA&asset_issuer=GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP"
+}

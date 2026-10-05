@@ -120,8 +120,8 @@ def run(args: argparse.Namespace) -> int:
     complete = result.complete
     if args.sac:
         print(
-            f"SAC contract {resolve_sac_contract(target, horizon)} (derived locally, "
-            f"matches Horizon /assets contract_id)"
+            f"SAC contract {resolve_sac_contract(target, horizon)} (derived locally; "
+            f"Horizon /assets publishes the same id, or none while the SAC is not deployed)"
         )
         sac = ingest_sac_events(
             target,

@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-subscription-testnet",
+  "synthetic": true,
+  "links": [
+    {
+      "schema_version": "1.0",
+      "link_id": "link-testnet-0001",
+      "account_ref": "acct-pseudo-0001",
+      "network": "stellar:testnet",
+      "address": "GC6XNJNZOULFUZJBYORCTVNWI6UX5AVOEDC7EXDQM77BPFMQA3VWOYLK",
+      "valid_from": "2026-10-05T00:00:00Z",
+      "valid_to": null,
+      "approval_ref": "approval-owner-2026-10-05-testnet-demo",
+      "recorded_at": "2026-10-05T00:00:00Z"
+    }
+  ]
+}

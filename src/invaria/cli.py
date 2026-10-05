@@ -16,6 +16,7 @@ from invaria.stellar import cli as stellar_cli
 from invaria.stellar.http import ChainUnavailable
 from invaria.stellar.sources import DataUnavailable, NetworkMismatch
 from invaria.vertical import run_vertical
+from invaria.vertical_testnet import run_testnet_vertical
 
 
 def _evaluate(corpus: Corpus, scenario_id: str) -> Evaluation:
@@ -126,6 +127,24 @@ def cmd_verify(bundle: Path, level: str, expected: str | None) -> int:
     return 0 if report.status == "REPRODUCED" else 1
 
 
+def cmd_demo_testnet(corpus: Path, stellar: Path, mappings: Path) -> int:
+    runs = run_testnet_vertical(corpus, stellar, mappings)
+    print("\n".join(runs[0].log[:3]))
+    failures = 0
+    for run in runs:
+        problems = run.mismatches()
+        failures += bool(problems)
+        print()
+        print(f"== {run.scenario.scenario_id}: {'ok' if not problems else 'MISMATCH'}")
+        for line in run.log[3:]:
+            print(line)
+        print("\n".join(explain(run.evaluation)))
+        for problem in problems:
+            print(f"    MISMATCH {problem}")
+    print(f"\n{len(runs) - failures}/{len(runs)} testnet scenarios reproduce their expected result")
+    return 1 if failures else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="invaria", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -150,6 +169,16 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--level", choices=["R1", "R2"], default="R1")
     verify.add_argument("--expect-manifest-sha256", dest="expected")
     stellar_cli.add_parser(sub)
+    testnet = sub.add_parser(
+        "demo-testnet", help="evaluate SUB-0001 with real testnet evidence (replayed offline)"
+    )
+    testnet.add_argument("corpus", type=Path, help="tests/fixtures/corpus/subscription-testnet")
+    testnet.add_argument("--stellar", type=Path, default=Path("tests/fixtures/stellar"))
+    testnet.add_argument(
+        "--mappings",
+        type=Path,
+        default=Path("tests/fixtures/corpus/subscription-synthetic/mappings"),
+    )
     return parser
 
 
@@ -158,6 +187,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         if args.command == "stellar":
             return stellar_cli.run(args)
+        if args.command == "demo-testnet":
+            return cmd_demo_testnet(args.corpus, args.stellar, args.mappings)
         if args.command == "verify":
             return cmd_verify(args.bundle, args.level, args.expected)
         corpus = load_corpus(args.corpus)

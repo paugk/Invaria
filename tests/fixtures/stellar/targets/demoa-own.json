@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-demoa-own",
+  "tenant_id": "tenant-testnet-demo",
+  "network": "stellar:testnet",
+  "asset_code": "DEMOA",
+  "asset_issuer": "GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP",
+  "account": "GC6XNJNZOULFUZJBYORCTVNWI6UX5AVOEDC7EXDQM77BPFMQA3VWOYLK",
+  "unit": "FUND_SHARE",
+  "instrument_id": "testnet:asset:DEMOA:GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP",
+  "representation_id": "rep-testnet-classic-DEMOA-GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": "CC5E43MS34OKBBNBK7X56CZDTDODKJ3NO3O2UDFCNQ2FFQLK74EGFDRS",
+  "synthetic": false,
+  "description": "Invaria's own testnet issuance of DEMOA (issuer GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP), observed for the test investor GC6XNJNZOULFUZJBYORCTVNWI6UX5AVOEDC7EXDQM77BPFMQA3VWOYLK. Created 2026-10-05 with the owner's authorization for the demo subscription SUB-0001; keys held by the owner in the OS secure store, never in the repository. Not a real fund."
+}
