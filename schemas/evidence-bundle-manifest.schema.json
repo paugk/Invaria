@@ -48,12 +48,18 @@
       "additionalProperties": false,
       "properties": {
         "export_format": {
-          "const": "not_implemented",
+          "enum": [
+            "not_implemented",
+            "directory_v1"
+          ],
           "title": "Export Format",
           "type": "string"
         },
         "replay": {
-          "const": "not_implemented",
+          "enum": [
+            "not_implemented",
+            "R1"
+          ],
           "title": "Replay",
           "type": "string"
         },

@@ -1,0 +1,114 @@
+{
+  "$id": "urn:invaria:schema:verification-report:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Verifier outcome. ``status`` is about the bundle; ``financial_result`` is the\nrecorded conclusion and travels separately: reproducing a BREAK is REPRODUCED.",
+  "properties": {
+    "artifacts_checked": {
+      "minimum": 0,
+      "title": "Artifacts Checked",
+      "type": "integer"
+    },
+    "bundle_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Bundle Id"
+    },
+    "financial_result": {
+      "anyOf": [
+        {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Financial Result"
+    },
+    "level": {
+      "enum": [
+        "R1",
+        "R2"
+      ],
+      "title": "Level",
+      "type": "string"
+    },
+    "local_engine_ref": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Local Engine Ref",
+      "type": "string"
+    },
+    "manifest_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Manifest Sha256"
+    },
+    "reasons": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "REPRODUCED",
+        "MISMATCH",
+        "INCOMPLETE",
+        "UNTRUSTED",
+        "REJECTED"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "trust": {
+      "enum": [
+        "unanchored",
+        "anchored_by_expected_manifest_sha256"
+      ],
+      "title": "Trust",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "level",
+    "status",
+    "financial_result",
+    "reasons",
+    "manifest_sha256",
+    "trust",
+    "local_engine_ref",
+    "artifacts_checked"
+  ],
+  "title": "VerificationReport",
+  "type": "object"
+}

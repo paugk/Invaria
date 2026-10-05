@@ -25,6 +25,7 @@ from invaria.contracts import (
     ScenarioCatalog,
     SnapshotRef,
 )
+from invaria.contracts.bundle import BundleEvidence, VerificationReport
 from invaria.contracts.mapping import CsvMapping
 
 CONTRACTS: dict[str, type[BaseModel]] = {
@@ -39,6 +40,8 @@ CONTRACTS: dict[str, type[BaseModel]] = {
     "scenario-catalog": ScenarioCatalog,
     "evidence-bundle-manifest": EvidenceBundleManifest,
     "csv-mapping": CsvMapping,
+    "bundle-evidence": BundleEvidence,
+    "verification-report": VerificationReport,
 }
 
 

@@ -43,7 +43,7 @@ La cobertura exigida es de nivel `internally_checked`, sin huecos ni filas en cu
 | `mappings/` | Mappings CSV versionados. Importar los CSV de `raw/` con ellos reproduce las observaciones institucionales y los certificados de cobertura (`tests/ingest/`). |
 | `observations/<timeline>.json` | Registro de entregas de cada línea temporal. Las correcciones y retiradas son revisiones nuevas con `supersedes`; nada se edita. Las observaciones comunes son idénticas entre líneas temporales. |
 | `coverage.json` | Certificados de cobertura por fuente e intervalo. |
-| `scenarios.json` | Snapshots cerrados y **resultados esperados escritos antes de que exista un evaluador** (el evaluador no está implementado), con su justificación. |
+| `scenarios.json` | Snapshots cerrados y **resultados esperados escritos antes de que existiera el evaluador**, con su justificación. `invaria check` los reproduce. |
 | `bundle_manifest_K2.draft.json` | Manifest inicial del paquete de evidencia de K2: hashes de artefactos. Firma, exportación y replay: `not_implemented`. |
 
 ## Escenarios

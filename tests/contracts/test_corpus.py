@@ -1,5 +1,5 @@
 """Structural coherence of the synthetic corpus. These tests do not evaluate scenarios:
-expected results are specifications for a future evaluator, which does not exist yet."""
+expected results are specifications; tests/engine checks that the evaluator reproduces them."""
 
 from __future__ import annotations
 

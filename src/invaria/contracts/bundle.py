@@ -1,7 +1,8 @@
-"""Initial OperationEvidenceBundle manifest contract.
+"""OperationEvidenceBundle contracts: manifest, frozen evidence and verification report.
 
-Draft only: describes artifacts and their hashes. Signing, safe archive export and
-offline replay are NOT implemented; the manifest states so explicitly.
+Implemented: directory bundles (``directory_v1``) with SHA-256 per artifact and offline
+replay at level R1. NOT implemented: signatures, trust store, R2 renormalisation and
+compressed archives; the manifest states so explicitly.
 """
 
 from __future__ import annotations
@@ -18,7 +19,10 @@ from invaria.contracts.base import (
     Sha256Hex,
     UtcDatetime,
 )
+from invaria.contracts.coverage import CoverageCertificate
 from invaria.contracts.evaluation import EvaluationVersions, FinancialResult
+from invaria.contracts.identity import IdentityLink
+from invaria.contracts.observation import Observation
 
 _SEGMENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
@@ -55,8 +59,8 @@ class BundleQuery(Contract):
 
 class BundleIntegrity(Contract):
     signature: Literal["not_implemented"]
-    replay: Literal["not_implemented"]
-    export_format: Literal["not_implemented"]
+    replay: Literal["not_implemented", "R1"]
+    export_format: Literal["not_implemented", "directory_v1"]
 
 
 class EvidenceBundleManifest(Contract):
@@ -77,4 +81,38 @@ class EvidenceBundleManifest(Contract):
         paths = [artifact.path for artifact in self.artifacts]
         if paths != sorted(set(paths)):
             raise ValueError("artifacts must be sorted by path without duplicates")
+        if self.integrity.replay == "R1":
+            if self.integrity.export_format != "directory_v1":
+                raise ValueError("R1 replay requires export_format directory_v1")
+            if self.versions is None or self.expected_result is None:
+                raise ValueError("R1 replay requires versions and expected_result")
         return self
+
+
+class BundleEvidence(Contract):
+    """Exactly the members of one snapshot, frozen for replay."""
+
+    schema_version: SchemaVersion
+    snapshot_id: Identifier
+    observations: list[Observation]
+    coverage: list[CoverageCertificate]
+    identity_links: list[IdentityLink]
+
+
+VerifierStatus = Literal["REPRODUCED", "MISMATCH", "INCOMPLETE", "UNTRUSTED", "REJECTED"]
+
+
+class VerificationReport(Contract):
+    """Verifier outcome. ``status`` is about the bundle; ``financial_result`` is the
+    recorded conclusion and travels separately: reproducing a BREAK is REPRODUCED."""
+
+    schema_version: SchemaVersion
+    bundle_id: Identifier | None
+    level: Literal["R1", "R2"]
+    status: VerifierStatus
+    financial_result: FinancialResult | None
+    reasons: list[Annotated[str, StringConstraints(min_length=1, max_length=2000)]]
+    manifest_sha256: Sha256Hex | None
+    trust: Literal["unanchored", "anchored_by_expected_manifest_sha256"]
+    local_engine_ref: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    artifacts_checked: Annotated[int, Field(ge=0)]
