@@ -21,6 +21,11 @@
       ],
       "title": "Bundle Id"
     },
+    "engine_source_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Engine Source Sha256",
+      "type": "string"
+    },
     "financial_result": {
       "anyOf": [
         {
@@ -72,10 +77,26 @@
       "title": "Reasons",
       "type": "array"
     },
+    "renormalized_observation_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Renormalized Observation Ids",
+      "type": "array"
+    },
     "schema_version": {
       "const": "1.0",
       "title": "Schema Version",
       "type": "string"
+    },
+    "signer_key_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Signer Key Ids",
+      "type": "array"
     },
     "status": {
       "enum": [
@@ -91,7 +112,9 @@
     "trust": {
       "enum": [
         "unanchored",
-        "anchored_by_expected_manifest_sha256"
+        "anchored_by_expected_manifest_sha256",
+        "trusted_signature",
+        "anchored_and_trusted_signature"
       ],
       "title": "Trust",
       "type": "string"
@@ -106,8 +129,11 @@
     "reasons",
     "manifest_sha256",
     "trust",
+    "signer_key_ids",
     "local_engine_ref",
-    "artifacts_checked"
+    "engine_source_sha256",
+    "artifacts_checked",
+    "renormalized_observation_ids"
   ],
   "title": "VerificationReport",
   "type": "object"

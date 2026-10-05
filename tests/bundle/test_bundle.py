@@ -235,7 +235,7 @@ def test_missing_artifact_is_incomplete(k3: Path) -> None:
     assert report.status == "INCOMPLETE" and "profile.json" in report.reasons[0]
 
 
-def test_r2_is_not_supported_yet(k3: Path) -> None:
+def test_r2_on_an_r1_bundle_is_incomplete(k3: Path) -> None:
     report = verify_bundle(k3, level="R2")
     assert report.status == "INCOMPLETE" and "R2" in report.reasons[0]
 

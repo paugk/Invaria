@@ -6,9 +6,13 @@ import argparse
 import hashlib
 import sys
 from collections.abc import Sequence
+from datetime import datetime
 from pathlib import Path
 
 from invaria.bundle import build_bundle, verify_bundle
+from invaria.bundle.signing import TrustPolicy, load_private_key, sign_bundle
+from invaria.contracts.base import parse_contract
+from invaria.contracts.bundle import TrustStore
 from invaria.corpus_loader import Corpus, load_corpus
 from invaria.engine.evaluate import Evaluation, evaluate
 from invaria.engine.explain import explain, explain_change, export_evaluation
@@ -95,33 +99,82 @@ def cmd_demo(corpus: Corpus) -> int:
     return 0
 
 
-def cmd_bundle(corpus: Corpus, scenario_id: str, out: Path) -> int:
+def _utc(text: str) -> datetime:
+    moment = datetime.fromisoformat(text)
+    offset = moment.utcoffset()
+    if offset is None or offset.total_seconds() != 0:
+        raise ValueError(f"time must be UTC with an explicit offset: {text!r}")
+    return moment
+
+
+def cmd_bundle(corpus: Corpus, scenario_id: str, out: Path, r2: bool) -> int:
     evaluation = _evaluate(corpus, scenario_id)
+    raw_sources = (
+        {f"raw/{f.name}": f.read_bytes() for f in sorted((corpus.root / "raw").iterdir())}
+        if r2
+        else None
+    )
     manifest = build_bundle(
         out,
         corpus.inputs_for(scenario_id),
         evaluation,
         mode=corpus.scenarios[scenario_id].query_mode,
+        raw_sources=raw_sources,
+        mappings=corpus.mappings if r2 else None,
     )
     digest = hashlib.sha256((out / "manifest.json").read_bytes()).hexdigest()
     print(f"bundle {manifest.bundle_id} -> {out}")
     print(f"result {manifest.expected_result}; manifest sha256 {digest}")
-    print("unsigned: share the manifest sha256 through a separate channel to anchor trust")
+    print("unsigned: sign it, or share the manifest sha256 through a separate channel")
     return 0
 
 
-def cmd_verify(bundle: Path, level: str, expected: str | None) -> int:
+def cmd_sign(bundle: Path, key_file: Path, key_id: str, signed_at: str) -> int:
+    report = verify_bundle(bundle)  # never sign what does not reproduce
+    if report.status != "REPRODUCED":
+        print(f"error: refusing to sign: bundle is {report.status}", file=sys.stderr)
+        for reason in report.reasons:
+            print(f"  - {reason}", file=sys.stderr)
+        return 1
+    signature = sign_bundle(
+        bundle, load_private_key(key_file), key_id=key_id, signed_at=_utc(signed_at)
+    )
+    print(f"signed manifest {signature.manifest_sha256} with {key_id} at {signed_at}")
+    return 0
+
+
+def cmd_verify(
+    bundle: Path,
+    level: str,
+    expected: str | None,
+    trust_store: Path | None,
+    trust_at: str | None,
+    min_signatures: int,
+) -> int:
+    store = (
+        parse_contract(TrustStore, trust_store.read_text("utf-8"))
+        if trust_store is not None
+        else None
+    )
+    policy = TrustPolicy(at=_utc(trust_at) if trust_at else None, min_signatures=min_signatures)
     report = verify_bundle(
-        bundle, level="R2" if level == "R2" else "R1", expected_manifest_sha256=expected
+        bundle,
+        level="R2" if level == "R2" else "R1",
+        expected_manifest_sha256=expected,
+        trust_store=store,
+        policy=policy,
     )
     print(
         f"status {report.status} | financial result {report.financial_result} | "
         f"level {report.level} | trust {report.trust}"
     )
     print(
-        f"manifest sha256 {report.manifest_sha256} | engine {report.local_engine_ref} | "
+        f"manifest sha256 {report.manifest_sha256} | engine {report.local_engine_ref} "
+        f"(source {report.engine_source_sha256[:16]}) | "
         f"artifacts checked {report.artifacts_checked}"
     )
+    if report.signer_key_ids:
+        print(f"trusted signers: {', '.join(report.signer_key_ids)}")
     for reason in report.reasons:
         print(f"  - {reason}")
     return 0 if report.status == "REPRODUCED" else 1
@@ -164,10 +217,19 @@ def build_parser() -> argparse.ArgumentParser:
     bundle.add_argument("corpus", type=Path)
     bundle.add_argument("scenario")
     bundle.add_argument("out", type=Path)
-    verify = sub.add_parser("verify", help="verify a bundle offline (R1 replay)")
+    bundle.add_argument("--r2", action="store_true", help="include raw CSV bytes and mappings")
+    sign = sub.add_parser("sign", help="add a detached Ed25519 signature to a bundle")
+    sign.add_argument("bundle", type=Path)
+    sign.add_argument("--key-file", type=Path, required=True, help="PEM PKCS#8, mode 600")
+    sign.add_argument("--key-id", required=True)
+    sign.add_argument("--signed-at", required=True, help="explicit UTC time, e.g. ...Z")
+    verify = sub.add_parser("verify", help="verify a bundle offline (R1/R2 replay)")
     verify.add_argument("bundle", type=Path)
     verify.add_argument("--level", choices=["R1", "R2"], default="R1")
     verify.add_argument("--expect-manifest-sha256", dest="expected")
+    verify.add_argument("--trust-store", type=Path, help="TrustStore JSON chosen by the verifier")
+    verify.add_argument("--trust-at", help="judge keys at this UTC time instead of signed_at")
+    verify.add_argument("--min-signatures", type=int, default=1)
     stellar_cli.add_parser(sub)
     testnet = sub.add_parser(
         "demo-testnet", help="evaluate SUB-0001 with real testnet evidence (replayed offline)"
@@ -190,7 +252,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "demo-testnet":
             return cmd_demo_testnet(args.corpus, args.stellar, args.mappings)
         if args.command == "verify":
-            return cmd_verify(args.bundle, args.level, args.expected)
+            return cmd_verify(
+                args.bundle,
+                args.level,
+                args.expected,
+                args.trust_store,
+                args.trust_at,
+                args.min_signatures,
+            )
+        if args.command == "sign":
+            return cmd_sign(args.bundle, args.key_file, args.key_id, args.signed_at)
         corpus = load_corpus(args.corpus)
         if args.command == "check":
             return cmd_check(corpus)
@@ -199,12 +270,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "explain-change":
             return cmd_explain_change(corpus, args.before, args.after)
         if args.command == "bundle":
-            return cmd_bundle(corpus, args.scenario, args.out)
+            return cmd_bundle(corpus, args.scenario, args.out, args.r2)
         return cmd_demo(corpus)
     except (ChainUnavailable, DataUnavailable, NetworkMismatch) as error:
         print(f"error: {type(error).__name__}: {error}", file=sys.stderr)
         return 3
-    except (KeyError, FileNotFoundError, FileExistsError, ValueError) as error:
+    except (KeyError, FileNotFoundError, FileExistsError, PermissionError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
 

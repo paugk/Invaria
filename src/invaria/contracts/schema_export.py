@@ -25,7 +25,12 @@ from invaria.contracts import (
     ScenarioCatalog,
     SnapshotRef,
 )
-from invaria.contracts.bundle import BundleEvidence, VerificationReport
+from invaria.contracts.bundle import (
+    BundleEvidence,
+    BundleSignatures,
+    TrustStore,
+    VerificationReport,
+)
 from invaria.contracts.chain import ChainTarget, ExecutionLinkSet, IngestionCheckpoint
 from invaria.contracts.mapping import CsvMapping
 
@@ -43,6 +48,8 @@ CONTRACTS: dict[str, type[BaseModel]] = {
     "csv-mapping": CsvMapping,
     "bundle-evidence": BundleEvidence,
     "verification-report": VerificationReport,
+    "bundle-signatures": BundleSignatures,
+    "trust-store": TrustStore,
     "chain-target": ChainTarget,
     "execution-link-set": ExecutionLinkSet,
     "ingestion-checkpoint": IngestionCheckpoint,

@@ -7,7 +7,7 @@ Invaria is an operational-integrity and reproducible-evidence layer for tokenize
 
 Invaria keeps the evidence needed to explain that conclusion.
 
-**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no signing and no API, and the Stellar adapter only covers a first subset.
+**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no API, and the Stellar adapter only covers a first subset.
 
 ## What is in this branch
 
@@ -18,9 +18,10 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Deterministic CSV ingestion with versioned declarative mappings | `src/invaria/ingest/` | Implemented and tested |
 | Pure evaluator, explanations and minimal export | `src/invaria/engine/` | Implemented; reproduces all 9 corpus scenarios |
 | Offline CLI (`invaria`) | `src/invaria/cli.py` | Implemented |
-| Directory evidence bundles with offline R1 replay | `src/invaria/bundle/` | Implemented; unsigned |
+| Directory evidence bundles: offline R1/R2 replay, detached Ed25519 signatures, hardened verifier | `src/invaria/bundle/` | Implemented; trust comes only from the verifier's own trust store |
 | Synthetic corpus: one demo fund subscription, 9 scenarios | `tests/fixtures/corpus/subscription-synthetic/` | Synthetic data; expected results written before the evaluator, now reproduced |
 | Golden bundle for scenario K3 | `tests/fixtures/bundles/K3/` | Must stay byte-identical to a fresh build |
+| Golden verifier corpus: 22 cases covering every verifier status | `tests/fixtures/bundles/corpus/` | Public keys and signatures only; no private key |
 | Read-only Stellar adapter (Horizon + RPC) | `src/invaria/stellar/` | Classic payments implemented; SAC subset implemented, other SAC cases explicitly excluded |
 | Recorded real Stellar testnet samples | `tests/fixtures/stellar/` | Third-party USDC samples and Invaria's own DEMOA issuance, replayed offline |
 | Demo subscription evaluated with real testnet evidence | `src/invaria/vertical_testnet.py`, `tests/fixtures/corpus/subscription-testnet/` | 4 scenarios; on-chain evidence replayed through the adapter |
@@ -35,7 +36,8 @@ Invaria keeps the evidence needed to explain that conclusion.
 - **Operation profile.** Authority per fact type, required coverage, exact pricing with no tolerance, controls, result precedence and declared unsupported capabilities.
 - **Closed snapshot reference.** Holds the economic time (`valid_at`), knowledge time (`known_at`) and an explicit evaluation clock.
 - **Control and evaluation results.** Precedence over mandatory controls is BREAK > UNKNOWN > MATCH. A technical error is UNKNOWN, never PASS.
-- **Evidence-bundle manifest, frozen evidence and verification report.** The manifest validates safe relative, sorted, unique paths and declares `replay: R1` and `export_format: directory_v1`. Signing stays explicitly `not_implemented`.
+- **Evidence-bundle manifest, frozen evidence and verification report.** The manifest validates safe relative, sorted, unique, case-insensitively distinct paths and declares `replay` (`R1` or `R2`) and `export_format: directory_v1`. Signatures are detached (`signature.json`), so the manifest field `integrity.signature` stays `not_implemented`.
+- **Bundle signatures and trust store.** Ed25519 signature records (key id, claimed `signed_at`, exact manifest sha256) and the verifier's trust store (keys, validity windows, purpose, revocation).
 - **CSV mapping.** Exact header, key, revision and time columns, status meanings, and quantity scale, unit and decimals. Declarative only: no expressions or code.
 
 ### CSV ingestion
@@ -58,18 +60,36 @@ Invaria keeps the evidence needed to explain that conclusion.
 - **Technical errors are UNKNOWN, never PASS:** a snapshot member missing from the store, a member recorded after `known_at`, a control the engine does not implement, or an unexpected exception.
 - **Explanations:** `explain_change` lists the controls and evidence that changed between two evaluations (e.g. K2 MATCH to K3 BREAK: the bank correction replaced the original confirmation). It does not claim a unique root cause.
 
-### Evidence bundles (R1)
-`invaria bundle` writes a directory with `manifest.json`, plus `snapshot.json`, `profile.json`, `evidence.json` (only snapshot members) and `evaluation.json`, all as canonical JSON with a SHA-256 per artifact. `invaria verify` re-runs the locally installed engine on the frozen artifacts, without network and without executing anything from the bundle. Verifier statuses:
+### Evidence bundles (R1, R2, signatures)
+`invaria bundle` writes a directory with `manifest.json`, plus `snapshot.json`, `profile.json`, `evidence.json` (only snapshot members) and `evaluation.json`, all as canonical JSON with a SHA-256 per artifact. With `--r2` it also includes the raw CSV files and mappings the observations cite. `invaria verify` re-runs the locally installed engine on the frozen artifacts, without network, without writing and without executing anything from the bundle. Verifier statuses:
 
 | Status | Meaning |
 |---|---|
-| `REPRODUCED` | The recorded evaluation is reproduced byte for byte. The financial result (e.g. BREAK) is reported in a separate field. |
-| `MISMATCH` | The artifacts are consistent but replay gives a different evaluation. |
-| `INCOMPLETE` | A required artifact is missing, R2 was requested, or the bundle names an engine that is not installed locally. |
-| `UNTRUSTED` | The manifest sha256 differs from an expected value received out of band. |
-| `REJECTED` | Hash mismatch, undeclared files, symlinks, unsafe paths, duplicate JSON keys or floats, invalid contracts, inconsistent membership or versions, or size limits exceeded. |
+| `REPRODUCED` | The recorded evaluation is reproduced byte for byte (and, at R2, every observation is rebuilt from its raw bytes). The financial result (e.g. BREAK) is reported in a separate field. |
+| `MISMATCH` | The artifacts are consistent but replay gives a different evaluation, or a raw row renormalises to different content. |
+| `INCOMPLETE` | A required artifact is missing, the bundle names an engine or parser not installed locally, or an observation cannot be renormalised at R2. |
+| `UNTRUSTED` | The manifest sha256 differs from an expected value received out of band, or the trust policy is not met. |
+| `REJECTED` | Hash mismatch, undeclared files or directories, symlinks (also in parent directories), hard links, FIFOs, unsafe or colliding paths, duplicate JSON keys, floats or excessive nesting, invalid contracts, inconsistent membership or versions, or size limits exceeded. |
 
-Bundles are **not signed**. A hash proves integrity relative to the manifest, not authenticity: an internally consistent forgery verifies as `REPRODUCED` unless you pass `--expect-manifest-sha256` with a digest obtained through another channel. A test demonstrates exactly this.
+Integrity of every present artifact is judged before availability: a tampered file is `REJECTED` even when another one is missing. Hostile input yields a report, never an exception. Every file is opened relative to the bundle's root descriptor without following symlinks.
+
+**R2.** Each CSV-derived observation is parsed again from the bundled raw bytes with its mapping and must match. Tenant and instrument come from the bundle's snapshot and profile, not from the observation. Each raw row backs one observation only. Observations without a local normaliser (on-chain evidence: the verifier never imports the Stellar adapter) make R2 `INCOMPLETE`, and the report lists what was renormalised. Coverage certificates and identity links are declarations, verified at R1 only.
+
+**Signatures and trust.** `invaria sign <bundle> --key-file K.pem --key-id ID --signed-at T` adds a detached Ed25519 signature. The key file must be mode 600. Signing never changes the manifest, and the command refuses to sign a bundle that does not reproduce. The signed preimage is the domain `INVARIA-OEB-v1\0` plus the canonical signature record, which binds the key id, `signed_at` and the exact manifest sha256.
+
+`invaria verify --trust-store S.json [--trust-at T] [--min-signatures N]` decides trust **only** from the trust store you supply; nothing inside the bundle can extend it. A signature counts only if all of these hold:
+- the key is known and trusted for bundle signing;
+- it covers this manifest and verifies cryptographically;
+- the key is valid at the reference time (`signed_at` by default, or `--trust-at`);
+- the key was not revoked before that time.
+
+A `key_compromise` revocation voids all of a key's signatures, since `signed_at` is claimed by the signer. Without a trust store, a present signature is not verified and the report says so.
+
+Without a signature or an expected manifest sha256, a hash proves integrity relative to the manifest, not authenticity: an internally consistent forgery verifies as `REPRODUCED`. A test demonstrates exactly this.
+
+**Golden corpus.** `tests/fixtures/bundles/corpus/` holds 22 cases, each a base bundle plus an overlay and an expected outcome, covering all five statuses. Its signatures were made with ephemeral keys that were then discarded; only public keys are stored.
+
+The report also carries the digest of the local replay code (`engine_source_sha256`).
 
 ### Stellar adapter (read-only)
 `invaria stellar check-network` and `invaria stellar ingest` read Stellar testnet over HTTPS and turn asset movements into canonical `token_movement` observations. They never sign, fund or submit anything.
@@ -187,13 +207,13 @@ After changing a contract, regenerate the schemas (a test fails if they drift):
 uv run python -m invaria.contracts.schema_export
 ```
 
-Runtime dependency: `pydantic`. Development: `pytest`, `hypothesis`, `ruff`, `mypy`. Exact versions are pinned in `uv.lock`.
+Runtime dependencies: `pydantic`, `cryptography` (Ed25519 only). Development: `pytest`, `hypothesis`, `ruff`, `mypy`. Exact versions are pinned in `uv.lock`.
 
 ## Not implemented yet
 
 - **Deadline rules:** no control uses the evaluation clock yet.
 - **Stellar beyond the first subset:** path payments, SAC contract and pool counterparties, muxed attribution, clawback, custom Soroban tokens, and independent verification of ledger checkpoints (on-chain coverage is `provider_claimed`).
-- **Evidence bundles:** signatures and trust policy, R2 replay from raw bytes, and compressed archives.
+- **Evidence bundles:** compressed archives, R3 (source proofs), R2 for on-chain evidence, third-party timestamping of signatures, and Windows-specific path rules.
 - **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; API, MCP server, UI.
 - **Other operations:** redemptions, fees, partial fills, multiple payments, FX, omnibus accounts.
 - **Other sources:** XLSX, SFTP, encodings other than UTF-8, locale-specific number formats.

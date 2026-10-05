@@ -1,4 +1,4 @@
-"""Directory evidence bundles and their offline R1 verifier."""
+"""Directory evidence bundles, detached signatures and their offline R1/R2 verifier."""
 
 from invaria.bundle.build import build_bundle, canonical_json
 from invaria.bundle.verify import verify_bundle

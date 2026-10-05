@@ -1,0 +1,69 @@
+{
+  "$defs": {
+    "BundleSignature": {
+      "additionalProperties": false,
+      "description": "Detached signature over the exact manifest bytes (through ``manifest_sha256``).\n\nSigned preimage: ``SIGNATURE_DOMAIN`` + canonical JSON of this record without\n``signature``. ``signed_at`` is claimed by the signer and is covered by the signature.",
+      "properties": {
+        "algorithm": {
+          "const": "Ed25519",
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "key_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Key Id",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "signature": {
+          "pattern": "^[0-9a-f]{128}$",
+          "title": "Signature",
+          "type": "string"
+        },
+        "signed_at": {
+          "format": "date-time",
+          "title": "Signed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "algorithm",
+        "key_id",
+        "signed_at",
+        "manifest_sha256",
+        "signature"
+      ],
+      "title": "BundleSignature",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:bundle-signatures:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "signatures": {
+      "items": {
+        "$ref": "#/$defs/BundleSignature"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Signatures",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "signatures"
+  ],
+  "title": "BundleSignatures",
+  "type": "object"
+}

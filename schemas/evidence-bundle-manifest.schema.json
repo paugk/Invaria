@@ -58,7 +58,8 @@
         "replay": {
           "enum": [
             "not_implemented",
-            "R1"
+            "R1",
+            "R2"
           ],
           "title": "Replay",
           "type": "string"
