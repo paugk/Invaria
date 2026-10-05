@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import sys
 from collections.abc import Sequence
 from datetime import datetime
@@ -198,6 +199,25 @@ def cmd_demo_testnet(corpus: Path, stellar: Path, mappings: Path) -> int:
     return 1 if failures else 0
 
 
+def cmd_mcp_serve(access_profile: Path, audit_log: Path | None) -> int:
+    """Serve the read-only consultative tools over stdio (needs the `mcp` and `db` extras)."""
+    import psycopg
+
+    from invaria.mcp_server import build_server
+    from invaria.persistence.store import READER_ROLE, PgStore
+    from invaria.query.models import AccessProfile
+    from invaria.query.service import AuditLog, QueryService
+
+    dsn = os.environ.get("INVARIA_DATABASE_URL")
+    if not dsn:
+        raise ValueError("set INVARIA_DATABASE_URL (kept outside the repository)")
+    access = parse_contract(AccessProfile, access_profile.read_text("utf-8"))
+    store = PgStore(psycopg.connect(dsn), role=READER_ROLE)
+    service = QueryService(store, access, AuditLog(audit_log) if audit_log else None)
+    build_server(service).run("stdio")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="invaria", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -230,6 +250,11 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--trust-store", type=Path, help="TrustStore JSON chosen by the verifier")
     verify.add_argument("--trust-at", help="judge keys at this UTC time instead of signed_at")
     verify.add_argument("--min-signatures", type=int, default=1)
+    mcp = sub.add_parser("mcp", help="read-only consultative MCP server")
+    mcp_sub = mcp.add_subparsers(dest="mcp_command", required=True)
+    serve = mcp_sub.add_parser("serve", help="serve over stdio; DSN from INVARIA_DATABASE_URL")
+    serve.add_argument("--access-profile", type=Path, required=True)
+    serve.add_argument("--audit-log", type=Path, help="append-only JSONL access log")
     stellar_cli.add_parser(sub)
     testnet = sub.add_parser(
         "demo-testnet", help="evaluate SUB-0001 with real testnet evidence (replayed offline)"
@@ -260,6 +285,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.trust_at,
                 args.min_signatures,
             )
+        if args.command == "mcp":
+            return cmd_mcp_serve(args.access_profile, args.audit_log)
         if args.command == "sign":
             return cmd_sign(args.bundle, args.key_file, args.key_id, args.signed_at)
         corpus = load_corpus(args.corpus)

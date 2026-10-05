@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "Requirement": {
+      "additionalProperties": false,
+      "properties": {
+        "authoritative_source": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Authoritative Source",
+          "type": "string"
+        },
+        "fact_type": {
+          "enum": [
+            "order_accepted",
+            "cash_settled",
+            "units_registered",
+            "token_movement"
+          ],
+          "title": "Fact Type",
+          "type": "string"
+        },
+        "gaps_allowed": {
+          "title": "Gaps Allowed",
+          "type": "boolean"
+        },
+        "mapping_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "min_coverage_level": {
+          "enum": [
+            "provider_claimed",
+            "internally_checked",
+            "independently_verified"
+          ],
+          "title": "Min Coverage Level",
+          "type": "string"
+        },
+        "must_cover": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Must Cover",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_type",
+        "authoritative_source",
+        "mapping_ref",
+        "min_coverage_level",
+        "must_cover",
+        "gaps_allowed"
+      ],
+      "title": "Requirement",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-missing-evidence:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "control_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Control Id",
+      "type": "string"
+    },
+    "evaluation_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Evaluation Id",
+      "type": "string"
+    },
+    "missing": {
+      "title": "Missing",
+      "type": "boolean"
+    },
+    "note": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Note",
+      "type": "string"
+    },
+    "reason_code": {
+      "enum": [
+        "EXACT_MATCH",
+        "CASH_AMOUNT_MISMATCH",
+        "UNITS_MISMATCH",
+        "ORDER_TERMS_INCONSISTENT",
+        "MISSING_EVIDENCE",
+        "INSUFFICIENT_COVERAGE",
+        "LOSS_OF_SUPPORT",
+        "SOURCE_CONFLICT",
+        "AMBIGUOUS_MATCH",
+        "QUARANTINED_INPUT",
+        "UNSUPPORTED_CAPABILITY",
+        "EVALUATION_ERROR",
+        "NOT_APPLICABLE_BY_PROFILE"
+      ],
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "requirements": {
+      "items": {
+        "$ref": "#/$defs/Requirement"
+      },
+      "title": "Requirements",
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN",
+        "NOT_APPLICABLE"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evaluation_id",
+    "control_id",
+    "status",
+    "reason_code",
+    "missing",
+    "requirements",
+    "note"
+  ],
+  "title": "MissingEvidenceView",
+  "type": "object"
+}

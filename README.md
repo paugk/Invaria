@@ -7,7 +7,7 @@ Invaria is an operational-integrity and reproducible-evidence layer for tokenize
 
 Invaria keeps the evidence needed to explain that conclusion.
 
-**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no API, and the Stellar adapter only covers a first subset.
+**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no REST API or UI yet, and the Stellar adapter only covers a first subset.
 
 ## What is in this branch
 
@@ -26,6 +26,7 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Recorded real Stellar testnet samples | `tests/fixtures/stellar/` | Third-party USDC samples and Invaria's own DEMOA issuance, replayed offline |
 | Demo subscription evaluated with real testnet evidence | `src/invaria/vertical_testnet.py`, `tests/fixtures/corpus/subscription-testnet/` | 4 scenarios; on-chain evidence replayed through the adapter |
 | Append-only PostgreSQL persistence (optional `db` extra) | `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
+| Read-only consultative MCP server (optional `mcp` extra) | `src/invaria/query/`, `src/invaria/mcp_server.py` | Implemented; stdio only; tests need a real PostgreSQL (opt-in) |
 | Invalidation, revision epochs and transactional outbox | `src/invaria/engine/dependencies.py`, `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
 
 ### Contracts
@@ -165,6 +166,38 @@ When evidence an evaluation depends on changes, that evaluation stops being curr
 
 `invaria.persistence.worker` reads the epoch, builds the snapshot, evaluates, saves and publishes. Times are always explicit; there is no wall clock and no scheduler, leases or outbox retention yet.
 
+### Consultative MCP server (read-only, optional)
+`invaria mcp serve` exposes seven tools over stdio to a local MCP client such as an AI assistant. All are read-only: none writes, signs, sends, approves or reconciles anything.
+
+| Tool | Answers |
+|---|---|
+| `trace_operation` | Current conclusion, legs (order, cash, units, token), history and revision epochs |
+| `get_conclusion_as_known_at` | What was concluded for an economic time `valid_at` with the knowledge available at `known_at` |
+| `get_missing_evidence` | What an UNKNOWN control lacks: authoritative source, mapping and minimum coverage |
+| `explain_discrepancy` | Operands and exact delta of one control, replayed from the stored snapshot |
+| `explain_conclusion_change` | Controls and effective evidence that changed between two evaluations |
+| `get_evidence` | One observation or coverage certificate, labelled as untrusted source data |
+| `get_coverage` | Coverage certificates applied to the conclusion and unmet requirements |
+
+Every answer states its snapshot (`valid_at`, `known_at`), its currency (`current`, `stale`, `superseded` or `not_published`) and its coverage. Answers come only from stored snapshots and evaluations; no source is queried.
+
+- **Access profile.** A JSON file chosen by the operator, outside the repository, sets the principal, the tenant and the scopes (`operations:read`, `evidence:read`). Every call is authorised on the server.
+  - A missing scope gives `FORBIDDEN`.
+  - Another tenant's data gives `NOT_FOUND`, so its existence is not revealed.
+  - The tenant never comes from the client.
+- **Read-only database role.** The server reads through `invaria_reader`, which has SELECT only (migration `0003`).
+- **Bounded inputs.** Identifiers and UTC times only; no SQL, paths, URLs or free text. Lists are capped by the profile's `max_items`, with a `truncated` flag.
+- **Access log.** An optional JSONL audit log records time, principal, tool, status and only a sha256 of the arguments.
+- **Untrusted content.** The server instructions tell clients never to follow instructions found in source content.
+
+```bash
+uv sync --extra db --extra mcp
+INVARIA_DATABASE_URL=postgresql://... uv run invaria mcp serve \
+  --access-profile access.json --audit-log access.jsonl
+```
+
+With stdio, authentication is that of the operating-system user who starts the process. There is no REST API, OAuth or token yet. The typed answers are exported as JSON Schemas (`schemas/query-*.schema.json`, `schemas/access-profile.schema.json`).
+
 ## Synthetic data only
 
 Everything under `tests/fixtures/` except `tests/fixtures/stellar/` (real testnet data) is synthetic. The testnet demo corpus mixes synthetic institutional files with that real on-chain evidence. The synthetic part:
@@ -207,14 +240,14 @@ After changing a contract, regenerate the schemas (a test fails if they drift):
 uv run python -m invaria.contracts.schema_export
 ```
 
-Runtime dependencies: `pydantic`, `cryptography` (Ed25519 only). Development: `pytest`, `hypothesis`, `ruff`, `mypy`. Exact versions are pinned in `uv.lock`.
+Runtime dependencies: `pydantic`, `cryptography` (Ed25519 only). Optional: `psycopg` (`db` extra), `mcp` (`mcp` extra, the official MCP Python SDK). Development: `pytest`, `hypothesis`, `ruff`, `mypy`. Exact versions are pinned in `uv.lock`.
 
 ## Not implemented yet
 
 - **Deadline rules:** no control uses the evaluation clock yet.
 - **Stellar beyond the first subset:** path payments, SAC contract and pool counterparties, muxed attribution, clawback, custom Soroban tokens, and independent verification of ledger checkpoints (on-chain coverage is `provider_claimed`).
 - **Evidence bundles:** compressed archives, R3 (source proofs), R2 for on-chain evidence, third-party timestamping of signatures, and Windows-specific path rules.
-- **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; API, MCP server, UI.
+- **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; REST API, network MCP transport with tokens, UI.
 - **Other operations:** redemptions, fees, partial fills, multiple payments, FX, omnibus accounts.
 - **Other sources:** XLSX, SFTP, encodings other than UTF-8, locale-specific number formats.
 

@@ -33,6 +33,7 @@ from invaria.engine.dependencies import dependencies
 from invaria.engine.evaluate import EvaluationInputs
 
 APP_ROLE = "invaria_app"
+READER_ROLE = "invaria_reader"
 Conn = psycopg.Connection[tuple[Any, ...]]
 
 
@@ -747,3 +748,39 @@ class PgStore:
             return self._evaluation(tenant_id, evaluation_id)
         finally:
             self.conn.commit()
+
+    # ------------------------------------------------------- consultative reads
+
+    def evaluations_for(self, tenant_id: str, operation_ref: str) -> list[EvaluationResult]:
+        """Every stored evaluation of an operation, oldest knowledge first."""
+        rows = self.conn.execute(
+            "SELECT e.document FROM invaria.evaluations e JOIN invaria.snapshots s "
+            "ON s.tenant_id = e.tenant_id AND s.snapshot_id = e.snapshot_id "
+            "WHERE e.tenant_id = %s AND s.operation_ref = %s "
+            "ORDER BY s.known_at, s.evaluation_clock, e.evaluation_id",
+            (tenant_id, operation_ref),
+        ).fetchall()
+        self.conn.commit()
+        return [_load(EvaluationResult, r[0]) for r in rows]
+
+    def load_observation(self, tenant_id: str, observation_id: str) -> Observation:
+        row = self.conn.execute(
+            "SELECT document FROM invaria.observations "
+            "WHERE tenant_id = %s AND observation_id = %s",
+            (tenant_id, observation_id),
+        ).fetchone()
+        self.conn.commit()
+        if row is None:
+            raise KeyError(f"observation {observation_id} not stored")
+        return _load(Observation, row[0])
+
+    def load_coverage(self, tenant_id: str, coverage_id: str) -> CoverageCertificate:
+        row = self.conn.execute(
+            "SELECT document FROM invaria.coverage_certificates "
+            "WHERE tenant_id = %s AND coverage_id = %s",
+            (tenant_id, coverage_id),
+        ).fetchone()
+        self.conn.commit()
+        if row is None:
+            raise KeyError(f"coverage {coverage_id} not stored")
+        return _load(CoverageCertificate, row[0])

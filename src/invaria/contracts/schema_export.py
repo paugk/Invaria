@@ -33,6 +33,16 @@ from invaria.contracts.bundle import (
 )
 from invaria.contracts.chain import ChainTarget, ExecutionLinkSet, IngestionCheckpoint
 from invaria.contracts.mapping import CsvMapping
+from invaria.query.models import (
+    AccessProfile,
+    ConclusionChangeView,
+    ConclusionView,
+    CoverageReport,
+    DiscrepancyView,
+    EvidenceView,
+    MissingEvidenceView,
+    TraceView,
+)
 
 CONTRACTS: dict[str, type[BaseModel]] = {
     "quantity": Quantity,
@@ -50,6 +60,14 @@ CONTRACTS: dict[str, type[BaseModel]] = {
     "verification-report": VerificationReport,
     "bundle-signatures": BundleSignatures,
     "trust-store": TrustStore,
+    "access-profile": AccessProfile,
+    "query-trace": TraceView,
+    "query-conclusion": ConclusionView,
+    "query-missing-evidence": MissingEvidenceView,
+    "query-discrepancy": DiscrepancyView,
+    "query-conclusion-change": ConclusionChangeView,
+    "query-evidence": EvidenceView,
+    "query-coverage": CoverageReport,
     "chain-target": ChainTarget,
     "execution-link-set": ExecutionLinkSet,
     "ingestion-checkpoint": IngestionCheckpoint,

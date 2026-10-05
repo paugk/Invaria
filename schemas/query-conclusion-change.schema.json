@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "ControlChangeView": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "After",
+          "type": "string"
+        },
+        "before": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Before",
+          "type": "string"
+        },
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "before",
+        "after"
+      ],
+      "title": "ControlChangeView",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-conclusion-change:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "added_evidence": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "maxItems": 1000,
+      "title": "Added Evidence",
+      "type": "array"
+    },
+    "changed_controls": {
+      "items": {
+        "$ref": "#/$defs/ControlChangeView"
+      },
+      "title": "Changed Controls",
+      "type": "array"
+    },
+    "from_result": {
+      "enum": [
+        "MATCH",
+        "BREAK",
+        "UNKNOWN"
+      ],
+      "title": "From Result",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "new_evaluation_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "New Evaluation Id",
+      "type": "string"
+    },
+    "new_known_at": {
+      "format": "date-time",
+      "title": "New Known At",
+      "type": "string"
+    },
+    "old_evaluation_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Old Evaluation Id",
+      "type": "string"
+    },
+    "old_known_at": {
+      "format": "date-time",
+      "title": "Old Known At",
+      "type": "string"
+    },
+    "removed_evidence": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "maxItems": 1000,
+      "title": "Removed Evidence",
+      "type": "array"
+    },
+    "replay_consistent": {
+      "title": "Replay Consistent",
+      "type": "boolean"
+    },
+    "to_result": {
+      "enum": [
+        "MATCH",
+        "BREAK",
+        "UNKNOWN"
+      ],
+      "title": "To Result",
+      "type": "string"
+    }
+  },
+  "required": [
+    "old_evaluation_id",
+    "new_evaluation_id",
+    "from_result",
+    "to_result",
+    "old_known_at",
+    "new_known_at",
+    "changed_controls",
+    "added_evidence",
+    "removed_evidence",
+    "replay_consistent",
+    "limitations"
+  ],
+  "title": "ConclusionChangeView",
+  "type": "object"
+}

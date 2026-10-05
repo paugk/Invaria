@@ -1,0 +1,253 @@
+{
+  "$defs": {
+    "CoverageView": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Coverage Id",
+          "type": "string"
+        },
+        "fact_types": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement"
+            ],
+            "type": "string"
+          },
+          "title": "Fact Types",
+          "type": "array"
+        },
+        "gaps": {
+          "title": "Gaps",
+          "type": "integer"
+        },
+        "interval": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "level": {
+          "enum": [
+            "provider_claimed",
+            "internally_checked",
+            "independently_verified"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "meets_required_level": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Meets Required Level"
+        },
+        "records_quarantined": {
+          "title": "Records Quarantined",
+          "type": "integer"
+        },
+        "records_received": {
+          "title": "Records Received",
+          "type": "integer"
+        },
+        "required_level": {
+          "anyOf": [
+            {
+              "enum": [
+                "provider_claimed",
+                "internally_checked",
+                "independently_verified"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Required Level"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "coverage_id",
+        "source_id",
+        "fact_types",
+        "level",
+        "required_level",
+        "meets_required_level",
+        "interval",
+        "gaps",
+        "records_received",
+        "records_quarantined"
+      ],
+      "title": "CoverageView",
+      "type": "object"
+    },
+    "CurrencyView": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "enum": [
+            "current",
+            "stale",
+            "superseded",
+            "not_published"
+          ],
+          "title": "Currency",
+          "type": "string"
+        },
+        "published_epoch": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Published Epoch"
+        },
+        "scope_epoch": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scope Epoch"
+        }
+      },
+      "required": [
+        "currency",
+        "scope_epoch",
+        "published_epoch"
+      ],
+      "title": "CurrencyView",
+      "type": "object"
+    },
+    "SnapshotView": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_clock": {
+          "format": "date-time",
+          "title": "Evaluation Clock",
+          "type": "string"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "valid_at",
+        "known_at",
+        "evaluation_clock"
+      ],
+      "title": "SnapshotView",
+      "type": "object"
+    },
+    "TimeInterval": {
+      "additionalProperties": false,
+      "description": "Half-open interval [start, end) in UTC.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "TimeInterval",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-coverage:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "certificates": {
+      "items": {
+        "$ref": "#/$defs/CoverageView"
+      },
+      "title": "Certificates",
+      "type": "array"
+    },
+    "currency": {
+      "$ref": "#/$defs/CurrencyView"
+    },
+    "evaluation_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Evaluation Id",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "operation_ref": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Operation Ref",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SnapshotView"
+    },
+    "unmet": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Unmet",
+      "type": "array"
+    }
+  },
+  "required": [
+    "operation_ref",
+    "evaluation_id",
+    "snapshot",
+    "currency",
+    "certificates",
+    "unmet",
+    "limitations"
+  ],
+  "title": "CoverageReport",
+  "type": "object"
+}

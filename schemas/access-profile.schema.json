@@ -1,0 +1,50 @@
+{
+  "$id": "urn:invaria:schema:access-profile:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Who is asking and what they may read. Chosen by the operator, never by the client.",
+  "properties": {
+    "max_items": {
+      "maximum": 500,
+      "minimum": 1,
+      "title": "Max Items",
+      "type": "integer"
+    },
+    "principal_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Principal Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scopes": {
+      "items": {
+        "enum": [
+          "operations:read",
+          "evidence:read"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Scopes",
+      "type": "array"
+    },
+    "tenant_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "principal_id",
+    "tenant_id",
+    "scopes",
+    "max_items"
+  ],
+  "title": "AccessProfile",
+  "type": "object"
+}

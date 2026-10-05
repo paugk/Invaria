@@ -1,0 +1,635 @@
+{
+  "$defs": {
+    "CashPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "payload_type": {
+          "const": "cash_settled",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "payment_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Payment Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "payment_ref",
+        "amount"
+      ],
+      "title": "CashPayload",
+      "type": "object"
+    },
+    "ChainCoordinates": {
+      "additionalProperties": false,
+      "properties": {
+        "ledger": {
+          "minimum": 1,
+          "title": "Ledger",
+          "type": "integer"
+        },
+        "network": {
+          "enum": [
+            "stellar:testnet",
+            "stellar:pubnet"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "operation_index": {
+          "minimum": 0,
+          "title": "Operation Index",
+          "type": "integer"
+        },
+        "tx_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Tx Hash",
+          "type": "string"
+        },
+        "tx_successful": {
+          "title": "Tx Successful",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "network",
+        "ledger",
+        "tx_hash",
+        "operation_index",
+        "tx_successful"
+      ],
+      "title": "ChainCoordinates",
+      "type": "object"
+    },
+    "CoverageCertificate": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Coverage Id",
+          "type": "string"
+        },
+        "fact_types": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Types",
+          "type": "array"
+        },
+        "gaps": {
+          "items": {
+            "$ref": "#/$defs/TimeInterval"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "instrument_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Instrument Id",
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "ledger_range": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LedgerRange"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "level": {
+          "enum": [
+            "provider_claimed",
+            "internally_checked",
+            "independently_verified"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "method": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        },
+        "raw_sha256": {
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Raw Sha256",
+          "type": "array"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "records_quarantined": {
+          "minimum": 0,
+          "title": "Records Quarantined",
+          "type": "integer"
+        },
+        "records_received": {
+          "minimum": 0,
+          "title": "Records Received",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "tenant_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "coverage_id",
+        "tenant_id",
+        "source_id",
+        "fact_types",
+        "instrument_id",
+        "interval",
+        "ledger_range",
+        "level",
+        "method",
+        "records_received",
+        "records_quarantined",
+        "gaps",
+        "raw_sha256",
+        "recorded_at",
+        "synthetic"
+      ],
+      "title": "CoverageCertificate",
+      "type": "object"
+    },
+    "LedgerRange": {
+      "additionalProperties": false,
+      "properties": {
+        "first": {
+          "minimum": 1,
+          "title": "First",
+          "type": "integer"
+        },
+        "last": {
+          "minimum": 1,
+          "title": "Last",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "first",
+        "last"
+      ],
+      "title": "LedgerRange",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "fact_type": {
+          "enum": [
+            "order_accepted",
+            "cash_settled",
+            "units_registered",
+            "token_movement"
+          ],
+          "title": "Fact Type",
+          "type": "string"
+        },
+        "instrument_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Instrument Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "assertion",
+            "retraction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "observation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Observation Id",
+          "type": "string"
+        },
+        "operation_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation Ref"
+        },
+        "payload": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "cash_settled": "#/$defs/CashPayload",
+                  "order_accepted": "#/$defs/OrderPayload",
+                  "token_movement": "#/$defs/TokenMovementPayload",
+                  "units_registered": "#/$defs/UnitsPayload"
+                },
+                "propertyName": "payload_type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OrderPayload"
+                },
+                {
+                  "$ref": "#/$defs/CashPayload"
+                },
+                {
+                  "$ref": "#/$defs/UnitsPayload"
+                },
+                {
+                  "$ref": "#/$defs/TokenMovementPayload"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Payload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "representation_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Representation Id"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/SourceRecord"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supersedes"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "tenant_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "valid_time": {
+          "format": "date-time",
+          "title": "Valid Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "observation_id",
+        "tenant_id",
+        "kind",
+        "fact_type",
+        "instrument_id",
+        "representation_id",
+        "operation_ref",
+        "source",
+        "valid_time",
+        "recorded_at",
+        "provenance",
+        "supersedes",
+        "payload",
+        "synthetic"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "OrderPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "cash_amount": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "payload_type": {
+          "const": "order_accepted",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "price_per_unit": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "units": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "units",
+        "cash_amount",
+        "price_per_unit"
+      ],
+      "title": "OrderPayload",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "mapping_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "parser_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Parser Ref",
+          "type": "string"
+        },
+        "raw_locator": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Raw Locator",
+          "type": "string"
+        },
+        "raw_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Raw Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "raw_sha256",
+        "raw_locator",
+        "parser_ref",
+        "mapping_ref"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Quantity": {
+      "additionalProperties": false,
+      "description": "``{\"atoms\": \"1000000000\", \"scale\": 7, \"unit\": \"FUND_SHARE\"}`` is 100 shares.",
+      "properties": {
+        "atoms": {
+          "maxLength": 79,
+          "pattern": "^(0|-?[1-9][0-9]*)$",
+          "title": "Atoms",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "atoms",
+        "scale",
+        "unit"
+      ],
+      "title": "Quantity",
+      "type": "object"
+    },
+    "SourceRecord": {
+      "additionalProperties": false,
+      "description": "Idempotency identity of a source record: same key + revision = same statement.",
+      "properties": {
+        "record_key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Record Key",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "record_key",
+        "revision"
+      ],
+      "title": "SourceRecord",
+      "type": "object"
+    },
+    "TimeInterval": {
+      "additionalProperties": false,
+      "description": "Half-open interval [start, end) in UTC.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "TimeInterval",
+      "type": "object"
+    },
+    "TokenMovementPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "chain": {
+          "$ref": "#/$defs/ChainCoordinates"
+        },
+        "from_address": {
+          "title": "From Address",
+          "type": "string"
+        },
+        "payload_type": {
+          "const": "token_movement",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "to_address": {
+          "title": "To Address",
+          "type": "string"
+        },
+        "units": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "payload_type",
+        "from_address",
+        "to_address",
+        "units",
+        "chain"
+      ],
+      "title": "TokenMovementPayload",
+      "type": "object"
+    },
+    "UnitsPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "payload_type": {
+          "const": "units_registered",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "units": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "units"
+      ],
+      "title": "UnitsPayload",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-evidence:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "content_trust": {
+      "const": "untrusted_source_data",
+      "title": "Content Trust",
+      "type": "string"
+    },
+    "coverage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CoverageCertificate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "kind": {
+      "enum": [
+        "observation",
+        "coverage"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "observation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Observation"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "kind",
+    "content_trust",
+    "observation",
+    "coverage",
+    "limitations"
+  ],
+  "title": "EvidenceView",
+  "type": "object"
+}
