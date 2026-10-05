@@ -7,7 +7,7 @@ Invaria is an operational-integrity and reproducible-evidence layer for tokenize
 
 Invaria keeps the evidence needed to explain that conclusion.
 
-**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no signing, no API and no invalidation workflow, and the Stellar adapter only covers a first subset.
+**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no signing and no API, and the Stellar adapter only covers a first subset.
 
 ## What is in this branch
 
@@ -25,6 +25,7 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Recorded real Stellar testnet samples | `tests/fixtures/stellar/` | Third-party USDC samples and Invaria's own DEMOA issuance, replayed offline |
 | Demo subscription evaluated with real testnet evidence | `src/invaria/vertical_testnet.py`, `tests/fixtures/corpus/subscription-testnet/` | 4 scenarios; on-chain evidence replayed through the adapter |
 | Append-only PostgreSQL persistence (optional `db` extra) | `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
+| Invalidation, revision epochs and transactional outbox | `src/invaria/engine/dependencies.py`, `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
 
 ### Contracts
 - **Exact quantities.** Integer atoms as a string, plus an explicit scale (0–38) and unit. Floats, exponents, NaN and duplicate JSON keys are rejected before validation.
@@ -131,6 +132,19 @@ INVARIA_TEST_DATABASE_URL=postgresql://postgres:<local>@127.0.0.1:55432/postgres
 
 Without `INVARIA_TEST_DATABASE_URL` these tests are skipped with an explicit reason.
 
+### Invalidation and idempotency (PostgreSQL, optional)
+When evidence an evaluation depends on changes, that evaluation stops being current and is re-evaluated. Nothing is deleted.
+- **Dependencies are predicates**, derived from the profile and the operation (`invaria.engine.dependencies`, pure). Absence is therefore invalidatable: an UNKNOWN for missing bank evidence goes stale when that evidence arrives. Evidence for another operation, another instrument or a non-authoritative source changes nothing.
+- **Revision epochs:** each watched operation has an append-only `revision_epoch`. The change, the new epoch and an outbox event (`scope.invalidated`) commit in one transaction.
+- **Compare-and-swap publication:** a worker publishes only if the epoch it read before building its snapshot is still current. Otherwise it gets `NOT_CURRENT`; the attempt and the evaluation are kept, and nothing computed on a superseded revision becomes current.
+- **Currency projection:** the financial result never changes. Currency is a separate projection: `current`, `stale` (re-evaluation pending) or `superseded`.
+- **Outbox:** at-least-once delivery with idempotent, per-consumer acknowledgements. A redelivered event yields the same evaluation (`ALREADY_PUBLISHED`).
+- **Knowledge cuts:** building a snapshot "as known at" a time closes that cut. A new record claiming an earlier `recorded_at` is refused (`LateRecord`), so the same cut always rebuilds the same membership.
+- **Concurrency:** writes, snapshot builds and publication serialize per tenant with an advisory lock. The tests use two real connections.
+- **Append-only:** new tables are also append-only for the application role.
+
+`invaria.persistence.worker` reads the epoch, builds the snapshot, evaluates, saves and publishes. Times are always explicit; there is no wall clock and no scheduler, leases or outbox retention yet.
+
 ## Synthetic data only
 
 Everything under `tests/fixtures/` except `tests/fixtures/stellar/` (real testnet data) is synthetic. The testnet demo corpus mixes synthetic institutional files with that real on-chain evidence. The synthetic part:
@@ -177,10 +191,10 @@ Runtime dependency: `pydantic`. Development: `pytest`, `hypothesis`, `ruff`, `my
 
 ## Not implemented yet
 
-- **Deadline rules and currency:** no control uses the evaluation clock yet, and there is no current/stale/superseded projection.
+- **Deadline rules:** no control uses the evaluation clock yet.
 - **Stellar beyond the first subset:** path payments, SAC contract and pool counterparties, muxed attribution, clawback, custom Soroban tokens, and independent verification of ledger checkpoints (on-chain coverage is `provider_claimed`).
 - **Evidence bundles:** signatures and trust policy, R2 replay from raw bytes, and compressed archives.
-- **Infrastructure:** invalidation and epochs, row-level security / multi-tenant, object storage for raw bytes, API, MCP server, UI.
+- **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; API, MCP server, UI.
 - **Other operations:** redemptions, fees, partial fills, multiple payments, FX, omnibus accounts.
 - **Other sources:** XLSX, SFTP, encodings other than UTF-8, locale-specific number formats.
 
