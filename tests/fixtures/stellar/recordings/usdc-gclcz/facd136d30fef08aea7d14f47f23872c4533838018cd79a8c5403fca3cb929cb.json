@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-05T00:41:04+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "de6a1936664d50f50d64682e4d1f8615f26c170e8b73a3efc7fa16f6498dba8f",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/accounts/GCLCZEQZ2THTEDAOFI66LACNPLY4OBKN7VKLEZFMBIHYKYQOW2W7T3Z6/payments?order=asc&limit=2&cursor=21580350941581313&join=transactions&include_failed=true"
+}

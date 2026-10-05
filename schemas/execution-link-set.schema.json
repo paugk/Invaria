@@ -1,0 +1,88 @@
+{
+  "$defs": {
+    "ExecutionLink": {
+      "additionalProperties": false,
+      "description": "Explicit, approved statement that a chain effect executes a given operation.\n\nThe only way an observation gets an ``operation_ref``: memo text, amount or timing\nnever link an on-chain effect to an institutional operation.",
+      "properties": {
+        "approval_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Approval Ref",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "stellar:testnet",
+            "stellar:pubnet"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "operation_index": {
+          "minimum": 0,
+          "title": "Operation Index",
+          "type": "integer"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "ordinal": {
+          "minimum": 0,
+          "title": "Ordinal",
+          "type": "integer"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "tx_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Tx Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "network",
+        "tx_hash",
+        "operation_index",
+        "ordinal",
+        "operation_ref",
+        "approval_ref",
+        "recorded_at"
+      ],
+      "title": "ExecutionLink",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:execution-link-set:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "links": {
+      "items": {
+        "$ref": "#/$defs/ExecutionLink"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "links"
+  ],
+  "title": "ExecutionLinkSet",
+  "type": "object"
+}

@@ -1,7 +1,7 @@
 [project]
 name = "invaria"
 version = "0.0.0"
-description = "Invaria core: canonical contracts, CSV ingestion, pure evaluator and offline R1 bundle replay (synthetic data)."
+description = "Invaria core: canonical contracts, CSV ingestion, pure evaluator, offline R1 bundle replay and a read-only Stellar testnet adapter."
 requires-python = ">=3.13,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
@@ -34,12 +34,13 @@ select = ["E", "F", "W", "I", "B", "UP", "RUF"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["--import-mode=importlib", "--strict-markers"]
+markers = ["live_testnet: queries the public Stellar testnet; opt-in via INVARIA_LIVE_TESTNET=1"]
 
 [tool.mypy]
 python_version = "3.13"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["src", "tests/contracts", "tests/ingest", "tests/engine", "tests/bundle"]
+files = ["src", "tests/contracts", "tests/ingest", "tests/engine", "tests/bundle", "tests/stellar"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

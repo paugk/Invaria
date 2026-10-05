@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-05T00:41:10+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "181a9fc05a513995355cba7d48cf5a481cb4e86ba83d8abcddc9231ffe558727",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/"
+}

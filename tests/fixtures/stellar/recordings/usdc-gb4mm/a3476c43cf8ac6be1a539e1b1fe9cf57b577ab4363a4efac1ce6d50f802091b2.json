@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-05T00:41:22+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "70b67a4b5274a6d2dd9b36a7e728d031c32038393c93df72c3864b3a10f9fcde",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/ledgers/5000491"
+}

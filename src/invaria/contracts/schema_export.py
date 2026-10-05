@@ -26,6 +26,7 @@ from invaria.contracts import (
     SnapshotRef,
 )
 from invaria.contracts.bundle import BundleEvidence, VerificationReport
+from invaria.contracts.chain import ChainTarget, ExecutionLinkSet, IngestionCheckpoint
 from invaria.contracts.mapping import CsvMapping
 
 CONTRACTS: dict[str, type[BaseModel]] = {
@@ -42,6 +43,9 @@ CONTRACTS: dict[str, type[BaseModel]] = {
     "csv-mapping": CsvMapping,
     "bundle-evidence": BundleEvidence,
     "verification-report": VerificationReport,
+    "chain-target": ChainTarget,
+    "execution-link-set": ExecutionLinkSet,
+    "ingestion-checkpoint": IngestionCheckpoint,
 }
 
 

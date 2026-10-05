@@ -1,0 +1,104 @@
+{
+  "$id": "urn:invaria:schema:chain-target:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One Classic asset (by network + code + issuer) observed for one account.",
+  "properties": {
+    "account": {
+      "title": "Account",
+      "type": "string"
+    },
+    "asset_code": {
+      "pattern": "^[A-Za-z0-9]{1,12}$",
+      "title": "Asset Code",
+      "type": "string"
+    },
+    "asset_issuer": {
+      "title": "Asset Issuer",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "expected_sac_contract_id": {
+      "anyOf": [
+        {
+          "pattern": "^C[A-Z2-7]{55}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Expected Sac Contract Id"
+    },
+    "instrument_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Instrument Id",
+      "type": "string"
+    },
+    "network": {
+      "enum": [
+        "stellar:testnet",
+        "stellar:pubnet"
+      ],
+      "title": "Network",
+      "type": "string"
+    },
+    "representation_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Representation Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "synthetic": {
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "target_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Target Id",
+      "type": "string"
+    },
+    "tenant_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "unit": {
+      "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+      "title": "Unit",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "target_id",
+    "tenant_id",
+    "network",
+    "asset_code",
+    "asset_issuer",
+    "account",
+    "unit",
+    "instrument_id",
+    "representation_id",
+    "source_id",
+    "expected_sac_contract_id",
+    "synthetic",
+    "description"
+  ],
+  "title": "ChainTarget",
+  "type": "object"
+}

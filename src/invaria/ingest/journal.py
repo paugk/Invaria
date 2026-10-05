@@ -55,6 +55,11 @@ class Integration:
         return sum(1 for o in self.outcomes if o.decision in REJECTED)
 
 
+def observation_content(observation: Observation) -> tuple[Any, ...]:
+    """Fields that define what an observation asserts (not where or when it was read)."""
+    return _content(observation)
+
+
 def _content(observation: Observation) -> tuple[Any, ...]:
     return (
         observation.kind,

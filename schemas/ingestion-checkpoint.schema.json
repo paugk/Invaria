@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "OrdinalState": {
+      "additionalProperties": false,
+      "properties": {
+        "next_ordinal": {
+          "minimum": 0,
+          "title": "Next Ordinal",
+          "type": "integer"
+        },
+        "operation_index": {
+          "minimum": 0,
+          "title": "Operation Index",
+          "type": "integer"
+        },
+        "tx_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Tx Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tx_hash",
+        "operation_index",
+        "next_ordinal"
+      ],
+      "title": "OrdinalState",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:ingestion-checkpoint:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Resume point; written only after the page it covers has been persisted.",
+  "properties": {
+    "complete": {
+      "title": "Complete",
+      "type": "boolean"
+    },
+    "cursor": {
+      "pattern": "^[0-9-]{1,64}$",
+      "title": "Cursor",
+      "type": "string"
+    },
+    "end_ledger": {
+      "minimum": 1,
+      "title": "End Ledger",
+      "type": "integer"
+    },
+    "ordinal_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OrdinalState"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "page_sha256": {
+      "items": {
+        "pattern": "^[a-f0-9]{64}$",
+        "type": "string"
+      },
+      "title": "Page Sha256",
+      "type": "array"
+    },
+    "pages": {
+      "minimum": 0,
+      "title": "Pages",
+      "type": "integer"
+    },
+    "path": {
+      "enum": [
+        "horizon_payments",
+        "rpc_sac_events"
+      ],
+      "title": "Path",
+      "type": "string"
+    },
+    "records_quarantined": {
+      "minimum": 0,
+      "title": "Records Quarantined",
+      "type": "integer"
+    },
+    "records_received": {
+      "minimum": 0,
+      "title": "Records Received",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "start_ledger": {
+      "minimum": 1,
+      "title": "Start Ledger",
+      "type": "integer"
+    },
+    "target_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Target Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "target_id",
+    "path",
+    "start_ledger",
+    "end_ledger",
+    "cursor",
+    "pages",
+    "records_received",
+    "records_quarantined",
+    "page_sha256",
+    "ordinal_state",
+    "complete"
+  ],
+  "title": "IngestionCheckpoint",
+  "type": "object"
+}

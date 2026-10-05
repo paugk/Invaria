@@ -12,6 +12,9 @@ from invaria.bundle import build_bundle, verify_bundle
 from invaria.corpus_loader import Corpus, load_corpus
 from invaria.engine.evaluate import Evaluation, evaluate
 from invaria.engine.explain import explain, explain_change, export_evaluation
+from invaria.stellar import cli as stellar_cli
+from invaria.stellar.http import ChainUnavailable
+from invaria.stellar.sources import DataUnavailable, NetworkMismatch
 from invaria.vertical import run_vertical
 
 
@@ -146,12 +149,15 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("bundle", type=Path)
     verify.add_argument("--level", choices=["R1", "R2"], default="R1")
     verify.add_argument("--expect-manifest-sha256", dest="expected")
+    stellar_cli.add_parser(sub)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "stellar":
+            return stellar_cli.run(args)
         if args.command == "verify":
             return cmd_verify(args.bundle, args.level, args.expected)
         corpus = load_corpus(args.corpus)
@@ -164,6 +170,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "bundle":
             return cmd_bundle(corpus, args.scenario, args.out)
         return cmd_demo(corpus)
+    except (ChainUnavailable, DataUnavailable, NetworkMismatch) as error:
+        print(f"error: {type(error).__name__}: {error}", file=sys.stderr)
+        return 3
     except (KeyError, FileNotFoundError, FileExistsError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2

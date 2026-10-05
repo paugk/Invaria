@@ -1,0 +1,40 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/ledgers/5000475"
+    },
+    "transactions": {
+      "href": "https://horizon-testnet.stellar.org/ledgers/5000475/transactions{?cursor,limit,order}",
+      "templated": true
+    },
+    "operations": {
+      "href": "https://horizon-testnet.stellar.org/ledgers/5000475/operations{?cursor,limit,order}",
+      "templated": true
+    },
+    "payments": {
+      "href": "https://horizon-testnet.stellar.org/ledgers/5000475/payments{?cursor,limit,order}",
+      "templated": true
+    },
+    "effects": {
+      "href": "https://horizon-testnet.stellar.org/ledgers/5000475/effects{?cursor,limit,order}",
+      "templated": true
+    }
+  },
+  "id": "e8591d083aa487528cf83cc8cc48aaa0a091e124faec3608f4bc6d6e9ea26365",
+  "paging_token": "21476876589465600",
+  "hash": "e8591d083aa487528cf83cc8cc48aaa0a091e124faec3608f4bc6d6e9ea26365",
+  "prev_hash": "da7567318d5dba2131c80b8fe0680d922746452cd57ae7650ff49685bbd28dd8",
+  "sequence": 5000475,
+  "successful_transaction_count": 17,
+  "failed_transaction_count": 0,
+  "operation_count": 24,
+  "tx_set_operation_count": 24,
+  "closed_at": "2026-10-03T11:12:42Z",
+  "total_coins": "100000000000.0000000",
+  "fee_pool": "757484.2756954",
+  "base_fee_in_stroops": 100,
+  "base_reserve_in_stroops": 5000000,
+  "max_tx_set_size": 200,
+  "protocol_version": 29,
+  "header_xdr": "AAAAHdp1ZzGNXbohMcgLj+BoDZInRkUs1XrnZQ/0loW70o3Yc0pOisrrxQIOYPDnwaCIo9lgTkuU4XmZsR07XiPlgvkAAAAAasDjKgAAAAAAAAABAAAAALVdELK7fShO1cA6R6XhtZDJD1eDVUccxFB7voIE0jyLAAAAQJTSSWNESOv5khlr++R1ryeYTQwoAQQzo5tHUvcglZ6OS6XC8sk2MKvtuyLwpPyDaZLIc/Mv9AA5fqwEl7eUBg6fjOBc1AtU6u5vMynxkbd0RzesvQTKJ6Lvr4CI7Ns46t4n20GxPNe1hvWcXuoSsRy4/ZxUJLDRMpthuPgEIRASAExNGw3gtrOnZAAAAAAG46fPz1oAAAAAAAAAAAANn0cAAABkAExLQAAAAMhQkCXxNVZiscC9VZx2ldlRKkIzGDPEbXkSReKw5ssGabZybqvx5w3/rvnIFyg6izRzhopGHpoNuKi7sOm3GcvVxuFo6heeBNOXzFa3Vj3hQQdCe4Hao7oWxwcp8NqqZlwAfbRzTOUFrgCd0a1NWFFVuKGt8FhQJ3iV3juXCzeRGwAAAAA="
+}

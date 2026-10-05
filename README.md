@@ -7,7 +7,7 @@ Invaria is an operational-integrity and reproducible-evidence layer for tokenize
 
 Invaria keeps the evidence needed to explain that conclusion.
 
-**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no live chain ingestion, no signing, no persistence and no API.
+**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no signing, no persistence and no API, and the Stellar adapter only covers a first subset.
 
 ## What is in this branch
 
@@ -21,6 +21,8 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Directory evidence bundles with offline R1 replay | `src/invaria/bundle/` | Implemented; unsigned |
 | Synthetic corpus: one demo fund subscription, 9 scenarios | `tests/fixtures/corpus/subscription-synthetic/` | Synthetic data; expected results written before the evaluator, now reproduced |
 | Golden bundle for scenario K3 | `tests/fixtures/bundles/K3/` | Must stay byte-identical to a fresh build |
+| Read-only Stellar adapter (Horizon + RPC) | `src/invaria/stellar/` | Classic payments implemented; SAC subset implemented, other SAC cases explicitly excluded |
+| Recorded real Stellar testnet samples | `tests/fixtures/stellar/` | Real third-party public testnet data, replayed offline |
 
 ### Contracts
 - **Exact quantities.** Integer atoms as a string, plus an explicit scale (0–38) and unit. Floats, exponents, NaN and duplicate JSON keys are rejected before validation.
@@ -66,9 +68,35 @@ Invaria keeps the evidence needed to explain that conclusion.
 
 Bundles are **not signed**. A hash proves integrity relative to the manifest, not authenticity: an internally consistent forgery verifies as `REPRODUCED` unless you pass `--expect-manifest-sha256` with a digest obtained through another channel. A test demonstrates exactly this.
 
+### Stellar adapter (read-only)
+`invaria stellar check-network` and `invaria stellar ingest` read Stellar testnet over HTTPS and turn asset movements into canonical `token_movement` observations. They never sign, fund or submit anything.
+- **Network identity.** The Horizon and RPC network passphrases must both equal the expected network before any data is read.
+- **Asset identity.** The asset is identified by network, code and issuer. The Stellar Asset Contract (SAC) id is derived locally and must match the `contract_id` published by Horizon.
+- **Classic path (Horizon).** Reads an account's payments, including failed transactions, which are observed without economic effect. Provenance goes down to ledger, transaction, operation index and the sha256 of the exact raw page. Pagination is bounded; coverage certificates are `provider_claimed`.
+- **SAC path (RPC `getEvents`).** Reads `transfer`, `mint` and `burn` events between accounts. Testnet emits unified events (CAP-67): a Classic payment also appears as a SAC event. Both paths share one economic-effect key (`<tx>:<op>:<ordinal>`), so the same effect counts once; differing content is kept as a visible conflict.
+- **Explicit exclusions**, each with a reason:
+  - path payments in the Classic path;
+  - contract, claimable-balance or liquidity-pool counterparties;
+  - u64 `to_muxed_id` values (a muxed destination or a memo id, indistinguishable from the event);
+  - clawback;
+  - custom Soroban tokens.
+- **Checkpoints and availability.** Checkpoints advance only after the corresponding page is written and fsync'ed. A range outside Horizon history or RPC retention is reported as data unavailable (exit code 3), never as "no activity".
+- **No implicit links.** An on-chain effect is linked to an operation only through an explicit, approved `ExecutionLink`. Memo text, amount or timing never link.
+
+Endpoints come from `--horizon`/`--rpc`, then `INVARIA_STELLAR_HORIZON_URL`/`INVARIA_STELLAR_RPC_URL`, then the public testnet URLs. `--record DIR` stores every HTTP exchange; `--replay DIR` serves them offline.
+
+```bash
+uv run --locked invaria stellar check-network
+uv run --locked invaria stellar ingest --target tests/fixtures/stellar/targets/usdc-issuer.json \
+  --start-ledger 5015930 --end-ledger 5015945 --store /tmp/stellar-store --sac \
+  --replay tests/fixtures/stellar/recordings/usdc-issuer
+```
+
+`tests/fixtures/stellar/` holds **real, public, third-party testnet data** (USDC, captured 2026-10-05; see its README). It is unrelated to the synthetic demo fund. The offline tests replay it with sockets blocked. An opt-in live test runs with `INVARIA_LIVE_TESTNET=1 uv run --locked pytest -m live_testnet tests/stellar`. Testnet is reset periodically, so after a reset that test skips.
+
 ## Synthetic data only
 
-Everything under `tests/fixtures/` is synthetic:
+Everything under `tests/fixtures/` except `tests/fixtures/stellar/` is synthetic:
 - The demo fund `DEMO-A` and all institutional files are invented.
 - Stellar accounts are valid StrKeys derived from `sha256("invaria:synthetic:account:...")`.
 - Transaction hashes are `sha256("invaria:synthetic:tx:<label>")`.
@@ -100,7 +128,7 @@ uv run --locked invaria bundle tests/fixtures/corpus/subscription-synthetic K2 /
 uv run --locked invaria verify /tmp/k2-bundle
 ```
 
-In `demo`, institutional evidence is imported from the raw CSV files. The on-chain movement and its coverage are frozen synthetic fixtures, and the output says so, because Stellar ingestion is not implemented.
+In `demo`, institutional evidence is imported from the raw CSV files. The on-chain movement and its coverage are frozen synthetic fixtures, and the output says so: the demo issuer does not exist on any network.
 
 After changing a contract, regenerate the schemas (a test fails if they drift):
 
@@ -113,7 +141,7 @@ Runtime dependency: `pydantic`. Development: `pytest`, `hypothesis`, `ruff`, `my
 ## Not implemented yet
 
 - **Deadline rules and currency:** no control uses the evaluation clock yet, and there is no current/stale/superseded projection.
-- **Stellar ingestion:** no RPC/Horizon access. Stellar Asset Contract (SAC) events and custom Soroban tokens are declared unsupported. On-chain observations in the corpus are frozen synthetic fixtures.
+- **Stellar beyond the first subset:** path payments, SAC contract and pool counterparties, muxed attribution, clawback, custom Soroban tokens, and cryptographic validation of ledger checkpoints. Real testnet data is not yet linked to the demo subscription: that would require our own testnet issuance with an approved execution link.
 - **Evidence bundles:** signatures and trust policy, R2 replay from raw bytes, and compressed archives.
 - **Infrastructure:** persistence, API, MCP server, UI.
 - **Other operations:** redemptions, fees, partial fills, multiple payments, FX, omnibus accounts.
