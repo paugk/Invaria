@@ -150,7 +150,9 @@ class Rpc:
             pagination["cursor"] = cursor  # RPC rejects ledger bounds together with a cursor
         else:
             params["startLedger"] = start_ledger
-            params["endLedger"] = end_ledger
+            # ``end_ledger`` is inclusive here; RPC's endLedger is exclusive (observed on
+            # testnet: 5061232-5061233 omits ledger 5061233, 5061232-5061234 returns it).
+            params["endLedger"] = end_ledger + 1
         return self.call("getEvents", params)
 
 

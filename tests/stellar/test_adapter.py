@@ -539,6 +539,21 @@ def test_rpc_retention_error_is_data_unavailable() -> None:
         rpc.get_events(USDC_SAC, start_ledger=4000000, end_ledger=4000010, cursor=None, limit=10)
 
 
+def test_rpc_request_asks_for_the_ledger_after_the_range() -> None:
+    """Regression: RPC's endLedger is exclusive; requesting END left ledger END unread."""
+    sent: list[dict[str, Any]] = []
+
+    class _Capture:
+        def request(self, method: str, url: str, body: bytes | None) -> Response:
+            sent.append(json.loads(body or b"{}"))
+            return Response(200, b'{"jsonrpc": "2.0", "id": 1, "result": {"events": []}}')
+
+    Rpc("https://rpc.example", _Capture()).get_events(
+        USDC_SAC, start_ledger=10, end_ledger=20, cursor=None, limit=5
+    )
+    assert (sent[0]["params"]["startLedger"], sent[0]["params"]["endLedger"]) == (10, 21)
+
+
 def test_horizon_range_outside_history_is_data_unavailable(tmp_path: Path) -> None:
     horizon, _ = clients("usdc-issuer")
     with pytest.raises(DataUnavailable):

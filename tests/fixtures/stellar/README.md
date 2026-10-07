@@ -63,6 +63,13 @@ Transacciones (ledgers 5027650–5027672):
 
 El enlace explícito (`links/demoa-own.json`, `approval-owner-2026-10-05-testnet-demo`) es el único motivo por el que T1 lleva `operation_ref = SUB-0001`. La institución, el banco y el TA de `SUB-0001` siguen siendo sintéticos; esta emisión no representa un fondo real.
 
+## Regrabación de `getEvents` (2026-10-06)
+El `endLedger` de RPC `getEvents` es exclusivo, y el adaptador ahora pide `end_ledger + 1`; antes, el último ledger de cada rango no se leía por RPC aunque la cobertura lo incluía. Eso cambia la petición, así que en `usdc-gclcz`, `usdc-issuer`, `usdc-gb4mm` y `demoa-own` se regrabaron **solo** los intercambios `getEvents`, con su propio `captured_at`. Para hacerlo se volvió a capturar cada muestra en un directorio temporal:
+- las páginas de Horizon y los ledgers salieron byte a byte idénticos a los grabados;
+- `/assets` y la raíz `/` sí cambiaron, porque son estadísticas vivas, y se conservaron las originales.
+
+El único evento nuevo en un último ledger es un `approve` de `usdc-issuer` (ledger 5015945), que no es un movimiento.
+
 ## Límites
 - Testnet se reinicia periódicamente. Las grabaciones permiten reproducir todo offline; la prueba real (`INVARIA_LIVE_TESTNET=1`) se omite si la historia ya no contiene la muestra.
 - La cobertura es `provider_claimed`: es lo que Horizon y RPC devuelven, sin validación criptográfica de checkpoints ni fuente independiente.
