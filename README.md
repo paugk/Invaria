@@ -1,6 +1,6 @@
 # Invaria (core, initial)
 
-Invaria is an operational-integrity and reproducible-evidence layer for tokenized operations, starting with Stellar. Its goal is to state, for a concrete operation such as a fund subscription, whether institutional records (orders, bank, transfer agent) and on-chain observations are coherent:
+Invaria is an operational-integrity and reproducible-evidence layer for tokenized operations, for Stellar. Its goal is to state, for a concrete operation such as a fund subscription, whether institutional records (orders, bank, transfer agent) and on-chain observations are coherent:
 - `MATCH`: every mandatory check passes with sufficient evidence.
 - `BREAK`: a contradiction is demonstrated.
 - `UNKNOWN`: evidence, coverage or interpretation is insufficient.
