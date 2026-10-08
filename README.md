@@ -1,8 +1,8 @@
 # Invaria
 
-Invaria is an operational-integrity and reproducible-evidence layer for tokenized operations, starting with Stellar.
+Invaria is an open-source core for reconciling records with Stellar evidence, detecting discrepancies and reproducing evaluations offline. It includes synthetic subscription and redemption profiles, persistence and a local console. It is a verifiable prototype with explicit limitations; it is not yet production-ready.
 
-This `main` branch only contains the license. The initial source (canonical contracts, JSON Schemas, deterministic CSV ingestion and a synthetic test corpus) is published on the branch [`opensource/core-initial`](https://github.com/paugk/Invaria/tree/opensource/core-initial). It is not a complete MVP: there is no evaluator yet.
+The source is published on the branch [`opensource/core-initial`](https://github.com/paugk/Invaria/tree/opensource/core-initial). Its [CAPABILITIES.md](https://github.com/paugk/Invaria/blob/opensource/core-initial/CAPABILITIES.md) states what each component can and cannot conclude.
 
 ## License
 
