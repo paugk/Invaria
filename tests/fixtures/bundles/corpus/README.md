@@ -12,6 +12,8 @@ Casos de verificación con su estado esperado, todos sobre el corpus sintético.
 - Ningún archivo contiene una clave privada.
 - Los bundles base y los overlays sin firma son idénticos byte a byte a los que se generan de nuevo.
 
+**Motor.** El corpus se grabó con `invaria-engine@0.1.0`, hoy retirado, y se conserva como evidencia histórica: los casos se reproducen con ese motor exacto (`engine_status: retired`) y las bases se reconstruyen con `replay(…, "invaria-engine@0.1.0")`, nunca con el motor actual. No se ha regenerado para 0.2.0, lo que exigiría claves efímeras nuevas.
+
 **Firmas.** Se generaron con claves Ed25519 efímeras que se descartaron tras firmar. Aquí solo hay claves públicas (`trust-store.json`) y firmas (`overlays/signed*/signature.json`).
 
 Si cambia el motor, un contrato o el formato, la comparación con un build nuevo falla a propósito. Regenerar es una decisión explícita, y crea claves nuevas:

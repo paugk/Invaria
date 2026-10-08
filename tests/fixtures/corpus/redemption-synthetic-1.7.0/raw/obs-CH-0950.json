@@ -1,0 +1,28 @@
+{
+  "synthetic": true,
+  "source_id": "ta-synthetic",
+  "record": {
+    "record_key": "J-0950",
+    "revision": 1,
+    "valid_time": "2026-10-05T09:00:00Z",
+    "payload": {
+      "payload_type": "position_changed",
+      "account_ref": "acct-pseudo-0001",
+      "change_ref": "J-0950",
+      "holding_delta": {
+        "atoms": "500000000",
+        "scale": 7,
+        "unit": "FUND_SHARE"
+      },
+      "reserved_delta": {
+        "atoms": "0",
+        "scale": 7,
+        "unit": "FUND_SHARE"
+      },
+      "effective_at": "2026-10-05T09:00:00Z",
+      "journal_id": "ta-journal-demoa",
+      "sequence": 950,
+      "request_ref": null
+    }
+  }
+}

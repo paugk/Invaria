@@ -1,0 +1,49 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/transactions/4d4db33e234ee809816c992c23f18bd46bd57b962dc3c25721791fc96466de88/operations?cursor=\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/transactions/4d4db33e234ee809816c992c23f18bd46bd57b962dc3c25721791fc96466de88/operations?cursor=20892550583840769\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/transactions/4d4db33e234ee809816c992c23f18bd46bd57b962dc3c25721791fc96466de88/operations?cursor=20892550583840769\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/20892550583840769"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/4d4db33e234ee809816c992c23f18bd46bd57b962dc3c25721791fc96466de88"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/20892550583840769/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=20892550583840769"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=20892550583840769"
+          }
+        },
+        "id": "20892550583840769",
+        "paging_token": "20892550583840769",
+        "transaction_successful": false,
+        "source_account": "GCWSNDOOTAGUCTR4X62RCH5UOAUVSWV5VL2AZSCWBK27DHL2IFQDPHVX",
+        "type": "clawback",
+        "type_i": 19,
+        "created_at": "2026-09-25T14:15:17Z",
+        "transaction_hash": "4d4db33e234ee809816c992c23f18bd46bd57b962dc3c25721791fc96466de88",
+        "asset_type": "credit_alphanum12",
+        "asset_code": "TESTUSB",
+        "asset_issuer": "GCWSNDOOTAGUCTR4X62RCH5UOAUVSWV5VL2AZSCWBK27DHL2IFQDPHVX",
+        "from": "GAQHKLXHUQLEKAY3FFAAEBDU4ZB2RD3XOKAUTIJ4PZKSVU35B2HJQXEG",
+        "amount": "50.0000000"
+      }
+    ]
+  }
+}

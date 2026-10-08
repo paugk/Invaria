@@ -1,0 +1,26 @@
+{
+  "synthetic": true,
+  "source_id": "ta-synthetic",
+  "record": {
+    "record_key": "POS-1004",
+    "revision": 1,
+    "valid_time": "2026-10-05T10:00:00Z",
+    "payload": {
+      "payload_type": "position_held",
+      "account_ref": "acct-pseudo-0001",
+      "units": {
+        "atoms": "500000000",
+        "scale": 7,
+        "unit": "FUND_SHARE"
+      },
+      "reserved": {
+        "atoms": "0",
+        "scale": 7,
+        "unit": "FUND_SHARE"
+      },
+      "as_of": "2026-10-05T10:00:00Z",
+      "journal_id": "ta-journal-demoa",
+      "sequence": 1004
+    }
+  }
+}

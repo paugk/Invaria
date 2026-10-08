@@ -1,0 +1,173 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/operations/21772645217349633/effects?cursor=\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/operations/21772645217349633/effects?cursor=21772645217349633-6\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/operations/21772645217349633/effects?cursor=21772645217349633-1\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349633-1"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349633-1"
+          }
+        },
+        "id": "0021772645217349633-0000000001",
+        "paging_token": "21772645217349633-1",
+        "account": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "type": "account_credited",
+        "type_i": 2,
+        "created_at": "2026-10-07T10:51:22Z",
+        "asset_type": "native",
+        "amount": "1.5100600"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349633-2"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349633-2"
+          }
+        },
+        "id": "0021772645217349633-0000000002",
+        "paging_token": "21772645217349633-2",
+        "account": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "type": "account_debited",
+        "type_i": 3,
+        "created_at": "2026-10-07T10:51:22Z",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "amount": "0.2479821"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349633-3"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349633-3"
+          }
+        },
+        "id": "0021772645217349633-0000000003",
+        "paging_token": "21772645217349633-3",
+        "account": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "type": "trade",
+        "type_i": 33,
+        "created_at": "2026-10-07T10:51:22Z",
+        "seller": "GBAIN6CHZJGBL365JNXSRQEKALXYTWKXANQZ3RBM7AGUEYYKLJJ6SNR6",
+        "offer_id": "894515",
+        "sold_amount": "0.2479821",
+        "sold_asset_type": "credit_alphanum4",
+        "sold_asset_code": "USDC",
+        "sold_asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "bought_amount": "0.2479821",
+        "bought_asset_type": "credit_alphanum4",
+        "bought_asset_code": "LUSD",
+        "bought_asset_issuer": "GBCMRD6NDL2RAJUOFQ25EHZVO3IRIGNESWE4QDRFB4AVFIP7IT5BRCJ6"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349633-4"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349633-4"
+          }
+        },
+        "id": "0021772645217349633-0000000004",
+        "paging_token": "21772645217349633-4",
+        "account": "GBAIN6CHZJGBL365JNXSRQEKALXYTWKXANQZ3RBM7AGUEYYKLJJ6SNR6",
+        "type": "trade",
+        "type_i": 33,
+        "created_at": "2026-10-07T10:51:22Z",
+        "seller": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "offer_id": "894515",
+        "sold_amount": "0.2479821",
+        "sold_asset_type": "credit_alphanum4",
+        "sold_asset_code": "LUSD",
+        "sold_asset_issuer": "GBCMRD6NDL2RAJUOFQ25EHZVO3IRIGNESWE4QDRFB4AVFIP7IT5BRCJ6",
+        "bought_amount": "0.2479821",
+        "bought_asset_type": "credit_alphanum4",
+        "bought_asset_code": "USDC",
+        "bought_asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349633-5"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349633-5"
+          }
+        },
+        "id": "0021772645217349633-0000000005",
+        "paging_token": "21772645217349633-5",
+        "account": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "type": "trade",
+        "type_i": 33,
+        "created_at": "2026-10-07T10:51:22Z",
+        "seller": "GBAIN6CHZJGBL365JNXSRQEKALXYTWKXANQZ3RBM7AGUEYYKLJJ6SNR6",
+        "offer_id": "98948",
+        "sold_amount": "0.2479821",
+        "sold_asset_type": "credit_alphanum4",
+        "sold_asset_code": "LUSD",
+        "sold_asset_issuer": "GBCMRD6NDL2RAJUOFQ25EHZVO3IRIGNESWE4QDRFB4AVFIP7IT5BRCJ6",
+        "bought_amount": "1.5100600",
+        "bought_asset_type": "native"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349633-6"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349633-6"
+          }
+        },
+        "id": "0021772645217349633-0000000006",
+        "paging_token": "21772645217349633-6",
+        "account": "GBAIN6CHZJGBL365JNXSRQEKALXYTWKXANQZ3RBM7AGUEYYKLJJ6SNR6",
+        "type": "trade",
+        "type_i": 33,
+        "created_at": "2026-10-07T10:51:22Z",
+        "seller": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "offer_id": "98948",
+        "sold_amount": "1.5100600",
+        "sold_asset_type": "native",
+        "bought_amount": "0.2479821",
+        "bought_asset_type": "credit_alphanum4",
+        "bought_asset_code": "LUSD",
+        "bought_asset_issuer": "GBCMRD6NDL2RAJUOFQ25EHZVO3IRIGNESWE4QDRFB4AVFIP7IT5BRCJ6"
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/transactions/ba0ab984ac337907883f1b3d1046ab6df94a1925436b38642b64e1817dec9362/operations?cursor=\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/transactions/ba0ab984ac337907883f1b3d1046ab6df94a1925436b38642b64e1817dec9362/operations?cursor=21772022447157249\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/transactions/ba0ab984ac337907883f1b3d1046ab6df94a1925436b38642b64e1817dec9362/operations?cursor=21772022447157249\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772022447157249"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/ba0ab984ac337907883f1b3d1046ab6df94a1925436b38642b64e1817dec9362"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772022447157249/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772022447157249"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772022447157249"
+          }
+        },
+        "id": "21772022447157249",
+        "paging_token": "21772022447157249",
+        "transaction_successful": true,
+        "source_account": "GB4MMSZ5FY3KOCMMN77DNJBSKXFZVRXMLM5SKKDIVGTWGR55DKJM7GSD",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2026-10-07T10:39:17Z",
+        "transaction_hash": "ba0ab984ac337907883f1b3d1046ab6df94a1925436b38642b64e1817dec9362",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "from": "GB4MMSZ5FY3KOCMMN77DNJBSKXFZVRXMLM5SKKDIVGTWGR55DKJM7GSD",
+        "to": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        "amount": "34567.0000000",
+        "path": [],
+        "source_amount": "34567.0000000",
+        "source_max": "34567.0000000",
+        "source_asset_type": "credit_alphanum12",
+        "source_asset_code": "USDCAllow",
+        "source_asset_issuer": "GAWZGWFOURKXZ4XYXBGFADZM4QIG6BJNM74XIZCEIU3BHM62RN2MDEZN"
+      }
+    ]
+  }
+}

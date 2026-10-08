@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-usdc-gapnrjhi-cb-claim",
+  "tenant_id": "tenant-testnet-sample",
+  "network": "stellar:testnet",
+  "asset_code": "USDC",
+  "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "account": "GAPNRJHI635F3M6WAEUOSGIGKBBIDT4V6FDRK6KCETI3NNSIQHNZ6RU6",
+  "unit": "USDC",
+  "instrument_id": "testnet:asset:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "representation_id": "rep-testnet-classic-USDC-GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+  "synthetic": false,
+  "description": "Real Stellar testnet USDC observed for account GAPNRJHI, which claims a claimable balance created by GDES54WT (claim_claimable_balance; CAP-67 transfer from a claimable balance). Third-party public testnet data, unrelated to the synthetic DEMO-A subscription."
+}

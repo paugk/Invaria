@@ -1,4 +1,4 @@
-"""CSV ingestion behaviour: CSV -> observations, quarantine, idempotency, revisions, coverage."""
+"""CSV import behaviour: CSV -> observations, quarantine, idempotency, revisions, coverage."""
 
 from __future__ import annotations
 

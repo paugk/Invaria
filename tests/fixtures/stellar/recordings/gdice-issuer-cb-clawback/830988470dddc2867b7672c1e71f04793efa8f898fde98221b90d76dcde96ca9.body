@@ -1,0 +1,94 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/00000000b978c53b7fb364ed7762b572a275d28703a98d52cb09150511c8e50993df2f0c/operations?cursor=\u0026include_failed=true\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/00000000b978c53b7fb364ed7762b572a275d28703a98d52cb09150511c8e50993df2f0c/operations?cursor=21739436530212865\u0026include_failed=true\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/00000000b978c53b7fb364ed7762b572a275d28703a98d52cb09150511c8e50993df2f0c/operations?cursor=21665271034945538\u0026include_failed=true\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21665271034945538"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/464a0ac96e5e3f4e0f7c47bd22893dd0afb148440fb09f9d22c99a1fe2c69294"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21665271034945538/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21665271034945538"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21665271034945538"
+          }
+        },
+        "id": "21665271034945538",
+        "paging_token": "21665271034945538",
+        "transaction_successful": true,
+        "source_account": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "type": "create_claimable_balance",
+        "type_i": 14,
+        "created_at": "2026-10-06T00:08:02Z",
+        "transaction_hash": "464a0ac96e5e3f4e0f7c47bd22893dd0afb148440fb09f9d22c99a1fe2c69294",
+        "sponsor": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "asset": "gdICE:GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "amount": "236813.0270214",
+        "claimants": [
+          {
+            "destination": "GCDNOY3X7YX5MYPMFOHVUUOBH2SVJFYVXY74QVDT7SC5RSL44R3RA6Y7",
+            "predicate": {
+              "not": {
+                "unconditional": true
+              }
+            }
+          },
+          {
+            "destination": "GB4N4VR7SVNAG5HY63NSCNPMK5GYFQAHEV4ICUPKR5KPLSTA3ERVD722",
+            "predicate": {
+              "not": {
+                "abs_before": "2026-08-03T00:59:59Z",
+                "abs_before_epoch": "1785718799"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21739436530212865"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/a8a92a5d390fa7e429d6918acadec79de3ea707ebf8bfc9966b4d3d697023f44"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21739436530212865/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21739436530212865"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21739436530212865"
+          }
+        },
+        "id": "21739436530212865",
+        "paging_token": "21739436530212865",
+        "transaction_successful": true,
+        "source_account": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "type": "clawback_claimable_balance",
+        "type_i": 20,
+        "created_at": "2026-10-07T00:07:02Z",
+        "transaction_hash": "a8a92a5d390fa7e429d6918acadec79de3ea707ebf8bfc9966b4d3d697023f44",
+        "balance_id": "00000000b978c53b7fb364ed7762b572a275d28703a98d52cb09150511c8e50993df2f0c"
+      }
+    ]
+  }
+}

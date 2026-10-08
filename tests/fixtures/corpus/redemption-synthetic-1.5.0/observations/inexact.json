@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-redemption-synthetic-1.5.0",
+  "timeline_id": "inexact",
+  "synthetic": true,
+  "observations": [
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-RQ-INEXACT",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "redemption_accepted",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": "RED-0001",
+      "source": {
+        "source_id": "ta-synthetic",
+        "record_key": "RED-0001",
+        "revision": 1
+      },
+      "valid_time": "2026-10-05T10:00:00Z",
+      "recorded_at": "2026-10-05T10:05:00Z",
+      "provenance": {
+        "raw_sha256": "836a6eeeedadb7fd8998456edcfa15f2219ef412916c459ea4dc345e248653ab",
+        "raw_locator": "raw/obs-RQ-INEXACT.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "ta-redemption-frozen@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "redemption_accepted",
+        "account_ref": "acct-pseudo-0001",
+        "units": {
+          "atoms": "1000000001",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        },
+        "price_ref": "price:DEMO-A:2026-10-04",
+        "price_per_unit": {
+          "atoms": "10000",
+          "scale": 2,
+          "unit": "USD"
+        },
+        "accepted_at": "2026-10-05T10:00:00Z",
+        "payment_due_at": "2026-10-07T10:00:00Z",
+        "journal_id": "ta-journal-demoa",
+        "sequence": 1005,
+        "settlement_ref": null
+      },
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-PS1",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "position_held",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": "RED-0001",
+      "source": {
+        "source_id": "ta-synthetic",
+        "record_key": "POS-1004",
+        "revision": 1
+      },
+      "valid_time": "2026-10-05T10:00:00Z",
+      "recorded_at": "2026-10-05T10:05:00Z",
+      "provenance": {
+        "raw_sha256": "09c7b90c3eae332ed99d86dde5061611b9fab993de45f546231af5c71807ca28",
+        "raw_locator": "raw/obs-PS1.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "ta-redemption-frozen@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "position_held",
+        "account_ref": "acct-pseudo-0001",
+        "units": {
+          "atoms": "10000000000",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        },
+        "reserved": {
+          "atoms": "0",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        },
+        "as_of": "2026-10-05T10:00:00Z",
+        "journal_id": "ta-journal-demoa",
+        "sequence": 1004
+      },
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-PR1",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "price_approved",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": null,
+      "source": {
+        "source_id": "pricing-synthetic",
+        "record_key": "price:DEMO-A:2026-10-04",
+        "revision": 1
+      },
+      "valid_time": "2026-10-04T22:00:00Z",
+      "recorded_at": "2026-10-04T22:05:00Z",
+      "provenance": {
+        "raw_sha256": "c10e23a0d1989e213443d55baaf6a32225f82694d30bc736a3df0fa2a786595c",
+        "raw_locator": "raw/obs-PR1.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "pricing-frozen-synthetic@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "price_approved",
+        "price_ref": "price:DEMO-A:2026-10-04",
+        "price_per_unit": {
+          "atoms": "10000",
+          "scale": 2,
+          "unit": "USD"
+        }
+      },
+      "synthetic": true
+    }
+  ]
+}

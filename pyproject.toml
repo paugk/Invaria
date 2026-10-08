@@ -1,7 +1,7 @@
 [project]
 name = "invaria"
 version = "0.0.0"
-description = "Invaria core: canonical contracts, CSV ingestion, pure evaluator, offline R1/R2 bundle replay with Ed25519 signatures, read-only Stellar testnet adapter, append-only PostgreSQL persistence with invalidation, and a read-only consultative MCP server."
+description = "Invaria core: canonical contracts, CSV ingestion, pure subscription and redemption evaluators with versioned engines, offline R1/R2 bundle replay with Ed25519 signatures, read-only Stellar testnet adapter, append-only PostgreSQL persistence with invalidation and logical backup, a read-only consultative MCP server and a local read-only evidence console."
 requires-python = ">=3.13,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
@@ -49,13 +49,14 @@ addopts = ["--import-mode=importlib", "--strict-markers"]
 markers = [
     "live_testnet: queries the public Stellar testnet; opt-in via INVARIA_LIVE_TESTNET=1",
     "postgres: needs a real PostgreSQL; opt-in via INVARIA_TEST_DATABASE_URL",
+    "browser: renders the console in a headless Chrome; opt-in via INVARIA_BROWSER_E2E=1",
 ]
 
 [tool.mypy]
 python_version = "3.13"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["src", "tests/contracts", "tests/ingest", "tests/engine", "tests/bundle", "tests/stellar", "tests/persistence", "tests/query"]
+files = ["src", "tests/contracts", "tests/ingest", "tests/engine", "tests/bundle", "tests/stellar", "tests/persistence", "tests/query", "tests/console"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

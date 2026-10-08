@@ -25,7 +25,7 @@ from invaria.bundle.signing import TrustPolicy, public_key_hex, sign_bundle
 from invaria.contracts.base import parse_contract
 from invaria.contracts.bundle import TrustStore
 from invaria.corpus_loader import Corpus, load_corpus
-from invaria.engine.evaluate import EvaluationInputs, evaluate
+from invaria.engine.evaluate import EvaluationInputs, replay
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 CORPUS_DIR = FIXTURES / "corpus/subscription-synthetic"
@@ -72,6 +72,16 @@ def csv_only_inputs(corpus: Corpus) -> EvaluationInputs:
 
 def raw_files(corpus: Corpus) -> dict[str, bytes]:
     return {f"raw/{f.name}": f.read_bytes() for f in sorted((corpus.root / "raw").iterdir())}
+
+
+# The golden corpus is historical evidence recorded with invaria-engine@0.1.0,
+# now retired: its bases are rebuilt with that exact engine, never the current
+# one, and its bundles still reproduce with it.
+HISTORICAL_ENGINE = "invaria-engine@0.1.0"
+
+
+def evaluate(inputs: EvaluationInputs) -> Any:
+    return replay(inputs, HISTORICAL_ENGINE)
 
 
 def build_bases(corpus: Corpus, out: Path) -> None:
@@ -247,6 +257,10 @@ def test_golden_case(case: dict[str, Any], tmp_path: Path) -> None:
     assert report.financial_result == case["expected_financial_result"]
     if "expected_renormalized" in case:
         assert len(report.renormalized_observation_ids) == case["expected_renormalized"]
+    if report.status in ("REPRODUCED", "MISMATCH"):
+        # Historical evidence: replayed with its exact, retired engine.
+        assert report.engine_status == "retired"
+        assert report.local_engine_ref == HISTORICAL_ENGINE
 
 
 def test_catalog_covers_every_status_and_overlay() -> None:

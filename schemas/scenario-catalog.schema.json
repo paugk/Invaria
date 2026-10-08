@@ -36,7 +36,24 @@
             "QUARANTINED_INPUT",
             "UNSUPPORTED_CAPABILITY",
             "EVALUATION_ERROR",
-            "NOT_APPLICABLE_BY_PROFILE"
+            "NOT_APPLICABLE_BY_PROFILE",
+            "PRICE_MISMATCH",
+            "UNITS_EXCEED_POSITION",
+            "PAYMENT_LATE",
+            "PAYMENT_MISSED",
+            "SETTLED_DESPITE_CANCELLATION",
+            "INEXACT_AMOUNT",
+            "PAYMENT_NOT_DUE",
+            "INVALID_CANCELLATION",
+            "EXTINGUISHED_BY_CANCELLATION",
+            "NO_CANCELLATION",
+            "DEADLINE_DATA_CONFLICT",
+            "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+            "AMBIGUOUS_SEQUENCE",
+            "POSITION_NOT_BEFORE_ACCEPTANCE",
+            "REACTIVATION_UNSUPPORTED",
+            "PAYMENT_TO_WRONG_ACCOUNT",
+            "INVALID_RETRACTION"
           ],
           "title": "Reason Code",
           "type": "string"
@@ -82,6 +99,19 @@
           "maxItems": 10000,
           "title": "Effective Observation Ids",
           "type": "array"
+        },
+        "operation_state": {
+          "anyOf": [
+            {
+              "const": "cancelled",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operation State"
         },
         "result": {
           "enum": [

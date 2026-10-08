@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-07T15:14:29+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "f50e6a3857e14748f2f485cd6fc3f55841f0f5e2c2cc4ec171e1ca52d66d7be5",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/transactions/5775359727749907801b0ae760a15b1b2937cfccc0cdb0d1a1819b1454dac4d0"
+}

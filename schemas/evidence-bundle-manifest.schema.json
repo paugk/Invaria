@@ -110,6 +110,7 @@
     },
     "EvaluationVersions": {
       "additionalProperties": false,
+      "description": "``mapping_refs`` are the mappings the profile admits (copied from the snapshot);\n``evidence_mapping_refs`` (subscription 0.8.0, redemption 0.9.0 on) are the\nmappings that actually produced the observations of the profile's sources in the\nsnapshot, each named in its observation's provenance. It may name a mapping the profile\ndoes not admit: such an evaluation is the EVALUATION_ERROR that refuses it, and it says\nwhy. Absent in artifacts of earlier engines, which did not state it; omitted when None,\nso they stay byte-identical.",
       "properties": {
         "casm": {
           "const": "1.0",
@@ -120,6 +121,22 @@
           "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
           "title": "Engine Ref",
           "type": "string"
+        },
+        "evidence_mapping_refs": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Mapping Refs"
         },
         "mapping_refs": {
           "items": {

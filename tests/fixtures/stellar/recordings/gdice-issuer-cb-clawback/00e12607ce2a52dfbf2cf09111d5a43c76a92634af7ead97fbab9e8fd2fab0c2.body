@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/assets?asset_code=gdICE\u0026asset_issuer=GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/assets?asset_code=gdICE\u0026asset_issuer=GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX\u0026cursor=gdICE_GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX_credit_alphanum12\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/assets?asset_code=gdICE\u0026asset_issuer=GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX\u0026cursor=gdICE_GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX_credit_alphanum12\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum12",
+        "asset_code": "gdICE",
+        "asset_issuer": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "paging_token": "gdICE_GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX_credit_alphanum12",
+        "num_claimable_balances": 2,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 0,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 9
+        },
+        "claimable_balances_amount": "737092.1267462",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "2701732.4570582"
+        },
+        "flags": {
+          "auth_required": true,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      }
+    ]
+  }
+}

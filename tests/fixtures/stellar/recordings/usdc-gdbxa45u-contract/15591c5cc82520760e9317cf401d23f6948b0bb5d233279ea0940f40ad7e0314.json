@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-07T15:13:24+00:00",
+  "method": "POST",
+  "request_body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"getEvents\",\"params\":{\"endLedger\":5024525,\"filters\":[{\"contractIds\":[\"CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA\"],\"type\":\"contract\"}],\"pagination\":{\"limit\":200},\"startLedger\":5024520}}",
+  "response_sha256": "2ca591af6a9317f41b03293eb2bd0f6a54176154aecb029407964048f3616ef2",
+  "status": 200,
+  "url": "https://soroban-testnet.stellar.org"
+}

@@ -51,7 +51,24 @@
             "QUARANTINED_INPUT",
             "UNSUPPORTED_CAPABILITY",
             "EVALUATION_ERROR",
-            "NOT_APPLICABLE_BY_PROFILE"
+            "NOT_APPLICABLE_BY_PROFILE",
+            "PRICE_MISMATCH",
+            "UNITS_EXCEED_POSITION",
+            "PAYMENT_LATE",
+            "PAYMENT_MISSED",
+            "SETTLED_DESPITE_CANCELLATION",
+            "INEXACT_AMOUNT",
+            "PAYMENT_NOT_DUE",
+            "INVALID_CANCELLATION",
+            "EXTINGUISHED_BY_CANCELLATION",
+            "NO_CANCELLATION",
+            "DEADLINE_DATA_CONFLICT",
+            "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+            "AMBIGUOUS_SEQUENCE",
+            "POSITION_NOT_BEFORE_ACCEPTANCE",
+            "REACTIVATION_UNSUPPORTED",
+            "PAYMENT_TO_WRONG_ACCOUNT",
+            "INVALID_RETRACTION"
           ],
           "title": "Reason Code",
           "type": "string"
@@ -93,7 +110,14 @@
               "order_accepted",
               "cash_settled",
               "units_registered",
-              "token_movement"
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
             ],
             "type": "string"
           },
@@ -309,6 +333,16 @@
           "title": "Engine Ref",
           "type": "string"
         },
+        "engine_status": {
+          "enum": [
+            "current",
+            "retired",
+            "blocked",
+            "unknown"
+          ],
+          "title": "Engine Status",
+          "type": "string"
+        },
         "profile_ref": {
           "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
           "title": "Profile Ref",
@@ -323,7 +357,8 @@
       "required": [
         "profile_ref",
         "rules_ref",
-        "engine_ref"
+        "engine_ref",
+        "engine_status"
       ],
       "title": "VersionsView",
       "type": "object"
@@ -369,6 +404,18 @@
       "title": "Operation Ref",
       "type": "string"
     },
+    "operation_state": {
+      "anyOf": [
+        {
+          "const": "cancelled",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Operation State"
+    },
     "result": {
       "enum": [
         "MATCH",
@@ -389,6 +436,7 @@
     "evaluation_id",
     "operation_ref",
     "result",
+    "operation_state",
     "snapshot",
     "currency",
     "controls",

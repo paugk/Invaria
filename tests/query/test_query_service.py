@@ -16,11 +16,16 @@ import psycopg
 import pytest
 from mcp.shared.memory import create_connected_server_and_client_session
 from psycopg import errors
+from psycopg.types.json import Jsonb
 
 from invaria.contracts.observation import Observation
 from invaria.corpus_loader import Corpus, load_corpus
+from invaria.engine.evaluate import replay
 from invaria.mcp_server import build_server
+from invaria.persistence.backup import reproduce_all
+from invaria.persistence.dsn import with_database
 from invaria.persistence.migrate import migrate
+from invaria.persistence.provision import prepare_for_migrator
 from invaria.persistence.store import READER_ROLE, PgStore
 from invaria.persistence.worker import Clocks, reevaluate
 from invaria.query.models import AccessProfile
@@ -35,8 +40,25 @@ OP = "SUB-0001"
 
 def _dsn_for(database: str) -> str:
     assert ADMIN_DSN is not None
-    base, _, _ = ADMIN_DSN.rpartition("/")
-    return f"{base}/{database}"
+    return with_database(ADMIN_DSN, database)
+
+
+def insert_historical_evaluation(conn: psycopg.Connection[Any], evaluation: Any) -> None:
+    """A conclusion recorded when its engine was current, as a restore brings it back.
+    ``save_evaluation`` refuses engines that are not current."""
+    conn.execute(
+        "INSERT INTO invaria.evaluations (tenant_id, evaluation_id, snapshot_id, result, "
+        "engine_ref, document) VALUES (%s, %s, %s, %s, %s, %s)",
+        (
+            TENANT,
+            evaluation.evaluation_id,
+            evaluation.snapshot_id,
+            evaluation.result,
+            evaluation.versions.engine_ref,
+            Jsonb(evaluation.model_dump(mode="json")),
+        ),
+    )
+    conn.commit()
 
 
 @pytest.fixture
@@ -49,6 +71,7 @@ def database() -> Iterator[str]:
         admin.execute(f"CREATE DATABASE {name}")
     try:
         with psycopg.connect(_dsn_for(name)) as conn:
+            prepare_for_migrator(conn)
             migrate(conn)
         yield _dsn_for(name)
     finally:
@@ -361,3 +384,65 @@ def test_cli_serves_over_stdio(world: World, tmp_path: Path) -> None:
     assert len(tools.tools) == 7
     assert not result.isError and result.structuredContent["evaluation_id"] == world.k3
     assert json.loads(audit.read_text().splitlines()[0])["tool"] == "get_coverage"
+
+
+# ----------------------------------------------- engine versions
+
+
+def test_a_new_engine_never_overwrites_a_historical_evaluation(world: World) -> None:
+    """A conclusion recorded with the retired 0.1.0 stays stored next to the current one;
+    queries tell them apart and the historical one replays with its own engine."""
+    current = world.writer.load_evaluation(TENANT, world.k3)
+    assert current.versions.engine_ref == "invaria-engine@0.10.0"
+    inputs = world.writer.load_inputs(TENANT, current.snapshot_id)
+    historical = replay(inputs, "invaria-engine@0.1.0").result
+    assert historical.evaluation_id != current.evaluation_id
+    with pytest.raises(ValueError, match="not current"):
+        world.writer.save_evaluation(TENANT, historical)
+    insert_historical_evaluation(world.writer.conn, historical)
+    assert world.writer.load_evaluation(TENANT, world.k3) == current  # untouched
+    # Only current engines publish: the retired conclusion stays stored, never current.
+    epoch = world.writer.scope_head(TENANT, OP).epoch
+    refused = world.writer.publish(TENANT, historical.evaluation_id, epoch)
+    assert refused.outcome == "NOT_CURRENT" and "not a current engine" in refused.detail
+    query = service(world)
+    old_view = query.get_evaluation(historical.evaluation_id)
+    new_view = query.get_evaluation(world.k3)
+    assert (old_view.versions.engine_ref, old_view.versions.engine_status) == (
+        "invaria-engine@0.1.0",
+        "retired",
+    )
+    assert (new_view.versions.engine_ref, new_view.versions.engine_status) == (
+        "invaria-engine@0.10.0",
+        "current",
+    )
+    assert any(
+        "does not validate it under the current semantics" in x for x in old_view.limitations
+    )
+    assert not any("does not validate it" in x for x in new_view.limitations)
+    change = query.explain_conclusion_change(historical.evaluation_id, world.k3)
+    assert any("engines differ" in limitation for limitation in change.limitations)
+    assert (old_view.result, old_view.controls) == (new_view.result, new_view.controls)
+    # Replayed with its exact (retired) engine, never with the current one.
+    old_discrepancy = query.explain_discrepancy(historical.evaluation_id, CASH)
+    assert old_discrepancy.replay_consistent
+    engines = {
+        e.evaluation_id: e.engine_ref
+        for e in query.get_timeline(OP).entries
+        if e.kind == "evaluation"
+    }
+    assert engines[historical.evaluation_id] == "invaria-engine@0.1.0"
+    assert engines[world.k3] == "invaria-engine@0.10.0"
+    # The published conclusion is still the current engine's.
+    published = world.reader.current_evaluation(TENANT, OP)
+    assert published is not None and published.evaluation_id == world.k3
+    total, reproduced, missing, mismatches = reproduce_all(world.reader)
+    assert (reproduced, missing, mismatches) == (total, [], [])
+
+
+def test_retired_engines_are_not_selectable_for_new_evaluations(
+    world: World, corpus: Corpus
+) -> None:
+    for ref in ("invaria-engine@0.1.0", "invaria-engine@0.2.0", "invaria-redemption-engine@0.4.0"):
+        with pytest.raises(ValueError, match="not selectable for new evaluations"):
+            reevaluate(world.writer, TENANT, OP, clocks(corpus, "K3"), engine_ref=ref)

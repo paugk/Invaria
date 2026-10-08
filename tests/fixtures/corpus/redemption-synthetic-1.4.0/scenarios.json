@@ -1,0 +1,5482 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-redemption-synthetic-1.4.0",
+  "synthetic": true,
+  "profile_ref": "fund-redemption-synthetic@1.4.0",
+  "scenarios": [
+    {
+      "scenario_id": "RD-PENDING",
+      "title": "Burned and registered; no payment yet, before the due time",
+      "timeline_id": "main",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-PENDING",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Due 2026-10-07T10:00Z, clock 2026-10-06T09:00Z: absence is not yet a breach.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-PAID",
+      "title": "Full redemption settled on time",
+      "timeline_id": "main",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-PAID",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Request, approved price, position before acceptance, USD 10,000.00 paid 2026-10-06T15:00Z, TA debit and burn of 100: every control passes with coverage.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-PAID-AT-DUE",
+      "title": "Payment effective exactly at the due time",
+      "timeline_id": "at-due",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-PAID-AT-DUE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-DUE",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-DUE",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "A payment effective exactly at the due instant is on time.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED",
+      "title": "No payment after the due time, with full bank coverage",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_MISSED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "The bank export [2026-10-04T00:00Z, 2026-10-07T12:00Z) for the account in USD, unfiltered, contains the due instant: absence of the payment is demonstrated.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED-REPLAYED",
+      "title": "RD-MISSED replayed after the late payment arrived",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known_now",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED-REPLAYED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_MISSED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Same closed snapshot as RD-MISSED consulted after RD-LATE: the late payment is not a member, so the history reproduces.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED-NO-COVERAGE",
+      "title": "Bank coverage stops a day early",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED-NO-COVERAGE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3-partial",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INSUFFICIENT_COVERAGE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "The bank export ends 2026-10-06T00:00Z: absence cannot be demonstrated.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED-COVERAGE-TO-DUE",
+      "title": "Bank coverage ends exactly at the due time",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED-COVERAGE-TO-DUE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3-to-due",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INSUFFICIENT_COVERAGE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Coverage intervals are half-open: [.., 2026-10-07T10:00Z) excludes the due instant, when an on-time payment could still be effective.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED-BANK-GAP",
+      "title": "Bank coverage declares a gap",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED-BANK-GAP",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3-gap",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INSUFFICIENT_COVERAGE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "A declared gap (2026-10-06T12:00Z-13:00Z) means the export is incomplete.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-LATE",
+      "title": "Payment arrives after the due time",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-LATE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-08T10:00:00Z",
+        "known_at": "2026-10-08T10:00:00Z",
+        "evaluation_clock": "2026-10-08T10:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-LATE",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s4",
+          "cov-chain-s4",
+          "cov-price-s4",
+          "cov-ta-s4"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_LATE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-LATE",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "USD 10,000.00 effective 2026-10-08T09:00Z, 23 hours late: settlement completes and the breach of the deadline persists.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-BAD-DUE",
+      "title": "TA declares another due time; not yet due either way",
+      "timeline_id": "bad-due",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-BAD-DUE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-BADDUE",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "DEADLINE_DATA_CONFLICT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-BADDUE",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "payment_due_at 2026-10-07T17:00Z disagrees with accepted_at + 48h: a data conflict, not a financial breach.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-BAD-DUE-MISSED",
+      "title": "TA declares another due time; no payment by the computed one",
+      "timeline_id": "bad-due",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-BAD-DUE-MISSED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-BADDUE",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "DEADLINE_DATA_CONFLICT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_MISSED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-BADDUE",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "accepted_at is credited, so the payment is judged against the computed due time (10:00Z): missed, with coverage. The data conflict stays visible as UNKNOWN.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-SHORT-PAY",
+      "title": "Payment on time but USD 50.00 short",
+      "timeline_id": "short-pay",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-SHORT-PAY",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-SHORT",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "CASH_AMOUNT_MISMATCH",
+            "delta": {
+              "atoms": "-5000",
+              "scale": 2,
+              "unit": "USD"
+            }
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-SHORT",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "USD 9,950.00 paid against 100 x 100.00 = 10,000.00: delta USD -50.00.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-PRICE-MISMATCH",
+      "title": "Request states another price",
+      "timeline_id": "price-mismatch",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-PRICE-MISMATCH",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ-PRICE",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PRICE_MISMATCH",
+            "delta": {
+              "atoms": "100",
+              "scale": 2,
+              "unit": "USD"
+            }
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ-PRICE",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "The request says USD 101.00; the approved price for its price_ref is 100.00.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-INEXACT",
+      "title": "Expected payment not exact at the cash scale",
+      "timeline_id": "inexact",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-INEXACT",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-INEXACT"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INEXACT_AMOUNT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-INEXACT"
+        ]
+      },
+      "rationale": "100.0000001 units x USD 100.00 = 10,000.00001: not representable at scale 2.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-OVER-POSITION",
+      "title": "Requested units exceed the available position",
+      "timeline_id": "over-position",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-OVER-POSITION",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS-LOW",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "UNITS_EXCEED_POSITION",
+            "delta": {
+              "atoms": "500000000",
+              "scale": 7,
+              "unit": "FUND_SHARE"
+            }
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS-LOW",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "100 units requested; 50 available immediately before acceptance (sequence 1004).",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-POSITION-RECONSTRUCTED",
+      "title": "Older position rebuilt from the TA journal",
+      "timeline_id": "position-reconstructed",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-POSITION-RECONSTRUCTED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-CH-0950",
+          "obs-CH-0960",
+          "obs-CH-1006",
+          "obs-PR1",
+          "obs-PS-OLD",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-CH-0950",
+          "obs-CH-0960",
+          "obs-CH-1006",
+          "obs-PR1",
+          "obs-PS-OLD",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Position 1,000 at sequence 900 + 50 (J-0950) - 30 reserved by RED-0000 (J-0960) = 1,020 available before acceptance (1005). The request's own reservation (J-1006) is after it and is not subtracted twice.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-POSITION-SHORT",
+      "title": "Rebuilt position is insufficient",
+      "timeline_id": "position-short",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-POSITION-SHORT",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-CH-0961",
+          "obs-PR1",
+          "obs-PS-OLD-SMALL",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "UNITS_EXCEED_POSITION",
+            "delta": {
+              "atoms": "200000000",
+              "scale": 7,
+              "unit": "FUND_SHARE"
+            }
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CH-0961",
+          "obs-PR1",
+          "obs-PS-OLD-SMALL",
+          "obs-RQ1"
+        ]
+      },
+      "rationale": "120 held at sequence 900, 40 reserved by RED-0000 at 961: 80 available, 20 short.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-POSITION-STALE",
+      "title": "Older position without coverage to rebuild it",
+      "timeline_id": "position-reconstructed",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-POSITION-STALE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-CH-0950",
+          "obs-CH-0960",
+          "obs-CH-1006",
+          "obs-PR1",
+          "obs-PS-OLD",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2-late-start"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INSUFFICIENT_COVERAGE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-CH-0950",
+          "obs-CH-0960",
+          "obs-CH-1006",
+          "obs-PR1",
+          "obs-PS-OLD",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "The TA export starts 2026-10-05T00:00Z, after the position (2026-10-04T18:00Z): the journal between them is not demonstrated complete. No age window replaces it.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-POSITION-AMBIGUOUS",
+      "title": "Position and acceptance share a journal sequence",
+      "timeline_id": "position-same-sequence",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-POSITION-AMBIGUOUS",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS-SAME-SEQ",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_SEQUENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS-SAME-SEQ",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Same timestamp and same sequence: nothing orders the position before the acceptance.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-BURN-BEFORE-ACCEPTANCE",
+      "title": "Linked burn effective before acceptance",
+      "timeline_id": "early-burn",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-BURN-BEFORE-ACCEPTANCE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN-EARLY",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "The burn (09:30Z) precedes acceptance (10:00Z): the link is kept, but it does not fulfil the retirement in this profile.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCELLED",
+      "title": "Cancelled before any settlement, full coverage",
+      "timeline_id": "cancelled",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCELLED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "Authorized cancellation effective 2026-10-05T11:00Z; no payment or burn with bank and chain coverage to valid_at. MATCH rests on the two cancellation controls.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCELLED-NO-COVERAGE",
+      "title": "Cancelled, but bank coverage stops early",
+      "timeline_id": "cancelled",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCELLED-NO-COVERAGE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2-partial",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INSUFFICIENT_COVERAGE",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "Without bank coverage to valid_at the absence of settlement is not demonstrated.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCELLED-PAID",
+      "title": "Cancelled, yet the payment was made",
+      "timeline_id": "cancelled-paid",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCELLED-PAID",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "SETTLED_DESPITE_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "Payment linked to a cancelled request: review required, nothing reversed.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCELLED-BURNED",
+      "title": "Cancelled, yet the units were burned",
+      "timeline_id": "cancelled-burned",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCELLED-BURNED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "SETTLED_DESPITE_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "Burn linked to a cancelled request: review required, nothing reversed.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCELLED-AFTER-DUE",
+      "title": "Cancellation effective after a missed due time",
+      "timeline_id": "cancelled-after-due",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCELLED-AFTER-DUE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-08T10:00:00Z",
+        "known_at": "2026-10-08T10:00:00Z",
+        "evaluation_clock": "2026-10-08T10:00:00Z",
+        "observation_ids": [
+          "obs-CN-LATE",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s4",
+          "cov-chain-s4",
+          "cov-price-s4",
+          "cov-ta-s4"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_MISSED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN-LATE",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "Effective 2026-10-08T00:00Z, after the due time passed without payment: it extinguishes what was pending but not the demonstrated breach.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCEL-KNOWN-LATE-BEFORE",
+      "title": "Snapshot before a late-delivered cancellation",
+      "timeline_id": "cancel-known-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCEL-KNOWN-LATE-BEFORE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_MISSED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ]
+      },
+      "rationale": "At 2026-10-07T12:00Z nothing showed a cancellation and the payment was missed with coverage: BREAK was justified by the evidence then, and replays so.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCEL-KNOWN-LATE-AFTER",
+      "title": "Cancellation effective before the due time, known after",
+      "timeline_id": "cancel-known-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCEL-KNOWN-LATE-AFTER",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-08T10:00:00Z",
+        "known_at": "2026-10-08T10:00:00Z",
+        "evaluation_clock": "2026-10-08T10:00:00Z",
+        "observation_ids": [
+          "obs-CN-KNOWN-LATE",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s4",
+          "cov-chain-s4",
+          "cov-price-s4",
+          "cov-ta-s4"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN-KNOWN-LATE",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "Effective 2026-10-06T08:00Z (before the due time) though recorded 2026-10-07T15:00Z: the current conclusion for the period changes; the earlier snapshot keeps its BREAK.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCEL-UNAUTHORIZED",
+      "title": "Cancellation by an unauthorized party",
+      "timeline_id": "cancel-unauthorized",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCEL-UNAUTHORIZED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-CN-UNAUTH",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INVALID_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN-UNAUTH",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ]
+      },
+      "rationale": "Not a cancellation authority: the obligations are not extinguished.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCEL-RETRACTED-BEFORE",
+      "title": "Snapshot while the cancellation stood",
+      "timeline_id": "cancel-retracted",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCEL-RETRACTED-BEFORE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-05T11:30:00Z",
+        "known_at": "2026-10-05T11:30:00Z",
+        "evaluation_clock": "2026-10-05T11:30:00Z",
+        "observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s0",
+          "cov-chain-s0",
+          "cov-price-s0",
+          "cov-ta-s0"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "At 2026-10-05T11:30Z the cancellation was in force and nothing had settled.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCEL-RETRACTED-AFTER",
+      "title": "Cancellation retracted as an evidence correction",
+      "timeline_id": "cancel-retracted",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCEL-RETRACTED-AFTER",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-CN1",
+          "obs-CN1-R",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "The TA retracts revision 1 of CAN-RED-0001 with revision 2: no cancellation in force, with TA coverage. Obligations are judged again against the original due time.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCEL-RETRACT-CONFLICT",
+      "title": "Retraction and another revision 2 disagree",
+      "timeline_id": "cancel-retract-conflict",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCEL-RETRACT-CONFLICT",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-CN1",
+          "obs-CN1-R",
+          "obs-CN1-X",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "SOURCE_CONFLICT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ]
+      },
+      "rationale": "Two revision-2 deliveries of the cancellation record differ: no choice is made.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-REACTIVATED",
+      "title": "A cancelled request is reactivated",
+      "timeline_id": "reactivated",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-REACTIVATED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RA1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "REACTIVATION_UNSUPPORTED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RA1",
+          "obs-RQ1"
+        ]
+      },
+      "rationale": "Business reactivation is outside this profile version.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-RETRACTED",
+      "title": "The TA retracts the request record",
+      "timeline_id": "retracted",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-RETRACTED",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T09:00:00Z",
+        "known_at": "2026-10-06T09:00:00Z",
+        "evaluation_clock": "2026-10-06T09:00:00Z",
+        "observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-RQ1-R"
+        ],
+        "coverage_ids": [
+          "cov-bank-s1",
+          "cov-chain-s1",
+          "cov-price-s1",
+          "cov-ta-s1"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-PS1"
+        ]
+      },
+      "rationale": "Withdrawing the evidence of the request is not a cancellation: loss of support.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-RETRACTED-PAID",
+      "title": "Request retracted after the payment was made",
+      "timeline_id": "retracted-paid",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-RETRACTED-PAID",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-RQ1-R"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "LOSS_OF_SUPPORT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-PS1",
+          "obs-PY1"
+        ]
+      },
+      "rationale": "Dependent controls lose support; the payment stays effective and is cited, not erased.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-WRONG-RECIPIENT",
+      "title": "Linked payment made to another account",
+      "timeline_id": "wrong-recipient",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-WRONG-RECIPIENT",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-WRONG",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_TO_WRONG_ACCOUNT",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-WRONG",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "PAY-RED-0001 is linked to RED-0001 but paid to acct-pseudo-0002; bank and TA share the account namespace in DEMO-A, so the wrong recipient is demonstrated.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-UNLINKED-CANDIDATE",
+      "title": "Unlinked payment carrying the instructed settlement_ref",
+      "timeline_id": "unlinked-candidate",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-UNLINKED-CANDIDATE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-UNLINKED",
+          "obs-RQ-SETTLE",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-SETTLE",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "The TA instructed settlement_ref PAY-RED-0001 and an unlinked payment carries it: a relevant candidate without an approved link. Neither paid nor missed.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-UNLINKED-NOT-CANDIDATE",
+      "title": "Unlinked payment to the same account, no candidate",
+      "timeline_id": "unlinked-not-candidate",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-UNLINKED-NOT-CANDIDATE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-UNLINKED",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_MISSED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Sharing the account is not a candidate association: the unlinked payment neither settles RED-0001 nor makes it ambiguous, and the linked payment is missed.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-PAID-AFTER-ECONOMIC-CUT",
+      "title": "Payment effective after the economic cut",
+      "timeline_id": "main",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-PAID-AFTER-ECONOMIC-CUT",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T12:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "valid_at 2026-10-06T12:00Z: the 15:00Z payment is known but not yet effective at the economic cut, and the due time has not passed.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED-CUT-BEFORE-DUE",
+      "title": "Clock after the due time, economic cut before it",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED-CUT-BEFORE-DUE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T09:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "PAYMENT_NOT_DUE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Clock 2026-10-07T12:00Z but valid_at 09:00Z: the economic cut does not reach the due time (10:00Z, unchanged), so absence cannot be judged.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED-FILTER-COMPATIBLE",
+      "title": "Bank export filtered to the account and currency",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED-FILTER-COMPATIBLE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3-filtered-ok",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "PAYMENT_MISSED",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Filtering by the requesting account and USD keeps every record the absence predicate needs: the missed payment is still demonstrated.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-MISSED-FILTER-INCOMPATIBLE",
+      "title": "Bank export filtered by status",
+      "timeline_id": "unpaid-then-late",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-MISSED-FILTER-INCOMPATIBLE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3-filtered-status",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "MISSING_EVIDENCE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "INSUFFICIENT_COVERAGE",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "A status filter cannot be shown to keep every relevant payment or revision: absence is not demonstrated.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CANCELLED-EARLY-BURN",
+      "title": "Cancelled, and a linked burn effective before acceptance",
+      "timeline_id": "cancelled-early-burn",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CANCELLED-EARLY-BURN",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN-EARLY",
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "EXTINGUISHED_BY_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "SETTLED_DESPITE_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-CN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ1"
+        ],
+        "operation_state": "cancelled"
+      },
+      "rationale": "The early burn does not fulfil the retirement, but it happened (successful, linked, effective): it contradicts the clean cancellation.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-SHORT-PAY-BEFORE-CORRECTION",
+      "title": "Short payment, before the bank's correction is known",
+      "timeline_id": "short-pay-corrected",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-SHORT-PAY-BEFORE-CORRECTION",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-SHORT",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "CASH_AMOUNT_MISMATCH",
+            "delta": {
+              "atoms": "-5000",
+              "scale": 2,
+              "unit": "USD"
+            }
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-SHORT",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "At 2026-10-06T16:00Z only revision 1 (USD 9,950.00) is known.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-CORRECTION-KNOWN-LATE",
+      "title": "Correction known after valid_at of an earlier payment",
+      "timeline_id": "short-pay-corrected",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-CORRECTION-KNOWN-LATE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-FIX",
+          "obs-PY-SHORT",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-FIX",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Revision 2 (USD 10,000.00, effective 2026-10-06T15:00Z) is recorded 2026-10-07T11:00Z, after valid_at 16:00Z of the 6th but within the knowledge snapshot: it describes the earlier economic fact and counts.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-SETTLEMENT-REF-COLLISION",
+      "title": "Two payments carry the instructed settlement_ref",
+      "timeline_id": "settlement-ref-collision",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-SETTLEMENT-REF-COLLISION",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-07T12:00:00Z",
+        "known_at": "2026-10-07T12:00:00Z",
+        "evaluation_clock": "2026-10-07T12:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY-OTHER-OP",
+          "obs-PY-UNLINKED",
+          "obs-RQ-SETTLE",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s3",
+          "cov-chain-s3",
+          "cov-price-s3",
+          "cov-ta-s3"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-RQ-SETTLE",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "An unlinked payment and one linked to RED-0002 both carry PAY-RED-0001: the collision stays visible and nothing is associated.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    },
+    {
+      "scenario_id": "RD-DUPLICATE",
+      "title": "The bank delivers the same payment twice",
+      "timeline_id": "duplicate",
+      "query_mode": "as_known",
+      "snapshot": {
+        "schema_version": "1.0",
+        "snapshot_id": "snap-RD-DUPLICATE",
+        "tenant_id": "tenant-synthetic-demo",
+        "operation_ref": "RED-0001",
+        "valid_at": "2026-10-06T16:00:00Z",
+        "known_at": "2026-10-06T16:00:00Z",
+        "evaluation_clock": "2026-10-06T16:00:00Z",
+        "observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-PY1-resent",
+          "obs-RQ1",
+          "obs-UR1"
+        ],
+        "coverage_ids": [
+          "cov-bank-s2",
+          "cov-chain-s2",
+          "cov-price-s2",
+          "cov-ta-s2"
+        ],
+        "identity_link_ids": [
+          "link-0001"
+        ],
+        "profile_ref": "fund-redemption-synthetic@1.4.0",
+        "rules_ref": "redemption-synthetic-rules@1.4.0",
+        "mapping_refs": [
+          "bank-redemption-frozen@1.0.0",
+          "pricing-frozen-synthetic@1.0.0",
+          "stellar-frozen-synthetic@1.0.0",
+          "ta-redemption-frozen@1.0.0"
+        ]
+      },
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "redemption.declared_due_consistency",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.price_vs_approved",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.units_within_position",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cash_vs_expected",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.payment_deadline",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.ta_units_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.burn_vs_request",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.cancellation_valid",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          },
+          {
+            "control_id": "redemption.no_settlement_after_cancellation",
+            "mandatory": true,
+            "status": "NOT_APPLICABLE",
+            "reason_code": "NO_CANCELLATION",
+            "delta": null
+          }
+        ],
+        "effective_observation_ids": [
+          "obs-BN1",
+          "obs-PR1",
+          "obs-PS1",
+          "obs-PY1",
+          "obs-RQ1",
+          "obs-UR1"
+        ]
+      },
+      "rationale": "Identical redelivery of PAY-RED-0001 rev 1 counts once.",
+      "acceptance_refs": [
+        "INV-011a"
+      ]
+    }
+  ]
+}

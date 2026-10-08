@@ -1,0 +1,18 @@
+{
+  "synthetic": true,
+  "source_id": "ta-synthetic",
+  "record": {
+    "record_key": "REG-RED-0001",
+    "revision": 1,
+    "valid_time": "2026-10-05T14:00:00Z",
+    "payload": {
+      "payload_type": "units_registered",
+      "account_ref": "acct-pseudo-0001",
+      "units": {
+        "atoms": "1000000000",
+        "scale": 7,
+        "unit": "FUND_SHARE"
+      }
+    }
+  }
+}

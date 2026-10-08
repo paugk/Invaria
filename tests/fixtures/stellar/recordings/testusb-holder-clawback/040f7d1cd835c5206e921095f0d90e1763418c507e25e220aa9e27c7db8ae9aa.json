@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-07T13:22:54+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "0a24d545218618cb818d257f1edeacd3def5ef268aa3a18b06decfdf7b5827c2",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/assets?asset_code=TESTUSB&asset_issuer=GCWSNDOOTAGUCTR4X62RCH5UOAUVSWV5VL2AZSCWBK27DHL2IFQDPHVX"
+}

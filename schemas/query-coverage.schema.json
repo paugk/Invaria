@@ -14,7 +14,14 @@
               "order_accepted",
               "cash_settled",
               "units_registered",
-              "token_movement"
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
             ],
             "type": "string"
           },

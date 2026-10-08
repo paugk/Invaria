@@ -1,0 +1,26 @@
+{
+  "synthetic": true,
+  "source_id": "stellar-testnet-frozen",
+  "record": {
+    "record_key": "a27e05093c6ca0d420596bd929f66ec96f94fbc87fb0f36c97be880bfbdd9e97:0",
+    "revision": 1,
+    "valid_time": "2026-10-05T09:30:00Z",
+    "payload": {
+      "payload_type": "token_movement",
+      "from_address": "GA2JRO6WKTHMJTH7TDAXHNDHWT5SF72VKABPO2G6RL5BCGKTNIPIBEKW",
+      "to_address": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "units": {
+        "atoms": "1000000000",
+        "scale": 7,
+        "unit": "FUND_SHARE"
+      },
+      "chain": {
+        "network": "stellar:testnet",
+        "ledger": 1100042,
+        "tx_hash": "a27e05093c6ca0d420596bd929f66ec96f94fbc87fb0f36c97be880bfbdd9e97",
+        "operation_index": 0,
+        "tx_successful": true
+      }
+    }
+  }
+}

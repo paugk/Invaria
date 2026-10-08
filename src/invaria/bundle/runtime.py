@@ -13,10 +13,33 @@ from collections.abc import Callable, Mapping
 from functools import cache
 from importlib import resources
 
-from invaria.engine.evaluate import ENGINE_REF, Evaluation, EvaluationInputs, evaluate
+from invaria.engine.evaluate import Evaluation, EvaluationInputs, replay
+from invaria.engine.versions import (
+    BLOCKED_ENGINES as BLOCKED_ENGINES,
+)
+from invaria.engine.versions import (
+    CURRENT_ENGINES,
+)
+from invaria.engine.versions import (
+    RETIRED_ENGINES as RETIRED_ENGINES,
+)
 from invaria.ingest.csv_import import PARSER_REF as CSV_PARSER_REF
 
-TRUSTED_ENGINES: Mapping[str, Callable[[EvaluationInputs], Evaluation]] = {ENGINE_REF: evaluate}
+
+def _engine(engine_ref: str) -> Callable[[EvaluationInputs], Evaluation]:
+    """Pinned to its label: a bundle naming one engine is never replayed with another."""
+    return lambda inputs: replay(inputs, engine_ref)
+
+
+# Engines a verifier may replay with: the current ones and the retired ones, each with its
+# engine label's implementation (a retired label runs a compatibility implementation,
+# not the historical code). Reproducing a retired engine's conclusion does not validate
+# it under the current semantics; the report says which kind of engine reproduced it.
+# Blocked engines (``invaria.engine.versions.BLOCKED_ENGINES``) are never replayed, and no
+# engine is ever substituted for another.
+TRUSTED_ENGINES: Mapping[str, Callable[[EvaluationInputs], Evaluation]] = {
+    ref: _engine(ref) for ref in sorted({*CURRENT_ENGINES, *RETIRED_ENGINES})
+}
 TRUSTED_NORMALIZERS: frozenset[str] = frozenset({CSV_PARSER_REF})
 _ENGINE_PACKAGES = ("invaria.contracts", "invaria.engine", "invaria.ingest", "invaria.bundle")
 

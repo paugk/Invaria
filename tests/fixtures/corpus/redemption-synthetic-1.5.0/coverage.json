@@ -1,0 +1,878 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-redemption-synthetic-1.5.0",
+  "synthetic": true,
+  "certificates": [
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-s0",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-05T11:30:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "756fdf6513c28117caf55dee6f9f38620c5dfa8c0eb26c946e6456a503cc86ab"
+      ],
+      "recorded_at": "2026-10-05T11:30:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": null,
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s0",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-05T11:30:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "6aa4772a44b34483a1c3e82e58a06cec8eaeedca1253cfd6c94aef4461b9c120"
+      ],
+      "recorded_at": "2026-10-05T11:30:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-price-s0",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "pricing-synthetic",
+      "fact_types": [
+        "price_approved"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-05T11:30:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "80d5ca9642c058bf49904b64a631c7e0c7449bb578bb953e3d702a7cc5c3b2f5"
+      ],
+      "recorded_at": "2026-10-05T11:30:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-s0",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-05T11:30:00Z"
+      },
+      "ledger_range": null,
+      "level": "provider_claimed",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "19a78ac59d16eb8d5826ff867beaf8916d5990cb54a5d4c297a43ca84bda102b"
+      ],
+      "recorded_at": "2026-10-05T11:30:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-s1",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T09:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "4bb61d21a11f7e2648633d0f2b97585e22f9083ced787262274ee3f9fa0b74a3"
+      ],
+      "recorded_at": "2026-10-06T09:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": null,
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s1",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T09:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "2bc7f8604f75f6fa5ba8983cad984731b4af306946a64a5b31a0ab0f853b7245"
+      ],
+      "recorded_at": "2026-10-06T09:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-price-s1",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "pricing-synthetic",
+      "fact_types": [
+        "price_approved"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T09:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "afcc3757d963fc247426d26ca0bb4760fc5dc8053ce8bd848d197db136acd8f8"
+      ],
+      "recorded_at": "2026-10-06T09:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-s1",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T09:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "provider_claimed",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "3500752312acc520dbaed526c649c7fa4ee582d83ef76a75fd46c5f4bea7e070"
+      ],
+      "recorded_at": "2026-10-06T09:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-s2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T16:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "d5822f7937bf746b7d60d5c33ae2a63de49a21f27b358929440956ce84985c84"
+      ],
+      "recorded_at": "2026-10-06T16:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": null,
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T16:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "edc9cf9ac497caaffd5d135013c3cef3c6d76b060fb10851e0575b6634c04c65"
+      ],
+      "recorded_at": "2026-10-06T16:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-price-s2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "pricing-synthetic",
+      "fact_types": [
+        "price_approved"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T16:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "506e4f657d8f323c8e80e0524e82a5ed1d8c904bde0aecc687da698cd69e1703"
+      ],
+      "recorded_at": "2026-10-06T16:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-s2",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T16:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "provider_claimed",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "828a7ff2cf85a1e5e46cfbe82e04445a24384d6f9b1aa7044106bb4b4ba0cf4a"
+      ],
+      "recorded_at": "2026-10-06T16:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-s3",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "3bcddd158e59b4063ce8656ab303f2d6b1a6f753893f14dee12af71713289dea"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": null,
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s3",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "59daad4c7494f4e5676bb398f7f4daecda90d5f72ed47072e1f01f8f6b7f9590"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-price-s3",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "pricing-synthetic",
+      "fact_types": [
+        "price_approved"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "45c2edc208ffb28e4126fcd8244d5f48f69a553f0c0e53a3009ef3eee50a72b9"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-s3",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "provider_claimed",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "67e262a367381a47fbc34367fe99373a2d4557453c3113edfad1a5774dc0e492"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-s4",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-08T10:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "c2cfcdb7e0a334499029e589f7b051703333c3de6e1cb67a3402ffbc996053da"
+      ],
+      "recorded_at": "2026-10-08T10:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": null,
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s4",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-08T10:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "88a25492ba4a4e84f7565f351d64907a6a2724ba802644ee5519f40281775512"
+      ],
+      "recorded_at": "2026-10-08T10:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-price-s4",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "pricing-synthetic",
+      "fact_types": [
+        "price_approved"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-08T10:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "665bbd666713ad8af565991c1470e173bf4bda97f173baa44b64106943ca31ad"
+      ],
+      "recorded_at": "2026-10-08T10:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-chain-s4",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-08T10:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "provider_claimed",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "3db466415c61b03c17915f80ab2828580c7a9e0850e6b3670157ff061e54e9be"
+      ],
+      "recorded_at": "2026-10-08T10:00:00Z",
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s3-partial",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T00:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "71550f4f568d40d7cb2556ced35ed390865e33f9b32b693e1163bf9977059e16"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s3-to-due",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T10:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "337f13ae0e0067d93593bf119cbbc5e4caeaf4c4822efe86dba27f91b63e8ba6"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s3-gap",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [
+        {
+          "start": "2026-10-06T12:00:00Z",
+          "end": "2026-10-06T13:00:00Z"
+        }
+      ],
+      "raw_sha256": [
+        "9fa1e967280168b382c24d173ea3c9f2209c08f901d05134a3ce76e69826a2b4"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s2-partial",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-06T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "ef154df5dc3b896a1420d8c6ab43a710805412b0ee3e24d047539ddc3eed7d7d"
+      ],
+      "recorded_at": "2026-10-06T16:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": []
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s3-filtered-ok",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "9165977e5ce69480cd1d43b273d92831f8f5138b6ddfeb8a5de895ca6b7cdb53"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": [
+          {
+            "field": "account_ref",
+            "values": [
+              "acct-pseudo-0001"
+            ]
+          },
+          {
+            "field": "currency",
+            "values": [
+              "USD"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-bank-s3-filtered-status",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-04T00:00:00Z",
+        "end": "2026-10-07T12:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "54e5574602d224ae96d30b642ca9c020fd0868e2191a609077a6d4a205151e7f"
+      ],
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": [
+          "USD"
+        ],
+        "filters": [
+          {
+            "field": "status",
+            "values": [
+              "SETTLED"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "coverage_id": "cov-ta-s2-late-start",
+      "tenant_id": "tenant-synthetic-demo",
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "interval": {
+        "start": "2026-10-05T00:00:00Z",
+        "end": "2026-10-06T16:00:00Z"
+      },
+      "ledger_range": null,
+      "level": "internally_checked",
+      "method": "synthetic fixture: full export",
+      "records_received": 1,
+      "records_quarantined": 0,
+      "gaps": [],
+      "raw_sha256": [
+        "1b88e8ed5f63a84b4d90537df33ff059d08e194032ca030dfd6e4f2becb2063f"
+      ],
+      "recorded_at": "2026-10-06T16:00:00Z",
+      "synthetic": true,
+      "scope": {
+        "accounts": [
+          "acct-pseudo-0001"
+        ],
+        "currencies": null,
+        "filters": []
+      }
+    }
+  ]
+}

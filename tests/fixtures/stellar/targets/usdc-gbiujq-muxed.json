@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-usdc-gbiujq-muxed",
+  "tenant_id": "tenant-testnet-sample",
+  "network": "stellar:testnet",
+  "asset_code": "USDC",
+  "asset_issuer": "GDXARTTXARI65AU7SUW2BH7RFJ4SDIXOGRXFSAX3D4QV34MV43QHTJUE",
+  "account": "GBIUJQGXQNAHC6ZQR2AHIYNLDF24C63NZUQ7DUMNQUQQYHPFBY4NQCQX",
+  "unit": "USDC",
+  "instrument_id": "testnet:asset:USDC:GDXARTTXARI65AU7SUW2BH7RFJ4SDIXOGRXFSAX3D4QV34MV43QHTJUE",
+  "representation_id": "rep-testnet-classic-USDC-GDXARTTXARI65AU7SUW2BH7RFJ4SDIXOGRXFSAX3D4QV34MV43QHTJUE",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": "CBENSO6TOJ6N5DKFQL7YSLBTQNOUUYI2RFMU3ZXJWLXXRRY2TXFMUCVX",
+  "synthetic": false,
+  "description": "Real Stellar testnet USDC (issuer GDXARTTXARI65AU7SUW2BH7RFJ4SDIXOGRXFSAX3D4QV34MV43QHTJUE) observed for account GBIUJQGX, which received a payment to its muxed sub-account 310350723. Third-party public testnet data, unrelated to the synthetic DEMO-A subscription; the sub-account's holder is unknown."
+}

@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-08T01:26:29+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "675daac76e07aa132b3a07ee007af8aac619e3b31b68169a82e8483693793ecd",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/assets?asset_code=USDC&asset_issuer=GDXARTTXARI65AU7SUW2BH7RFJ4SDIXOGRXFSAX3D4QV34MV43QHTJUE"
+}

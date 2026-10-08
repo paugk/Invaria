@@ -18,12 +18,41 @@ from invaria.cli import main
 from invaria.contracts import OperationProfile, SnapshotRef, parse_contract
 from invaria.contracts.bundle import BundleEvidence
 from invaria.corpus_loader import Corpus, load_corpus
-from invaria.engine.evaluate import EvaluationInputs, evaluate
+from invaria.engine.evaluate import ENGINE_REF, EvaluationInputs, evaluate, replay
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 CORPUS_DIR = FIXTURES / "corpus/subscription-synthetic"
+# Historical golden: K3 as recorded with the retired invaria-engine@0.1.0. It is
+# kept as evidence and still reproduces with that exact engine.
 GOLDEN_K3 = FIXTURES / "bundles/K3"
 GOLDEN_K3_MANIFEST_SHA256 = "bec6969130fed2f8d64ca92c65fb6c4808c5d5beae65e83bd1283cd61c7b447f"
+# Historical golden of the retired invaria-engine@0.2.0 (retired by 0.3.0).
+GOLDEN_K3_0_2_0 = FIXTURES / "bundles/K3-engine-0.2.0"
+GOLDEN_K3_0_2_0_MANIFEST_SHA256 = "bd74fa58ca71108ee395e634bd303f135b0033bfbe0ac1215b5c2a1d0b42367d"
+# Historical golden of the retired invaria-engine@0.3.0 (retired by 0.4.0).
+GOLDEN_K3_0_3_0 = FIXTURES / "bundles/K3-engine-0.3.0"
+GOLDEN_K3_0_3_0_MANIFEST_SHA256 = "da810a88da49377cf6128ee05bc1d6e631f39a7444c55bdc6390ef2cd560d6ed"
+# Historical golden of the retired invaria-engine@0.4.0 (retired by 0.5.0).
+GOLDEN_K3_0_4_0 = FIXTURES / "bundles/K3-engine-0.4.0"
+GOLDEN_K3_0_4_0_MANIFEST_SHA256 = "7d574c8d89042f9435562a47061849c541d0de4af2c1bc2aeef6da4b47fe73fd"
+# Historical golden of the retired invaria-engine@0.5.0 (retired by 0.6.0).
+GOLDEN_K3_0_5_0 = FIXTURES / "bundles/K3-engine-0.5.0"
+GOLDEN_K3_0_5_0_MANIFEST_SHA256 = "69c8c2f924b26c8a2f8ba528e12385af725597cfa9729bab2dfd23fa07471c21"
+GOLDEN_K3_0_6_0 = FIXTURES / "bundles/K3-engine-0.6.0"
+GOLDEN_K3_0_6_0_MANIFEST_SHA256 = "3f634c702b6a69964897560173962f72b585cd1be542639bce8529280749caa5"
+GOLDEN_K3_0_7_0 = FIXTURES / "bundles/K3-engine-0.7.0"
+GOLDEN_K3_0_7_0_MANIFEST_SHA256 = "aa28dbccc4c71345481d639bb74fb570624b95b1e0fac2a04cb9ab4cc251f188"
+GOLDEN_K3_0_8_0 = FIXTURES / "bundles/K3-engine-0.8.0"
+GOLDEN_K3_0_8_0_MANIFEST_SHA256 = "96571b25184a514ae6402ef92ff91a4d96a42a0ac2675a2e5078e1b5662e4eb7"
+GOLDEN_K3_0_9_0 = FIXTURES / "bundles/K3-engine-0.9.0"
+GOLDEN_K3_0_9_0_MANIFEST_SHA256 = "3cbc4a18ccbec62c46ff28ca158c0600ceaf91eff257e68072dc92652115a033"
+# Current golden: the same K3 evaluated with invaria-engine@0.10.0. Its
+# profile (fund-subscription-synthetic@1.0.0) declares neither absence_needs_chain_scope nor
+# completeness_needs_coverage, so the conclusion, controls and assumptions are those of 0.8.0.
+GOLDEN_K3_CURRENT = FIXTURES / "bundles/K3-engine-0.10.0"
+GOLDEN_K3_CURRENT_MANIFEST_SHA256 = (
+    "d612eb4ed9b1a951b9d2a94558d2f3f82599113899dfeef79f7156abcdf4ba64"
+)
 
 
 @pytest.fixture(scope="module")
@@ -34,7 +63,7 @@ def corpus() -> Corpus:
 @pytest.fixture
 def k3(tmp_path: Path) -> Path:
     target = tmp_path / "K3"
-    shutil.copytree(GOLDEN_K3, target)
+    shutil.copytree(GOLDEN_K3_CURRENT, target)
     return target
 
 
@@ -90,19 +119,126 @@ def test_every_scenario_bundle_reproduces(corpus: Corpus, tmp_path: Path, scenar
 
 
 def test_reproducing_a_break_is_reproduced_not_failure() -> None:
-    report = verify_bundle(GOLDEN_K3, expected_manifest_sha256=GOLDEN_K3_MANIFEST_SHA256)
+    report = verify_bundle(
+        GOLDEN_K3_CURRENT, expected_manifest_sha256=GOLDEN_K3_CURRENT_MANIFEST_SHA256
+    )
     assert (report.status, report.financial_result) == ("REPRODUCED", "BREAK")
     assert report.trust == "anchored_by_expected_manifest_sha256"
+    assert (report.local_engine_ref, report.engine_status) == (ENGINE_REF, "current")
+    assert report.engine_implementation == "current"
+
+
+def test_historical_k3_reproduces_with_its_retired_engine_only() -> None:
+    """The 0.1.0 conclusion is reproduced with 0.1.0 itself, and the report says that this
+    does not validate it under the current semantics."""
+    report = verify_bundle(GOLDEN_K3, expected_manifest_sha256=GOLDEN_K3_MANIFEST_SHA256)
+    assert (report.status, report.financial_result) == ("REPRODUCED", "BREAK")
+    assert (report.local_engine_ref, report.engine_status) == ("invaria-engine@0.1.0", "retired")
+    # The result coincided; the code that ran is a compatibility implementation, and the
+    # report never presents it as the historical code.
+    assert report.engine_implementation == "compatibility"
+    assert any("does not validate it under the current semantics" in r for r in report.reasons)
+    assert any("identity is not claimed" in r for r in report.reasons)
 
 
 def test_golden_bundle_matches_a_fresh_build(corpus: Corpus, tmp_path: Path) -> None:
     inputs = corpus.inputs_for("K3")
     out = tmp_path / "fresh"
     build_bundle(out, inputs, evaluate(inputs), mode="as_known_now")
-    golden = {p.name: p.read_bytes() for p in GOLDEN_K3.iterdir()}
+    golden = {p.name: p.read_bytes() for p in GOLDEN_K3_CURRENT.iterdir()}
     fresh = {p.name: p.read_bytes() for p in out.iterdir()}
     assert fresh == golden, "bundle format or engine output drifted; regenerate deliberately"
+    assert hashlib.sha256(golden["manifest.json"]).hexdigest() == (
+        GOLDEN_K3_CURRENT_MANIFEST_SHA256
+    )
+
+
+def test_historical_golden_is_rebuilt_byte_for_byte_by_its_exact_engine(
+    corpus: Corpus, tmp_path: Path
+) -> None:
+    inputs = corpus.inputs_for("K3")
+    out = tmp_path / "historical"
+    build_bundle(out, inputs, replay(inputs, "invaria-engine@0.1.0"), mode="as_known_now")
+    golden = {p.name: p.read_bytes() for p in GOLDEN_K3.iterdir()}
+    assert {p.name: p.read_bytes() for p in out.iterdir()} == golden
     assert hashlib.sha256(golden["manifest.json"]).hexdigest() == GOLDEN_K3_MANIFEST_SHA256
+
+
+@pytest.mark.parametrize(
+    ("older", "kept"),
+    [
+        ("K3", 5),
+        ("K3-engine-0.2.0", 7),
+        ("K3-engine-0.3.0", 7),
+        ("K3-engine-0.4.0", 9),
+        ("K3-engine-0.5.0", 9),
+        ("K3-engine-0.6.0", 12),
+        ("K3-engine-0.7.0", 12),
+        ("K3-engine-0.8.0", 15),
+        ("K3-engine-0.9.0", 15),
+    ],
+    ids=["0.1.0", "0.2.0", "0.3.0", "0.4.0", "0.5.0", "0.6.0", "0.7.0", "0.8.0", "0.9.0"],
+)
+def test_later_engines_keep_the_k3_conclusion_and_controls(older: str, kept: int) -> None:
+    """Only the version, its identifier and the stated assumptions change for K3. 0.4.0
+    keeps the first assumptions, rewords the clawback one of 0.3.0 and adds the
+    unresolved-participant one; 0.5.0 adds the bounded quarantine one;
+    0.6.0 states no quarantine policy for K3's profile, which does not scope its quarantine,
+    and adds the three integrity rules of the declared policy to the nine of 0.4.0; 0.7.0
+    keeps those twelve and adds the muxed-account rule for a profile that does not declare it
+    and the memo rule; 0.8.0 rewords the muxed-account rule and adds the provenance
+    rule, and its versions also state the mappings that produced the evidence, which
+    here are exactly those the profile admits; 0.9.0 changes nothing for K3, whose profile
+    does not declare absence_needs_chain_scope."""
+    base = FIXTURES / "bundles" / older
+    old = json.loads((base / "evaluation.json").read_text("utf-8"))
+    new = json.loads((GOLDEN_K3_CURRENT / "evaluation.json").read_text("utf-8"))
+    assert (old["result"], old["controls"]) == (new["result"], new["controls"])
+    changed = {k for k in old if old[k] != new[k]}
+    assert {"evaluation_id", "versions"} <= changed <= {"assumptions", "evaluation_id", "versions"}
+    assert new["assumptions"][:kept] == old["assumptions"][:kept]
+    assert len(new["assumptions"]) == 15
+    assert {k for k in old["versions"] if old["versions"][k] != new["versions"][k]} == {
+        "engine_ref"
+    }
+    assert set(new["versions"]) - set(old["versions"]) <= {"evidence_mapping_refs"}
+    evidence = json.loads((GOLDEN_K3_CURRENT / "evidence.json").read_text("utf-8"))
+    assert new["versions"]["evidence_mapping_refs"] == sorted(
+        {o["provenance"]["mapping_ref"] for o in evidence["observations"]}
+    )
+    for name in ("snapshot.json", "evidence.json", "profile.json"):
+        assert (base / name).read_bytes() == (GOLDEN_K3_CURRENT / name).read_bytes()
+
+
+@pytest.mark.parametrize(
+    ("golden", "sha", "engine"),
+    [
+        (GOLDEN_K3_0_2_0, GOLDEN_K3_0_2_0_MANIFEST_SHA256, "invaria-engine@0.2.0"),
+        (GOLDEN_K3_0_3_0, GOLDEN_K3_0_3_0_MANIFEST_SHA256, "invaria-engine@0.3.0"),
+        (GOLDEN_K3_0_4_0, GOLDEN_K3_0_4_0_MANIFEST_SHA256, "invaria-engine@0.4.0"),
+        (GOLDEN_K3_0_5_0, GOLDEN_K3_0_5_0_MANIFEST_SHA256, "invaria-engine@0.5.0"),
+        (GOLDEN_K3_0_6_0, GOLDEN_K3_0_6_0_MANIFEST_SHA256, "invaria-engine@0.6.0"),
+        (GOLDEN_K3_0_7_0, GOLDEN_K3_0_7_0_MANIFEST_SHA256, "invaria-engine@0.7.0"),
+        (GOLDEN_K3_0_8_0, GOLDEN_K3_0_8_0_MANIFEST_SHA256, "invaria-engine@0.8.0"),
+        (GOLDEN_K3_0_9_0, GOLDEN_K3_0_9_0_MANIFEST_SHA256, "invaria-engine@0.9.0"),
+    ],
+    ids=["0.2.0", "0.3.0", "0.4.0", "0.5.0", "0.6.0", "0.7.0", "0.8.0", "0.9.0"],
+)
+def test_retired_goldens_reproduce_and_rebuild_with_their_engines(
+    corpus: Corpus, tmp_path: Path, golden: Path, sha: str, engine: str
+) -> None:
+    report = verify_bundle(golden, expected_manifest_sha256=sha)
+    assert (report.status, report.engine_status, report.engine_implementation) == (
+        "REPRODUCED",
+        "retired",
+        "compatibility",
+    )
+    inputs = corpus.inputs_for("K3")
+    out = tmp_path / "k3-retired"
+    build_bundle(out, inputs, replay(inputs, engine), mode="as_known_now")
+    assert {p.name: p.read_bytes() for p in out.iterdir()} == {
+        p.name: p.read_bytes() for p in golden.iterdir()
+    }
 
 
 def test_bundle_contains_only_snapshot_members(corpus: Corpus) -> None:
@@ -312,7 +448,7 @@ def test_consistent_forgery_is_caught_only_by_anchor(k3: Path) -> None:
     edit_json(k3, "manifest.json", lambda m: m.update(expected_result="MATCH"))
     rehash(k3)
     assert verify_bundle(k3).status == "REPRODUCED"  # hashes alone prove no authenticity
-    anchored = verify_bundle(k3, expected_manifest_sha256=GOLDEN_K3_MANIFEST_SHA256)
+    anchored = verify_bundle(k3, expected_manifest_sha256=GOLDEN_K3_CURRENT_MANIFEST_SHA256)
     assert anchored.status == "UNTRUSTED"
 
 
@@ -345,3 +481,33 @@ def test_tampered_detail_with_same_result_is_mismatch(k3: Path) -> None:
     report = verify_bundle(k3)
     assert report.status == "MISMATCH"
     assert "none (other fields differ)" in report.reasons[0]
+
+
+def test_the_two_k3_goldens_differ_only_in_engine_derived_fields(tmp_path: Path) -> None:
+    """The manifest differs in the bundle id, the engine and the evaluation's hash;
+    disclosure, query, expected result, integrity and every other artifact are the same,
+    so the trust conditions do not change."""
+    old = json.loads((GOLDEN_K3 / "manifest.json").read_text("utf-8"))
+    new = json.loads((GOLDEN_K3_CURRENT / "manifest.json").read_text("utf-8"))
+    assert {k for k in old if old[k] != new[k]} == {"artifacts", "bundle_id", "versions"}
+    assert {k for k in old["versions"] if old["versions"][k] != new["versions"][k]} == {
+        "engine_ref"
+    }
+    changed = [a["path"] for a, b in zip(old["artifacts"], new["artifacts"], strict=True) if a != b]
+    assert changed == ["evaluation.json"]
+    reports = [
+        verify_bundle(GOLDEN_K3, expected_manifest_sha256=GOLDEN_K3_MANIFEST_SHA256),
+        verify_bundle(
+            GOLDEN_K3_CURRENT, expected_manifest_sha256=GOLDEN_K3_CURRENT_MANIFEST_SHA256
+        ),
+    ]
+    assert {(r.status, r.trust, r.level, r.artifacts_checked) for r in reports} == {
+        ("REPRODUCED", "anchored_by_expected_manifest_sha256", "R1", 4)
+    }
+    # The two added assumptions are part of the reproduced document, not of any trust
+    # decision: rewriting one is a MISMATCH even with consistent hashes.
+    k3 = tmp_path / "K3"
+    shutil.copytree(GOLDEN_K3_CURRENT, k3)
+    edit_json(k3, "evaluation.json", lambda e: e["assumptions"].pop())
+    rehash(k3)
+    assert verify_bundle(k3).status == "MISMATCH"

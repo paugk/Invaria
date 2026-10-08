@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "parser_ref": "csv-synthetic-parser@1.0.0",
+  "synthetic": true,
+  "encoding": "utf-8",
+  "delimiter": ",",
+  "limits": {
+    "max_bytes": 10000000,
+    "max_rows": 100000
+  },
+  "valid_time_format": "iso8601_utc_z",
+  "mapping_ref": "ta-csv-synthetic@1.0.0",
+  "source_id": "ta-synthetic",
+  "fact_type": "units_registered",
+  "columns": [
+    "order_ref",
+    "account_ref",
+    "units",
+    "effective_at"
+  ],
+  "record_key_column": "order_ref",
+  "revision_column": null,
+  "operation_ref_column": "order_ref",
+  "valid_time_column": "effective_at",
+  "status": null,
+  "payload": {
+    "account_ref": {
+      "kind": "identifier",
+      "column": "account_ref"
+    },
+    "units": {
+      "kind": "quantity",
+      "column": "units",
+      "unit": "FUND_SHARE",
+      "unit_column": null,
+      "scale": 7,
+      "decimals": "exact",
+      "sign": "non_negative"
+    }
+  }
+}

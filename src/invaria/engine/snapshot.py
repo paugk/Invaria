@@ -13,7 +13,7 @@ from invaria.contracts.coverage import CoverageCertificate
 from invaria.contracts.evaluation import SnapshotRef
 from invaria.contracts.identity import IdentityLink
 from invaria.contracts.observation import Observation
-from invaria.contracts.profile import OperationProfile
+from invaria.contracts.profile import Profile, admitted_mapping_refs
 
 
 def build_snapshot(
@@ -21,7 +21,7 @@ def build_snapshot(
     snapshot_id: str,
     tenant_id: str,
     operation_ref: str,
-    profile: OperationProfile,
+    profile: Profile,
     valid_at: datetime,
     known_at: datetime,
     evaluation_clock: datetime,
@@ -55,5 +55,5 @@ def build_snapshot(
         identity_link_ids=known(identity_links),
         profile_ref=profile.profile_ref,
         rules_ref=profile.rules_ref,
-        mapping_refs=sorted({s.mapping_ref for s in profile.sources}),
+        mapping_refs=admitted_mapping_refs(profile.sources),
     )

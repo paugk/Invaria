@@ -1,0 +1,51 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/assets?asset_code=P0B41B8\u0026asset_issuer=GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/assets?asset_code=P0B41B8\u0026asset_issuer=GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS\u0026cursor=P0B41B8_GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS_credit_alphanum12\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/assets?asset_code=P0B41B8\u0026asset_issuer=GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS\u0026cursor=P0B41B8_GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS_credit_alphanum12\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://dev.radox.net/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum12",
+        "asset_code": "P0B41B8",
+        "asset_issuer": "GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS",
+        "paging_token": "P0B41B8_GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS_credit_alphanum12",
+        "contract_id": "CC3MI2FENJ2U6QNBDYJXRUJW7VLIX2RFQYUBQQ7P4NLVKSSZEMCZWB67",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": true,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "synthetic": true,
+  "notice": "Synthetic frozen Stellar observations. Not fetched from any network; hashes and accounts are derived from invaria:synthetic labels.",
+  "network": "stellar:testnet",
+  "records": [
+    {
+      "tx_hash": "099241350c20a011f3e3ec9b5bf579f776e41b4c9b71c00d684d8ca72300ac25",
+      "ledger": 1000123,
+      "closed_at": "2026-10-01T09:30:00Z",
+      "successful": true,
+      "memo_text": "SUB-0001",
+      "operation_index": 0,
+      "operation_type": "payment",
+      "asset_code": "DEMOA",
+      "asset_issuer": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "from": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "to": "GA2JRO6WKTHMJTH7TDAXHNDHWT5SF72VKABPO2G6RL5BCGKTNIPIBEKW",
+      "amount": "1000.0000000"
+    }
+  ]
+}

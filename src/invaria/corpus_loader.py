@@ -9,7 +9,6 @@ from invaria.contracts import (
     CoverageSet,
     IdentityLinkSet,
     ObservationJournal,
-    OperationProfile,
     Scenario,
     ScenarioCatalog,
     parse_contract,
@@ -18,13 +17,14 @@ from invaria.contracts.coverage import CoverageCertificate
 from invaria.contracts.identity import IdentityLink
 from invaria.contracts.mapping import CsvMapping
 from invaria.contracts.observation import Observation
+from invaria.contracts.profile import Profile, parse_profile
 from invaria.engine.evaluate import EvaluationInputs
 
 
 @dataclass(frozen=True)
 class Corpus:
     root: Path
-    profile: OperationProfile
+    profile: Profile
     coverage: dict[str, CoverageCertificate]
     identity_links: dict[str, IdentityLink]
     scenarios: dict[str, Scenario]
@@ -47,7 +47,7 @@ def _read(path: Path) -> str:
 
 
 def load_corpus(root: Path) -> Corpus:
-    profile = parse_contract(OperationProfile, _read(root / "profile.json"))
+    profile = parse_profile(_read(root / "profile.json"))
     coverage = parse_contract(CoverageSet, _read(root / "coverage.json"))
     links = parse_contract(IdentityLinkSet, _read(root / "identity_links.json"))
     catalog = parse_contract(ScenarioCatalog, _read(root / "scenarios.json"))

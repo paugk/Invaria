@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "OperationItem": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "anyOf": [
+            {
+              "enum": [
+                "current",
+                "stale",
+                "superseded",
+                "not_published"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currency"
+        },
+        "evaluation_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evaluation Id"
+        },
+        "evaluations": {
+          "title": "Evaluations",
+          "type": "integer"
+        },
+        "known_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Known At"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "enum": [
+                "MATCH",
+                "BREAK",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Result"
+        },
+        "watched": {
+          "title": "Watched",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "operation_ref",
+        "watched",
+        "evaluation_id",
+        "result",
+        "currency",
+        "known_at",
+        "evaluations"
+      ],
+      "title": "OperationItem",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-operations:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/OperationItem"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "result_filter": {
+      "anyOf": [
+        {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Result Filter"
+    },
+    "truncated": {
+      "title": "Truncated",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "items",
+    "result_filter",
+    "truncated",
+    "limitations"
+  ],
+  "title": "OperationsView",
+  "type": "object"
+}

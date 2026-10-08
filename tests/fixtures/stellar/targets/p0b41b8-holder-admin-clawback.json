@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-p0b41b8-holder-admin-clawback",
+  "tenant_id": "tenant-testnet-sample",
+  "network": "stellar:testnet",
+  "asset_code": "P0B41B8",
+  "asset_issuer": "GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS",
+  "account": "GA7UOU2LWCN2THOL3GDY3HGUBJUAAEA2MCODHFOUCUOSYGQSLVXVAID4",
+  "unit": "P0B41B8",
+  "instrument_id": "testnet:asset:P0B41B8:GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS",
+  "representation_id": "rep-testnet-classic-P0B41B8-GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": null,
+  "synthetic": false,
+  "description": "Real Stellar testnet P0B41B8 (issuer GDTWQZV6) observed for holder GA7UOU2L, whose balance the SAC admin claws back through a contract call (invoke_host_function), which Horizon lists among the holder's payments with a clawback balance change. Third-party public testnet data, unrelated to the synthetic DEMO-A subscription."
+}

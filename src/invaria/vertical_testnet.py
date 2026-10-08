@@ -198,9 +198,11 @@ def _chain(
                 f"  tx {chain.tx_hash[:12]}… ledger {chain.ledger} ok="
                 f"{chain.tx_successful} operation_ref={observation.operation_ref}"
             )
-    if classic.coverage is None:
+    if classic.coverage is None or sac.coverage is None:
         raise ValueError("chain coverage incomplete for the planned ledger range")
-    return store.observations(), [classic.coverage], log
+    # The SAC certificate includes the Horizon run of the same range: as the latest of the
+    # source it must carry every quarantine, so both are delivered.
+    return store.observations(), [classic.coverage, sac.coverage], log
 
 
 def run_testnet_vertical(

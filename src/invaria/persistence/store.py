@@ -28,9 +28,10 @@ from invaria.contracts.coverage import CoverageCertificate
 from invaria.contracts.evaluation import EvaluationResult, SnapshotRef
 from invaria.contracts.identity import IdentityLink
 from invaria.contracts.observation import Observation
-from invaria.contracts.profile import OperationProfile
+from invaria.contracts.profile import Profile, admitted_mapping_refs, parse_profile
 from invaria.engine.dependencies import dependencies
 from invaria.engine.evaluate import EvaluationInputs
+from invaria.engine.versions import CURRENT_ENGINES
 
 APP_ROLE = "invaria_app"
 READER_ROLE = "invaria_reader"
@@ -133,7 +134,7 @@ class PgStore:
 
     # ---------------------------------------------------------------- writes
 
-    def put_profile(self, profile: OperationProfile) -> bool:
+    def put_profile(self, profile: Profile) -> bool:
         with self.conn.transaction():
             return self._insert_once(
                 "profiles", {"profile_ref": profile.profile_ref}, {}, _doc(profile)
@@ -290,7 +291,7 @@ class PgStore:
                 (tenant_id, superseded),
             ).fetchall()
             superseded_refs = {str(r[0]): r[1] for r in rows}
-        profiles: dict[str, OperationProfile] = {}
+        profiles: dict[str, Profile] = {}
         opened: list[ScopeHead] = []
         for head in self._heads(tenant_id):
             if head.profile_ref not in profiles:
@@ -412,7 +413,12 @@ class PgStore:
             ).fetchone()
             floor = floor_row[0] if floor_row else None
             refusal: str | None = None
-            if epoch != head.epoch:
+            if evaluation.versions.engine_ref not in CURRENT_ENGINES:
+                refusal = (
+                    f"evaluated with {evaluation.versions.engine_ref}, which is not a current "
+                    "engine; only current engines publish"
+                )
+            elif epoch != head.epoch:
                 refusal = f"epoch {epoch} is not current (scope is at {head.epoch})"
             elif existing is not None:
                 refusal = f"epoch {epoch} already published {existing}"
@@ -613,7 +619,7 @@ class PgStore:
                 identity_link_ids=ids("identity_links", "link_id"),
                 profile_ref=profile.profile_ref,
                 rules_ref=profile.rules_ref,
-                mapping_refs=sorted({s.mapping_ref for s in profile.sources}),
+                mapping_refs=admitted_mapping_refs(profile.sources),
             )
             self.create_snapshot(snapshot)
             self.conn.execute(
@@ -628,15 +634,15 @@ class PgStore:
     # Public reads end their implicit transaction, so no lock or snapshot is left open;
     # the underscored variants are for use inside a transaction block.
 
-    def _profile(self, profile_ref: str) -> OperationProfile:
+    def _profile(self, profile_ref: str) -> Profile:
         row = self.conn.execute(
             "SELECT document FROM invaria.profiles WHERE profile_ref = %s", (profile_ref,)
         ).fetchone()
         if row is None:
             raise KeyError(f"profile {profile_ref} not stored")
-        return _load(OperationProfile, row[0])
+        return parse_profile(json.dumps(row[0]))
 
-    def load_profile(self, profile_ref: str) -> OperationProfile:
+    def load_profile(self, profile_ref: str) -> Profile:
         try:
             return self._profile(profile_ref)
         finally:
@@ -722,6 +728,13 @@ class PgStore:
         return [_load(Observation, r[0]) for r in rows]
 
     def save_evaluation(self, tenant_id: str, evaluation: EvaluationResult) -> bool:
+        """Store a new conclusion: only current engines produce them. Conclusions
+        of retired or blocked engines exist only as history (e.g. restored)."""
+        if evaluation.versions.engine_ref not in CURRENT_ENGINES:
+            raise ValueError(
+                f"engine {evaluation.versions.engine_ref} is not current: its conclusions are "
+                "history, not new evaluations"
+            )
         with self.conn.transaction():
             return self._insert_once(
                 "evaluations",
@@ -762,6 +775,29 @@ class PgStore:
         ).fetchall()
         self.conn.commit()
         return [_load(EvaluationResult, r[0]) for r in rows]
+
+    def operation_refs(self, tenant_id: str) -> list[str]:
+        """Operations with a registered scope or a stored snapshot, sorted."""
+        rows = self.conn.execute(
+            "SELECT operation_ref FROM invaria.scope_epochs WHERE tenant_id = %s "
+            "UNION SELECT operation_ref FROM invaria.snapshots WHERE tenant_id = %s "
+            "ORDER BY 1",
+            (tenant_id, tenant_id),
+        ).fetchall()
+        self.conn.commit()
+        return [str(r[0]) for r in rows]
+
+    def epoch_log(
+        self, tenant_id: str, operation_ref: str
+    ) -> list[tuple[int, str, datetime | None, dict[str, Any]]]:
+        """Revision epochs with their knowledge floor (latest recorded_at of the evidence)."""
+        rows = self.conn.execute(
+            "SELECT epoch, cause, knowledge_floor, document FROM invaria.scope_epochs "
+            "WHERE tenant_id = %s AND operation_ref = %s ORDER BY epoch",
+            (tenant_id, operation_ref),
+        ).fetchall()
+        self.conn.commit()
+        return [(int(r[0]), str(r[1]), r[2], dict(r[3])) for r in rows]
 
     def load_observation(self, tenant_id: str, observation_id: str) -> Observation:
         row = self.conn.execute(

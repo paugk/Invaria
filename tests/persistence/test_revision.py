@@ -18,7 +18,9 @@ from psycopg import errors
 from invaria.contracts.evaluation import EvaluationResult
 from invaria.contracts.observation import Observation
 from invaria.corpus_loader import Corpus, load_corpus
+from invaria.persistence.dsn import with_database
 from invaria.persistence.migrate import migrate
+from invaria.persistence.provision import prepare_for_migrator
 from invaria.persistence.store import (
     ImmutableConflict,
     LateRecord,
@@ -34,8 +36,7 @@ ADMIN_DSN = os.environ.get("INVARIA_TEST_DATABASE_URL")
 
 def _dsn_for(database: str) -> str:
     assert ADMIN_DSN is not None
-    base, _, _ = ADMIN_DSN.rpartition("/")
-    return f"{base}/{database}"
+    return with_database(ADMIN_DSN, database)
 
 
 @pytest.fixture
@@ -48,6 +49,7 @@ def database() -> Iterator[str]:
         admin.execute(f"CREATE DATABASE {name}")
     try:
         with psycopg.connect(_dsn_for(name)) as conn:
+            prepare_for_migrator(conn)
             migrate(conn)
         yield _dsn_for(name)
     finally:
@@ -275,12 +277,12 @@ def test_rule_change_creates_a_new_evaluation(connect: Any, corpus: Corpus) -> N
     assert store.currency(TENANT, e1) == "superseded"
     assert store.load_evaluation(TENANT, e1).versions.profile_ref == corpus.profile.profile_ref
 
-    store.invalidate(TENANT, None, "engine upgrade to invaria-engine@0.2.0")
+    store.invalidate(TENANT, None, "engine upgrade to invaria-engine@0.10.0")
     third, pub3 = reevaluate(
-        store, TENANT, OP, clocks(corpus, "K2"), engine_ref="invaria-engine@0.2.0"
+        store, TENANT, OP, clocks(corpus, "K2"), engine_ref="invaria-engine@0.10.0"
     )
     assert pub3.outcome == "PUBLISHED"
-    assert third.evaluation.result.versions.engine_ref == "invaria-engine@0.2.0"
+    assert third.evaluation.result.versions.engine_ref == "invaria-engine@0.10.0"
     assert store.currency(TENANT, second.evaluation.result.evaluation_id) == "superseded"
 
 

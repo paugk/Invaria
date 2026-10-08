@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/transactions/5775359727749907801b0ae760a15b1b2937cfccc0cdb0d1a1819b1454dac4d0/operations?cursor=\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/transactions/5775359727749907801b0ae760a15b1b2937cfccc0cdb0d1a1819b1454dac4d0/operations?cursor=21699377370251265\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/transactions/5775359727749907801b0ae760a15b1b2937cfccc0cdb0d1a1819b1454dac4d0/operations?cursor=21699377370251265\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21699377370251265"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/415723e786ff24d318b7fa2942caa74344658323a57e17d62398fe4258b2dd07"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21699377370251265/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21699377370251265"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21699377370251265"
+          }
+        },
+        "id": "21699377370251265",
+        "paging_token": "21699377370251265",
+        "transaction_successful": true,
+        "source_account": "GATLZMZODFS2KDVC2J7HYUFVBLA67JYAHF4GFPRXMTJX5QCMUB6ARUX2",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2026-10-06T11:09:47Z",
+        "transaction_hash": "415723e786ff24d318b7fa2942caa74344658323a57e17d62398fe4258b2dd07",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "from": "GATLZMZODFS2KDVC2J7HYUFVBLA67JYAHF4GFPRXMTJX5QCMUB6ARUX2",
+        "to": "GB3NNNLA2HVB2YKP3BXQIOT2UUZAZXZ25WC6IY542ZHAFHD56G2IS65Y",
+        "amount": "2.2367085"
+      }
+    ]
+  }
+}

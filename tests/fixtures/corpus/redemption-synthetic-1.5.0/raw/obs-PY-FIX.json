@@ -1,0 +1,19 @@
+{
+  "synthetic": true,
+  "source_id": "bank-synthetic",
+  "record": {
+    "record_key": "PAY-RED-0001",
+    "revision": 2,
+    "valid_time": "2026-10-06T15:00:00Z",
+    "payload": {
+      "payload_type": "cash_settled",
+      "account_ref": "acct-pseudo-0001",
+      "payment_ref": "PAY-RED-0001",
+      "amount": {
+        "atoms": "1000000",
+        "scale": 2,
+        "unit": "USD"
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-usdc-gdbxa45u-contract",
+  "tenant_id": "tenant-testnet-sample",
+  "network": "stellar:testnet",
+  "asset_code": "USDC",
+  "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "account": "GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH",
+  "unit": "USDC",
+  "instrument_id": "testnet:asset:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "representation_id": "rep-testnet-classic-USDC-GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+  "synthetic": false,
+  "description": "Real Stellar testnet USDC observed for account GDBXA45U, which moves USDC to and from contract CAYPAQDK (invoke_host_function; CAP-67 transfers with a contract party). The contract's owner is not inferred. Third-party public testnet data, unrelated to the synthetic DEMO-A subscription."
+}

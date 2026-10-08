@@ -72,6 +72,435 @@
       "title": "ChainCoordinates",
       "type": "object"
     },
+    "ChainEffectPayload": {
+      "additionalProperties": false,
+      "description": "One on-chain effect on the target asset, from one representation.\n\nClassic effects (debit, credit, failed): ``account`` is the base account whose balance\nof the target asset Horizon reports as debited or credited by the operation; they\ncarry the operation context and the transaction outcome. A failed operation keeps its\ntechnical result, never an amount.\n\nSAC legs: ``account``/``counterparty`` are the parties of one CAP-67 event, seen from\nits sender (or from its receiver when the sender is not an account). A leg is evidence\nof the event, not of an effective balance change of ``account``: conversion legs of a\npath payment can pass through accounts whose Classic balance does not change.\n\nDEX fills (``dex_fill``): an offer of the watched account crossed, or the watched\naccount's own offer operation crossing others. Classic fills come from Horizon trade\neffects (executed amounts of both assets, offer id); SAC fills from the CAP-67 event,\nseen from the watched account. ``unresolved_movement``: a SAC movement whose origin\ncould not be established; it is kept, and it satisfies nothing.\n\nTyped parties (increment 3): a SAC movement between an account and a contract\n(``contract_transfer``), a liquidity pool (``pool_transfer``) or a claimable balance\n(``claimable_balance_created`` into it, ``claimable_balance_claimed`` out of it).\n``account`` is the account side (the issuer for a mint or burn), ``counterparty`` the\ntyped party. A clawback whose holder is not an account names it in ``holder`` and has\nno ``account``. None of them is evidence of fulfilment: a technically complete\nrepresentation still proves no payment, delivery or redemption.",
+      "properties": {
+        "account": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Account"
+        },
+        "chain": {
+          "$ref": "#/$defs/ChainCoordinates"
+        },
+        "claimable_balance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ClaimableBalanceContext"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "clawback": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ClawbackContext"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "counterparty": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChainParty"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "debit",
+                "credit"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Direction"
+        },
+        "effect_kind": {
+          "enum": [
+            "path_payment_debit",
+            "path_payment_credit",
+            "path_payment_leg",
+            "path_payment_failed",
+            "dex_fill",
+            "unresolved_movement",
+            "clawback",
+            "claimable_balance_created",
+            "claimable_balance_claimed",
+            "contract_transfer",
+            "pool_transfer"
+          ],
+          "title": "Effect Kind",
+          "type": "string"
+        },
+        "exchange": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExchangeContext"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "holder": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChainParty"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "path_payment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PathPaymentContext"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payload_type": {
+          "const": "chain_effect",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "representation": {
+          "enum": [
+            "classic",
+            "sac"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "transaction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransactionOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "units": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unresolved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UnresolvedOrigin"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "payload_type",
+        "effect_kind",
+        "representation",
+        "account",
+        "direction",
+        "counterparty",
+        "units",
+        "chain",
+        "path_payment",
+        "transaction"
+      ],
+      "title": "ChainEffectPayload",
+      "type": "object"
+    },
+    "ChainParty": {
+      "additionalProperties": false,
+      "description": "A typed technical entity on the ledger.\n\nNone of them, an account included, is by itself an economic holder, a beneficiary or a\nperson: a contract's owner, a claimable balance's eventual recipient and a pool's\nliquidity providers are never inferred from the identifier. ``id`` is the native\nidentifier in its lossless SEP-23 strkey form (G account, C contract, B claimable\nbalance, L liquidity pool), so a contract, balance or pool never reads as an account.\nAn ``unresolved`` party is one the evidence does not identify: it has no id and says\nwhy. A party's identity is its kind and id on the network of the effect that names it\n(``party_identity``).",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "kind": {
+          "enum": [
+            "account",
+            "contract",
+            "claimable_balance",
+            "liquidity_pool",
+            "unresolved"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ChainParty",
+      "type": "object"
+    },
+    "ClaimableBalanceContext": {
+      "additionalProperties": false,
+      "description": "A claimable balance's technical participants, as Horizon\nreports its history (``/claimable_balances/{id}/operations``).\n\n``creator`` is the account whose balance was debited when the balance was created (the\nissuer when it was minted into it), or ``unresolved``. ``claimants`` may claim it: a\nclaimant has received nothing until a claim is observed, and none of them is the owner\nof the account debited at creation. None means the history could not be read; the\nparticipants are then unknown and the relevance of the effect cannot be ruled out.\n``operation_type`` and ``operation_source`` are those of this effect's operation as\nHorizon reports them (None when it could not be read).",
+      "properties": {
+        "balance_id": {
+          "pattern": "^B[A-Z2-7]{57}$",
+          "title": "Balance Id",
+          "type": "string"
+        },
+        "claimants": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Claimants"
+        },
+        "creator": {
+          "$ref": "#/$defs/ChainParty"
+        },
+        "operation_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation Source"
+        },
+        "operation_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "create_claimable_balance",
+                "claim_claimable_balance",
+                "clawback_claimable_balance"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation Type"
+        }
+      },
+      "required": [
+        "balance_id",
+        "operation_type",
+        "operation_source",
+        "creator",
+        "claimants"
+      ],
+      "title": "ClaimableBalanceContext",
+      "type": "object"
+    },
+    "ClawbackContext": {
+      "additionalProperties": false,
+      "description": "A forced withdrawal: units leave the holder's balance under the\nasset's clawback authority. It is neither a delivery, a payment nor a redemption burn,\nand by itself it proves no breach of any operation.\n\nFour roles stay apart: the holder whose balance decreases is the effect's\n``account`` (or its ``holder`` when it is not an account); ``issuer`` is the asset's\nissuer; the authority is the issuer for a Classic operation (``operation_source``, who\nsubmitted it, which the protocol requires to be the issuer) and the SAC admin for a\ncontract call, which no SAC event names (``operation_source`` None); the counterparty\nis the issuer as the supply side, because clawed-back units leave circulation: it is\nneither a credit to the issuer's balance nor proof of who authorized it.\n\n``operation_type`` is what Horizon reports for the Classic operation (None on a SAC\nevent, which does not name it).",
+      "properties": {
+        "asset": {
+          "pattern": "^(native|[A-Za-z0-9]{1,12}:G[A-Z2-7]{55})$",
+          "title": "Asset",
+          "type": "string"
+        },
+        "issuer": {
+          "title": "Issuer",
+          "type": "string"
+        },
+        "operation_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation Source"
+        },
+        "operation_type": {
+          "anyOf": [
+            {
+              "const": "clawback",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation Type"
+        }
+      },
+      "required": [
+        "asset",
+        "issuer",
+        "operation_type",
+        "operation_source"
+      ],
+      "title": "ClawbackContext",
+      "type": "object"
+    },
+    "ExchangeContext": {
+      "additionalProperties": false,
+      "description": "DEX origin of a fill, as Horizon reports the operation and, for a Classic fill, the\ntrade. ``operation_source`` is a technical party: a fill is an effect on the offer\nowner's account, never a payment by or to whoever submitted the operation.",
+      "properties": {
+        "bought_amount": {
+          "anyOf": [
+            {
+              "maxLength": 79,
+              "pattern": "^(0|-?[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Bought Amount"
+        },
+        "bought_asset": {
+          "anyOf": [
+            {
+              "pattern": "^(native|[A-Za-z0-9]{1,12}:G[A-Z2-7]{55})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Bought Asset"
+        },
+        "offer_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Offer Id"
+        },
+        "operation_source": {
+          "title": "Operation Source",
+          "type": "string"
+        },
+        "operation_type": {
+          "enum": [
+            "manage_sell_offer",
+            "manage_buy_offer",
+            "create_passive_sell_offer",
+            "path_payment_strict_send",
+            "path_payment_strict_receive"
+          ],
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "sold_amount": {
+          "anyOf": [
+            {
+              "maxLength": 79,
+              "pattern": "^(0|-?[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sold Amount"
+        },
+        "sold_asset": {
+          "anyOf": [
+            {
+              "pattern": "^(native|[A-Za-z0-9]{1,12}:G[A-Z2-7]{55})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sold Asset"
+        }
+      },
+      "required": [
+        "operation_type",
+        "operation_source",
+        "offer_id",
+        "sold_asset",
+        "sold_amount",
+        "bought_asset",
+        "bought_amount"
+      ],
+      "title": "ExchangeContext",
+      "type": "object"
+    },
     "OrderPayload": {
       "additionalProperties": false,
       "properties": {
@@ -103,6 +532,225 @@
         "price_per_unit"
       ],
       "title": "OrderPayload",
+      "type": "object"
+    },
+    "PathPaymentContext": {
+      "additionalProperties": false,
+      "description": "The Classic operation as Horizon reports it. Amounts are executed amounts (None\nwhen the operation failed); declared limits (sendMax, destMin) are never used.",
+      "properties": {
+        "destination_account": {
+          "title": "Destination Account",
+          "type": "string"
+        },
+        "destination_amount": {
+          "anyOf": [
+            {
+              "maxLength": 79,
+              "pattern": "^(0|-?[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Destination Amount"
+        },
+        "destination_asset": {
+          "pattern": "^(native|[A-Za-z0-9]{1,12}:G[A-Z2-7]{55})$",
+          "title": "Destination Asset",
+          "type": "string"
+        },
+        "operation_type": {
+          "enum": [
+            "path_payment_strict_send",
+            "path_payment_strict_receive"
+          ],
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "path": {
+          "items": {
+            "pattern": "^(native|[A-Za-z0-9]{1,12}:G[A-Z2-7]{55})$",
+            "type": "string"
+          },
+          "title": "Path",
+          "type": "array"
+        },
+        "source_account": {
+          "title": "Source Account",
+          "type": "string"
+        },
+        "source_amount": {
+          "anyOf": [
+            {
+              "maxLength": 79,
+              "pattern": "^(0|-?[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source Amount"
+        },
+        "source_asset": {
+          "pattern": "^(native|[A-Za-z0-9]{1,12}:G[A-Z2-7]{55})$",
+          "title": "Source Asset",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_type",
+        "source_account",
+        "destination_account",
+        "source_asset",
+        "destination_asset",
+        "source_amount",
+        "destination_amount",
+        "path"
+      ],
+      "title": "PathPaymentContext",
+      "type": "object"
+    },
+    "PositionChangePayload": {
+      "additionalProperties": false,
+      "description": "A TA journal entry that moves the holding or the reservations of an account.",
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "change_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Change Ref",
+          "type": "string"
+        },
+        "effective_at": {
+          "format": "date-time",
+          "title": "Effective At",
+          "type": "string"
+        },
+        "holding_delta": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "journal_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Journal Id",
+          "type": "string"
+        },
+        "payload_type": {
+          "const": "position_changed",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "request_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Request Ref"
+        },
+        "reserved_delta": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "change_ref",
+        "holding_delta",
+        "reserved_delta",
+        "effective_at",
+        "journal_id",
+        "sequence",
+        "request_ref"
+      ],
+      "title": "PositionChangePayload",
+      "type": "object"
+    },
+    "PositionPayload": {
+      "additionalProperties": false,
+      "description": "Holding and pending reservations of the account at a TA journal point.\n\n``sequence`` orders the snapshot against the TA journal: it includes every entry up to\nand including that sequence. Equal timestamps never order entries by themselves.",
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "journal_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Journal Id",
+          "type": "string"
+        },
+        "payload_type": {
+          "const": "position_held",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "reserved": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "units": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "units",
+        "reserved",
+        "as_of",
+        "journal_id",
+        "sequence"
+      ],
+      "title": "PositionPayload",
+      "type": "object"
+    },
+    "PricePayload": {
+      "additionalProperties": false,
+      "description": "An approved, versioned price per unit (``price_ref`` names the version).",
+      "properties": {
+        "payload_type": {
+          "const": "price_approved",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "price_per_unit": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "price_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Price Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "payload_type",
+        "price_ref",
+        "price_per_unit"
+      ],
+      "title": "PricePayload",
       "type": "object"
     },
     "Provenance": {
@@ -169,6 +817,147 @@
       "title": "Quantity",
       "type": "object"
     },
+    "RedemptionCancellationPayload": {
+      "additionalProperties": false,
+      "description": "A business cancellation of a request, distinct from retracting evidence.",
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "authorized_by": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Authorized By",
+          "type": "string"
+        },
+        "cancelled_at": {
+          "format": "date-time",
+          "title": "Cancelled At",
+          "type": "string"
+        },
+        "payload_type": {
+          "const": "redemption_cancelled",
+          "title": "Payload Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "cancelled_at",
+        "authorized_by"
+      ],
+      "title": "RedemptionCancellationPayload",
+      "type": "object"
+    },
+    "RedemptionReactivationPayload": {
+      "additionalProperties": false,
+      "description": "A business reactivation of a cancelled request (unsupported in this profile).",
+      "properties": {
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "authorized_by": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Authorized By",
+          "type": "string"
+        },
+        "payload_type": {
+          "const": "redemption_reactivated",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "reactivated_at": {
+          "format": "date-time",
+          "title": "Reactivated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "reactivated_at",
+        "authorized_by"
+      ],
+      "title": "RedemptionReactivationPayload",
+      "type": "object"
+    },
+    "RedemptionRequestPayload": {
+      "additionalProperties": false,
+      "description": "A redemption request accepted by the TA: a fixed quantity, settled in full.\n\n``accepted_at`` and ``payment_due_at`` are both explicit; the profile fixes how the\nsecond follows from the first, and the engine checks it rather than trusting it.",
+      "properties": {
+        "accepted_at": {
+          "format": "date-time",
+          "title": "Accepted At",
+          "type": "string"
+        },
+        "account_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "journal_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Journal Id",
+          "type": "string"
+        },
+        "payload_type": {
+          "const": "redemption_accepted",
+          "title": "Payload Type",
+          "type": "string"
+        },
+        "payment_due_at": {
+          "format": "date-time",
+          "title": "Payment Due At",
+          "type": "string"
+        },
+        "price_per_unit": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "price_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Price Ref",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "settlement_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Settlement Ref"
+        },
+        "units": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "payload_type",
+        "account_ref",
+        "units",
+        "price_ref",
+        "price_per_unit",
+        "accepted_at",
+        "payment_due_at",
+        "journal_id",
+        "sequence",
+        "settlement_ref"
+      ],
+      "title": "RedemptionRequestPayload",
+      "type": "object"
+    },
     "SourceRecord": {
       "additionalProperties": false,
       "description": "Idempotency identity of a source record: same key + revision = same statement.",
@@ -199,6 +988,7 @@
     },
     "TokenMovementPayload": {
       "additionalProperties": false,
+      "description": "A movement of the target asset between two base accounts.\n\n``from_muxed_id``/``to_muxed_id``: the sub-account id of a muxed\n(M) sender or receiver, as the Classic operation names it; None when that side is not\nmuxed (an id of 0 is a muxed id). The balance that moves is the base account's; who holds\nthe sub-account is not known from the id, and an IdentityLink to the base account does\nnot approve it. ``memo`` is the transaction's memo when the representation read\nit (the Classic payment, mapping 1.1.0 on); None means it was not read, never that the\ntransaction has none (that is ``memo_type: none``). All three are absent from the\nserialized form when None, so earlier artifacts stay identical.",
       "properties": {
         "chain": {
           "$ref": "#/$defs/ChainCoordinates"
@@ -206,6 +996,29 @@
         "from_address": {
           "title": "From Address",
           "type": "string"
+        },
+        "from_muxed_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From Muxed Id"
+        },
+        "memo": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransactionMemo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "payload_type": {
           "const": "token_movement",
@@ -215,6 +1028,18 @@
         "to_address": {
           "title": "To Address",
           "type": "string"
+        },
+        "to_muxed_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To Muxed Id"
         },
         "units": {
           "$ref": "#/$defs/Quantity"
@@ -228,6 +1053,84 @@
         "chain"
       ],
       "title": "TokenMovementPayload",
+      "type": "object"
+    },
+    "TransactionMemo": {
+      "additionalProperties": false,
+      "description": "The memo of the whole transaction, exactly as the ledger holds it.\n\nIts scope is the transaction (``ChainCoordinates.tx_hash``), never one operation, and\nit is context: it never links an observation to an operation (only an explicit\nExecutionLink does) and it never identifies a muxed sub-account. A memo id and a muxed id\nthat are numerically equal are different things.\n\n``value`` by type: ``none`` none; ``text`` the exact bytes (0 to 28, not necessarily\nUTF-8) in padded base64; ``id`` a canonical decimal u64; ``hash`` and ``return`` the 32\nbytes in lowercase hex.",
+      "properties": {
+        "memo_type": {
+          "enum": [
+            "none",
+            "text",
+            "id",
+            "hash",
+            "return"
+          ],
+          "title": "Memo Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "memo_type",
+        "value"
+      ],
+      "title": "TransactionMemo",
+      "type": "object"
+    },
+    "TransactionOutcome": {
+      "additionalProperties": false,
+      "description": "The whole transaction's technical result: fee (XLM stroops) and Horizon's\n``result_xdr`` when it reports one. Repeated on each effect of the operation for\ncontext; it is never apportioned nor summed per effect.",
+      "properties": {
+        "fee_account": {
+          "title": "Fee Account",
+          "type": "string"
+        },
+        "fee_charged": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "memo": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransactionMemo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "result_xdr": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "pattern": "^[A-Za-z0-9+/]+={0,2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Result Xdr"
+        }
+      },
+      "required": [
+        "fee_account",
+        "fee_charged",
+        "result_xdr"
+      ],
+      "title": "TransactionOutcome",
       "type": "object"
     },
     "UnitsPayload": {
@@ -254,6 +1157,40 @@
       ],
       "title": "UnitsPayload",
       "type": "object"
+    },
+    "UnresolvedOrigin": {
+      "additionalProperties": false,
+      "description": "Why a SAC movement could not be told apart from a DEX fill or another effect.",
+      "properties": {
+        "operation_type": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation Type"
+        },
+        "reason": {
+          "enum": [
+            "operation_not_found",
+            "unsupported_operation_type",
+            "incomplete_trade_data",
+            "inconsistent_listing"
+          ],
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason",
+        "operation_type"
+      ],
+      "title": "UnresolvedOrigin",
+      "type": "object"
     }
   },
   "$id": "urn:invaria:schema:observation:1.0",
@@ -265,7 +1202,14 @@
         "order_accepted",
         "cash_settled",
         "units_registered",
-        "token_movement"
+        "token_movement",
+        "redemption_accepted",
+        "redemption_cancelled",
+        "position_held",
+        "price_approved",
+        "position_changed",
+        "redemption_reactivated",
+        "chain_effect"
       ],
       "title": "Fact Type",
       "type": "string"
@@ -306,7 +1250,14 @@
           "discriminator": {
             "mapping": {
               "cash_settled": "#/$defs/CashPayload",
+              "chain_effect": "#/$defs/ChainEffectPayload",
               "order_accepted": "#/$defs/OrderPayload",
+              "position_changed": "#/$defs/PositionChangePayload",
+              "position_held": "#/$defs/PositionPayload",
+              "price_approved": "#/$defs/PricePayload",
+              "redemption_accepted": "#/$defs/RedemptionRequestPayload",
+              "redemption_cancelled": "#/$defs/RedemptionCancellationPayload",
+              "redemption_reactivated": "#/$defs/RedemptionReactivationPayload",
               "token_movement": "#/$defs/TokenMovementPayload",
               "units_registered": "#/$defs/UnitsPayload"
             },
@@ -324,6 +1275,27 @@
             },
             {
               "$ref": "#/$defs/TokenMovementPayload"
+            },
+            {
+              "$ref": "#/$defs/RedemptionRequestPayload"
+            },
+            {
+              "$ref": "#/$defs/RedemptionCancellationPayload"
+            },
+            {
+              "$ref": "#/$defs/PositionPayload"
+            },
+            {
+              "$ref": "#/$defs/PricePayload"
+            },
+            {
+              "$ref": "#/$defs/PositionChangePayload"
+            },
+            {
+              "$ref": "#/$defs/RedemptionReactivationPayload"
+            },
+            {
+              "$ref": "#/$defs/ChainEffectPayload"
             }
           ]
         },

@@ -118,7 +118,9 @@ def run(args: argparse.Namespace) -> int:
     )
     _print_run(result)
     complete = result.complete
-    if args.sac:
+    if args.sac and not complete:
+        print("SAC events skipped: they need the complete Horizon run of the same range first")
+    elif args.sac:
         print(
             f"SAC contract {resolve_sac_contract(target, horizon)} (derived locally; "
             f"Horizon /assets publishes the same id, or none while the SAC is not deployed)"

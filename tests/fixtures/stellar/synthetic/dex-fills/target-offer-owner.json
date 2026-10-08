@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "synthetic-synusd-dex-fills-offer-owner",
+  "tenant_id": "tenant-synthetic-stellar",
+  "network": "stellar:testnet",
+  "asset_code": "SYNUSD",
+  "asset_issuer": "GAEUGPNN6CYA2ZVMXQOF2DGALOKTJRLHKVAT2JLJTTY3MNSWMC7GRZDR",
+  "account": "GCYHERSPE4GBWHZ3Y4T6AEL7EAF5KJ5EHBKNE4CH65KYRFNZBXZD7STO",
+  "unit": "SYNUSD",
+  "instrument_id": "synthetic:asset:SYNUSD:GAEUGPNN6CYA2ZVMXQOF2DGALOKTJRLHKVAT2JLJTTY3MNSWMC7GRZDR",
+  "representation_id": "rep-synthetic-classic-SYNUSD-GAEUGPNN6CYA2ZVMXQOF2DGALOKTJRLHKVAT2JLJTTY3MNSWMC7GRZDR",
+  "source_id": "stellar-synthetic",
+  "expected_sac_contract_id": "CC4WLUOJJBODMOPTLFJRN77LAAILXXHCQB4RUVY32LYHXO7VT4TG57IJ",
+  "synthetic": true,
+  "description": "SYNTHETIC DEX fill cases (build_dex_fills.py). The accounts, transactions and the SYNUSD asset do not exist on any network."
+}

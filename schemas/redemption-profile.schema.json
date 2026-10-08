@@ -1,0 +1,1032 @@
+{
+  "$defs": {
+    "CancellationPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "authorized_by": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Authorized By",
+          "type": "array"
+        },
+        "automatic_reversal": {
+          "const": false,
+          "title": "Automatic Reversal",
+          "type": "boolean"
+        },
+        "contradictory_association": {
+          "const": "UNKNOWN_keep_conflict",
+          "title": "Contradictory Association",
+          "type": "string"
+        },
+        "effect": {
+          "const": "extinguishes_pending_settlement_obligations",
+          "title": "Effect",
+          "type": "string"
+        },
+        "effective_after_due": {
+          "const": "keeps_a_demonstrated_breach",
+          "title": "Effective After Due",
+          "type": "string"
+        },
+        "evidence_retraction": {
+          "const": "not_a_cancellation",
+          "title": "Evidence Retraction",
+          "type": "string"
+        },
+        "foreign_cancellation": {
+          "const": "out_of_scope",
+          "title": "Foreign Cancellation",
+          "type": "string"
+        },
+        "invalid_retraction": {
+          "const": "UNKNOWN_INVALID_RETRACTION_keep_both",
+          "title": "Invalid Retraction",
+          "type": "string"
+        },
+        "reactivation": {
+          "const": "UNKNOWN_unsupported",
+          "title": "Reactivation",
+          "type": "string"
+        },
+        "request_retraction": {
+          "const": "LOSS_OF_SUPPORT_in_dependent_controls_only",
+          "title": "Request Retraction",
+          "type": "string"
+        },
+        "retracted_cancellation": {
+          "const": "no_cancellation_in_force_with_ta_coverage",
+          "title": "Retracted Cancellation",
+          "type": "string"
+        },
+        "settlement_despite_cancellation": {
+          "const": "BREAK_review_required",
+          "title": "Settlement Despite Cancellation",
+          "type": "string"
+        },
+        "valid_when": {
+          "const": "effective_at_or_after_acceptance",
+          "title": "Valid When",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authorized_by",
+        "valid_when",
+        "effect",
+        "settlement_despite_cancellation",
+        "automatic_reversal",
+        "evidence_retraction",
+        "effective_after_due",
+        "retracted_cancellation",
+        "reactivation",
+        "foreign_cancellation",
+        "contradictory_association",
+        "request_retraction",
+        "invalid_retraction"
+      ],
+      "title": "CancellationPolicy",
+      "type": "object"
+    },
+    "EvidencePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "absent": {
+          "const": "UNKNOWN",
+          "title": "Absent",
+          "type": "string"
+        },
+        "conflicting_authoritative": {
+          "const": "UNKNOWN",
+          "title": "Conflicting Authoritative",
+          "type": "string"
+        },
+        "correction": {
+          "const": "latest_revision_known_at_snapshot",
+          "title": "Correction",
+          "type": "string"
+        },
+        "duplicate_different_content": {
+          "const": "SOURCE_CONFLICT",
+          "title": "Duplicate Different Content",
+          "type": "string"
+        },
+        "duplicate_same_content": {
+          "const": "single_effect",
+          "title": "Duplicate Same Content",
+          "type": "string"
+        },
+        "failed_chain_transaction": {
+          "const": "no_economic_effect",
+          "title": "Failed Chain Transaction",
+          "type": "string"
+        },
+        "retraction_without_replacement": {
+          "const": "UNKNOWN_LOSS_OF_SUPPORT",
+          "title": "Retraction Without Replacement",
+          "type": "string"
+        },
+        "technical_error": {
+          "const": "UNKNOWN",
+          "title": "Technical Error",
+          "type": "string"
+        }
+      },
+      "required": [
+        "absent",
+        "conflicting_authoritative",
+        "correction",
+        "retraction_without_replacement",
+        "duplicate_same_content",
+        "duplicate_different_content",
+        "failed_chain_transaction",
+        "technical_error"
+      ],
+      "title": "EvidencePolicy",
+      "type": "object"
+    },
+    "InstrumentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "instrument_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Instrument Id",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instrument_id",
+        "unit",
+        "scale",
+        "description",
+        "synthetic"
+      ],
+      "title": "InstrumentRef",
+      "type": "object"
+    },
+    "PaymentDeadline": {
+      "additionalProperties": false,
+      "description": "Exact elapsed hours from the request's acceptance, in UTC; no business calendar.",
+      "properties": {
+        "absence_after_due": {
+          "const": "BREAK_only_with_sufficient_bank_coverage",
+          "title": "Absence After Due",
+          "type": "string"
+        },
+        "absence_coverage": {
+          "const": "half_open_interval_must_contain_the_due_instant",
+          "title": "Absence Coverage",
+          "type": "string"
+        },
+        "absence_requires": {
+          "const": "clock_and_economic_cut_after_due",
+          "title": "Absence Requires",
+          "type": "string"
+        },
+        "anchor": {
+          "const": "accepted_at",
+          "title": "Anchor",
+          "type": "string"
+        },
+        "calendar": {
+          "const": "none_exact_utc_hours",
+          "title": "Calendar",
+          "type": "string"
+        },
+        "declared_due_mismatch": {
+          "const": "UNKNOWN_DEADLINE_DATA_CONFLICT_judge_computed_due",
+          "title": "Declared Due Mismatch",
+          "type": "string"
+        },
+        "hours": {
+          "maximum": 8760,
+          "minimum": 1,
+          "title": "Hours",
+          "type": "integer"
+        },
+        "judged_with": {
+          "const": "snapshot_evaluation_clock",
+          "title": "Judged With",
+          "type": "string"
+        },
+        "late_payment": {
+          "const": "breach_persists",
+          "title": "Late Payment",
+          "type": "string"
+        },
+        "on_time": {
+          "const": "effective_at_or_before_due",
+          "title": "On Time",
+          "type": "string"
+        },
+        "time_precision": {
+          "const": "second",
+          "title": "Time Precision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "anchor",
+        "hours",
+        "calendar",
+        "on_time",
+        "judged_with",
+        "absence_after_due",
+        "absence_coverage",
+        "absence_requires",
+        "time_precision",
+        "late_payment",
+        "declared_due_mismatch"
+      ],
+      "title": "PaymentDeadline",
+      "type": "object"
+    },
+    "QuarantinePolicy": {
+      "additionalProperties": false,
+      "description": "What a quarantined record of the chain coverage can and cannot do (profiles\nfund-subscription-testnet@1.2.0 and fund-redemption-synthetic@1.5.0 on).\n\nDeclared explicitly so that ``quarantined_records_allowed: false`` keeps the meaning it\nhad in the profiles that predate this policy, where a quarantined record bearing on the\noperation blocks every comparison of its source:\n\n- ``evidence``: a quarantined record never credits fulfilment;\n- ``blocking``: its existence makes UNKNOWN only the controls whose conclusion resolving\n  it could change; a control it cannot change is not blocked automatically;\n- ``certificates``: a quarantine stays active until a later certificate of the same chain\n  scope, including its route and ledger range, explicitly supersedes it; the absence of\n  a record in a certificate of another scope resolves nothing;\n- ``classification``: a record's ``nature`` and ``chain_operation`` are relied on to set\n  a record aside only when the snapshot's own artifacts support them;\n- ``unapproved_parties``: a party that cannot be or is not approved for the account\n  (a contract, an account without IdentityLink) is not thereby foreign; an effect or\n  record naming only such parties is outside the declared scope unless an\n  ExecutionLink, an explicit association or an unresolved participant brings it in.",
+      "properties": {
+        "blocking": {
+          "const": "only_controls_whose_conclusion_it_could_change",
+          "title": "Blocking",
+          "type": "string"
+        },
+        "certificates": {
+          "const": "active_until_explicit_supersession_within_chain_scope",
+          "title": "Certificates",
+          "type": "string"
+        },
+        "classification": {
+          "const": "relied_on_only_when_supported_by_the_snapshot",
+          "title": "Classification",
+          "type": "string"
+        },
+        "evidence": {
+          "const": "never_credits_fulfilment",
+          "title": "Evidence",
+          "type": "string"
+        },
+        "unapproved_parties": {
+          "const": "outside_declared_scope_unless_linked_associated_or_unresolved",
+          "title": "Unapproved Parties",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence",
+        "blocking",
+        "certificates",
+        "classification",
+        "unapproved_parties"
+      ],
+      "title": "QuarantinePolicy",
+      "type": "object"
+    },
+    "RedemptionControlSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "applies": {
+          "enum": [
+            "always",
+            "unless_cancelled",
+            "cancellation"
+          ],
+          "title": "Applies",
+          "type": "string"
+        },
+        "comparison": {
+          "enum": [
+            "exact_equal",
+            "at_most",
+            "deadline",
+            "data_consistency",
+            "validity",
+            "no_settlement"
+          ],
+          "title": "Comparison",
+          "type": "string"
+        },
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "coverage": {
+          "enum": [
+            "positive_evidence_only",
+            "absence_interval",
+            "reconstruction_interval"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "failure_codes": {
+          "items": {
+            "enum": [
+              "PRICE_MISMATCH",
+              "UNITS_EXCEED_POSITION",
+              "CASH_AMOUNT_MISMATCH",
+              "UNITS_MISMATCH",
+              "PAYMENT_LATE",
+              "PAYMENT_MISSED",
+              "SETTLED_DESPITE_CANCELLATION",
+              "PAYMENT_TO_WRONG_ACCOUNT"
+            ],
+            "type": "string"
+          },
+          "title": "Failure Codes",
+          "type": "array"
+        },
+        "left": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Left",
+          "type": "string"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "requires": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requires",
+          "type": "array"
+        },
+        "right": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Right",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "mandatory",
+        "requires",
+        "comparison",
+        "applies",
+        "coverage",
+        "left",
+        "right",
+        "failure_codes"
+      ],
+      "title": "RedemptionControlSpec",
+      "type": "object"
+    },
+    "RedemptionCorrelation": {
+      "additionalProperties": false,
+      "properties": {
+        "account_link": {
+          "const": "approved_identity_link",
+          "title": "Account Link",
+          "type": "string"
+        },
+        "account_namespace": {
+          "enum": [
+            "shared_pseudonymous_account_ref",
+            "per_source"
+          ],
+          "title": "Account Namespace",
+          "type": "string"
+        },
+        "chain_link": {
+          "const": "explicit_execution_link_only",
+          "title": "Chain Link",
+          "type": "string"
+        },
+        "institutional_link": {
+          "const": "operation_ref_equals_request_ref",
+          "title": "Institutional Link",
+          "type": "string"
+        },
+        "operation_key": {
+          "const": "request_ref",
+          "title": "Operation Key",
+          "type": "string"
+        },
+        "price_link": {
+          "const": "explicit_price_ref",
+          "title": "Price Link",
+          "type": "string"
+        },
+        "settlement_ref_namespace": {
+          "enum": [
+            "bank_payment_ref",
+            "incompatible"
+          ],
+          "title": "Settlement Ref Namespace",
+          "type": "string"
+        },
+        "unlinked_payment_candidate": {
+          "const": "payment_ref_equals_request_settlement_ref",
+          "title": "Unlinked Payment Candidate",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_key",
+        "institutional_link",
+        "price_link",
+        "chain_link",
+        "account_link",
+        "account_namespace",
+        "unlinked_payment_candidate",
+        "settlement_ref_namespace"
+      ],
+      "title": "RedemptionCorrelation",
+      "type": "object"
+    },
+    "RedemptionCoverageRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "absence_needs_chain_scope": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Absence Needs Chain Scope"
+        },
+        "completeness_needs_coverage": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Completeness Needs Coverage"
+        },
+        "fact_types": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Types",
+          "type": "array"
+        },
+        "filters": {
+          "const": "only_those_keeping_every_record_of_the_predicate",
+          "title": "Filters",
+          "type": "string"
+        },
+        "gaps_allowed": {
+          "const": false,
+          "title": "Gaps Allowed",
+          "type": "boolean"
+        },
+        "min_level": {
+          "enum": [
+            "provider_claimed",
+            "internally_checked",
+            "independently_verified"
+          ],
+          "title": "Min Level",
+          "type": "string"
+        },
+        "must_cover": {
+          "const": "interval_named_by_each_control",
+          "title": "Must Cover",
+          "type": "string"
+        },
+        "quarantine_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QuarantinePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "quarantine_scope": {
+          "anyOf": [
+            {
+              "const": "records_bearing_on_operation",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quarantine Scope"
+        },
+        "quarantined_records_allowed": {
+          "const": false,
+          "title": "Quarantined Records Allowed",
+          "type": "boolean"
+        },
+        "scope": {
+          "enum": [
+            "none",
+            "account",
+            "account_and_currency"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "fact_types",
+        "min_level",
+        "must_cover",
+        "scope",
+        "filters",
+        "gaps_allowed",
+        "quarantined_records_allowed"
+      ],
+      "title": "RedemptionCoverageRequirement",
+      "type": "object"
+    },
+    "RedemptionPricing": {
+      "additionalProperties": false,
+      "properties": {
+        "cash_scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Cash Scale",
+          "type": "integer"
+        },
+        "cash_unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Cash Unit",
+          "type": "string"
+        },
+        "expected_payment": {
+          "const": "units_times_approved_price",
+          "title": "Expected Payment",
+          "type": "string"
+        },
+        "fees": {
+          "const": "none",
+          "title": "Fees",
+          "type": "string"
+        },
+        "price_fact": {
+          "const": "price_approved",
+          "title": "Price Fact",
+          "type": "string"
+        },
+        "rounding": {
+          "const": "inexact_is_unknown",
+          "title": "Rounding",
+          "type": "string"
+        },
+        "tolerance": {
+          "const": "none",
+          "title": "Tolerance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cash_unit",
+        "cash_scale",
+        "price_fact",
+        "expected_payment",
+        "fees",
+        "rounding",
+        "tolerance"
+      ],
+      "title": "RedemptionPricing",
+      "type": "object"
+    },
+    "RedemptionQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "burn_before_acceptance": {
+          "const": "UNKNOWN_does_not_fulfil_but_contradicts_a_cancellation",
+          "title": "Burn Before Acceptance",
+          "type": "string"
+        },
+        "position": {
+          "const": "available_immediately_before_acceptance_by_ta_sequence",
+          "title": "Position",
+          "type": "string"
+        },
+        "position_reconstruction": {
+          "const": "journal_changes_with_ta_coverage_no_age_window",
+          "title": "Position Reconstruction",
+          "type": "string"
+        },
+        "request": {
+          "const": "fixed_quantity_settled_in_full",
+          "title": "Request",
+          "type": "string"
+        },
+        "retirement": {
+          "const": "burn_to_issuer",
+          "title": "Retirement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request",
+        "position",
+        "position_reconstruction",
+        "retirement",
+        "burn_before_acceptance"
+      ],
+      "title": "RedemptionQuantity",
+      "type": "object"
+    },
+    "SourceAuthority": {
+      "additionalProperties": false,
+      "description": "Authority is per fact type. No source is a universal source of truth.\n\n``mapping_ref`` is the mapping of the source's authoritative records;\n``additional_mapping_refs`` (fund-subscription-testnet@1.4.0 on) are the other mappings\nthe profile admits for this source (a chain source also writes chain effects and the\nmovements only one route reads). A new evaluation is refused when an observation of a\ndeclared source was produced by a mapping the profile does not admit for it: it is\nnever relabelled nor read as if another mapping had produced it. Absent,\nthe source admits only ``mapping_ref``; it is omitted when serialized, so existing\nprofiles stay byte-identical.",
+      "properties": {
+        "additional_mapping_refs": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Additional Mapping Refs"
+        },
+        "authoritative_for": {
+          "items": {
+            "enum": [
+              "order_accepted",
+              "cash_settled",
+              "units_registered",
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Authoritative For",
+          "type": "array"
+        },
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "order_management",
+            "bank",
+            "transfer_agent",
+            "stellar_ledger",
+            "pricing_agent"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "mapping_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "parser_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Parser Ref",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "kind",
+        "authoritative_for",
+        "mapping_ref",
+        "parser_ref",
+        "description"
+      ],
+      "title": "SourceAuthority",
+      "type": "object"
+    },
+    "StellarClassicRepresentation": {
+      "additionalProperties": false,
+      "description": "A Stellar Classic asset: network + asset code + issuer.\n\nClassic amounts carry 7 decimals. Access through the Stellar Asset Contract (SAC) is\nthe same underlying asset and must never be counted as a second issuance; the\nfirst synthetic profile does not ingest SAC events at all (declared unsupported).",
+      "properties": {
+        "amount_scale": {
+          "const": 7,
+          "title": "Amount Scale",
+          "type": "integer"
+        },
+        "asset_code": {
+          "pattern": "^[A-Za-z0-9]{1,12}$",
+          "title": "Asset Code",
+          "type": "string"
+        },
+        "instrument_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Instrument Id",
+          "type": "string"
+        },
+        "issuer": {
+          "title": "Issuer",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "stellar:testnet",
+            "stellar:pubnet"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "network_passphrase": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Network Passphrase",
+          "type": "string"
+        },
+        "representation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Representation Id",
+          "type": "string"
+        },
+        "standard": {
+          "const": "stellar_classic",
+          "title": "Standard",
+          "type": "string"
+        }
+      },
+      "required": [
+        "representation_id",
+        "instrument_id",
+        "standard",
+        "network",
+        "network_passphrase",
+        "asset_code",
+        "issuer",
+        "amount_scale"
+      ],
+      "title": "StellarClassicRepresentation",
+      "type": "object"
+    },
+    "TaJournal": {
+      "additionalProperties": false,
+      "description": "The TA journal whose source-assigned sequence orders acceptance, positions and\ntheir changes. A guarantee of this synthetic fixture, not of future real sources.",
+      "properties": {
+        "journal_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Journal Id",
+          "type": "string"
+        },
+        "ordering": {
+          "const": "source_assigned_strict_total_order",
+          "title": "Ordering",
+          "type": "string"
+        },
+        "position_semantics": {
+          "const": "state_after_its_sequence",
+          "title": "Position Semantics",
+          "type": "string"
+        },
+        "scope": {
+          "const": "synthetic_demo_a_only",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "journal_id",
+        "ordering",
+        "position_semantics",
+        "scope"
+      ],
+      "title": "TaJournal",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:redemption-profile:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "What a redemption must show, from whom, and how it is judged.",
+  "properties": {
+    "cancellation": {
+      "$ref": "#/$defs/CancellationPolicy"
+    },
+    "controls": {
+      "items": {
+        "$ref": "#/$defs/RedemptionControlSpec"
+      },
+      "minItems": 1,
+      "title": "Controls",
+      "type": "array"
+    },
+    "correlation": {
+      "$ref": "#/$defs/RedemptionCorrelation"
+    },
+    "coverage_requirements": {
+      "items": {
+        "$ref": "#/$defs/RedemptionCoverageRequirement"
+      },
+      "title": "Coverage Requirements",
+      "type": "array"
+    },
+    "disclaimer": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "evidence_policy": {
+      "$ref": "#/$defs/EvidencePolicy"
+    },
+    "instrument": {
+      "$ref": "#/$defs/InstrumentRef"
+    },
+    "operation_type": {
+      "const": "redemption",
+      "title": "Operation Type",
+      "type": "string"
+    },
+    "payment_deadline": {
+      "$ref": "#/$defs/PaymentDeadline"
+    },
+    "pricing": {
+      "$ref": "#/$defs/RedemptionPricing"
+    },
+    "profile_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Profile Ref",
+      "type": "string"
+    },
+    "quantity": {
+      "$ref": "#/$defs/RedemptionQuantity"
+    },
+    "representation_ratio": {
+      "const": "1:1",
+      "title": "Representation Ratio",
+      "type": "string"
+    },
+    "representations": {
+      "items": {
+        "$ref": "#/$defs/StellarClassicRepresentation"
+      },
+      "minItems": 1,
+      "title": "Representations",
+      "type": "array"
+    },
+    "result_precedence": {
+      "const": "BREAK>UNKNOWN>MATCH",
+      "title": "Result Precedence",
+      "type": "string"
+    },
+    "rules_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Rules Ref",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceAuthority"
+      },
+      "minItems": 1,
+      "title": "Sources",
+      "type": "array"
+    },
+    "synthetic": {
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "ta_journal": {
+      "$ref": "#/$defs/TaJournal"
+    },
+    "unsupported": {
+      "items": {
+        "enum": [
+          "fees",
+          "partial_execution",
+          "multiple_cash_payments",
+          "fx_conversion",
+          "rounding",
+          "business_day_calendar",
+          "transfer_retirement",
+          "automatic_reversal",
+          "omnibus_account",
+          "sac_events",
+          "soroban_custom_token",
+          "amount_time_matching",
+          "business_reactivation",
+          "position_age_window",
+          "burn_before_acceptance"
+        ],
+        "type": "string"
+      },
+      "title": "Unsupported",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "profile_ref",
+    "operation_type",
+    "synthetic",
+    "disclaimer",
+    "instrument",
+    "representations",
+    "representation_ratio",
+    "pricing",
+    "correlation",
+    "payment_deadline",
+    "ta_journal",
+    "quantity",
+    "cancellation",
+    "sources",
+    "coverage_requirements",
+    "controls",
+    "rules_ref",
+    "result_precedence",
+    "evidence_policy",
+    "unsupported"
+  ],
+  "title": "RedemptionProfile",
+  "type": "object"
+}

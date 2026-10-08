@@ -1,0 +1,110 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/accounts/GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH/payments?cursor=21738036370866176\u0026include_failed=true\u0026join=transactions\u0026limit=2\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/accounts/GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH/payments?cursor=21738044960804865\u0026include_failed=true\u0026join=transactions\u0026limit=2\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/accounts/GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH/payments?cursor=21738044960804865\u0026include_failed=true\u0026join=transactions\u0026limit=2\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21738044960804865"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21738044960804865/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21738044960804865"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21738044960804865"
+          }
+        },
+        "id": "21738044960804865",
+        "paging_token": "21738044960804865",
+        "transaction_successful": true,
+        "source_account": "GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2026-10-06T23:40:02Z",
+        "transaction_hash": "8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon-testnet.stellar.org/transactions/8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257"
+            },
+            "account": {
+              "href": "https://horizon-testnet.stellar.org/accounts/GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH"
+            },
+            "ledger": {
+              "href": "https://horizon-testnet.stellar.org/ledgers/5061283"
+            },
+            "operations": {
+              "href": "https://horizon-testnet.stellar.org/transactions/8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon-testnet.stellar.org/transactions/8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon-testnet.stellar.org/transactions?order=asc\u0026cursor=21738044960804864"
+            },
+            "succeeds": {
+              "href": "https://horizon-testnet.stellar.org/transactions?order=desc\u0026cursor=21738044960804864"
+            },
+            "transaction": {
+              "href": "https://horizon-testnet.stellar.org/transactions/8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257"
+            }
+          },
+          "id": "8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257",
+          "paging_token": "21738044960804864",
+          "successful": true,
+          "hash": "8b96897b10ceaad319b73b856f09fdf76995edb7c85568ec416cbcd368c0e257",
+          "ledger": 5061283,
+          "created_at": "2026-10-06T23:40:02Z",
+          "source_account": "GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH",
+          "source_account_sequence": "21737933291651074",
+          "fee_account": "GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH",
+          "fee_charged": "100",
+          "max_fee": "20268",
+          "operation_count": 1,
+          "envelope_xdr": "AAAAAgAAAAAzjRZ8LTxu47L3BhUxoJdpPTXRhf/xrlXvCKQtbENq2AAATywATTqJAAAAAgAAAAEAAAAAAAAAAAAAAABqxYdzAAAAAAAAAAEAAAAAAAAADQAAAAAAAAAAAAAACgAAAAAzjRZ8LTxu47L3BhUxoJdpPTXRhf/xrlXvCKQtbENq2AAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAAAAAkAAAAAAAAAAAAAAAFsQ2rYAAAAQK/FIJaLEBQBcYuJnoH9qpZNLSdZwPitwXTn819x7jtbGDcFMYlDE3R97tyF/o0Ptk1fUWe+8YNKHpmJBHoPpAw=",
+          "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAANAAAAAAAAAAEAAAACTNH23vuiN+7Lxf7+JZ+J68S17dSRFr61U2xANPxI1j8AAAABVVNEQwAAAABCPn0F8uyvv+wZKyFaPxvpau242OcCVKvjQT4CB95WsgAAAAAAAAAJAAAAAAAAAAAAAAAKAAAAADONFnwtPG7jsvcGFTGgl2k9NdGF//GuVe8IpC1sQ2rYAAAAAVVTREMAAAAAQj59BfLsr7/sGSshWj8b6WrtuNjnAlSr40E+AgfeVrIAAAAAAAAACQAAAAA=",
+          "result_meta_xdr": "AAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMATTqKAAAAAAAAAAAzjRZ8LTxu47L3BhUxoJdpPTXRhf/xrlXvCKQtbENq2AAAABdIduecAE06iQAAAAEAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAABNOooAAAAAasWGVQAAAAAAAAABAE06owAAAAAAAAAAM40WfC08buOy9wYVMaCXaT010YX/8a5V7wikLWxDatgAAAAXSHbnOABNOokAAAABAAAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAAATTqKAAAAAGrFhlUAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "r8UglosQFAFxi4megf2qlk0tJ1nA+K3BdOfzX3HuO1sYNwUxiUMTdH3u3IX+jQ+2TV9RZ77xg0oemYkEeg+kDA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1791330163"
+            }
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "from": "GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH",
+        "to": "GAZY2FT4FU6G5Y5S64DBKMNAS5UT2NORQX77DLSV54EKILLMINVNRQCH",
+        "amount": "0.0000009",
+        "path": [],
+        "source_amount": "0.0000010",
+        "destination_min": "0.0000009",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

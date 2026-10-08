@@ -1,0 +1,377 @@
+{
+  "schema_version": "1.0",
+  "profile_ref": "fund-redemption-synthetic@1.6.0",
+  "operation_type": "redemption",
+  "synthetic": true,
+  "disclaimer": "Synthetic redemption profile for the DEMO-A fixture (ADR-008 rev. 4). Not a policy of any real fund; not for real client operations. Version 1.6.0 (INV-015): keeps the declared quarantine policy of 1.5.0 and requires a sufficient declared chain scope to show an absence on the chain source: a certificate without one, or one that does not declare what it leaves out of sight, never shows that no retirement or settlement occurred. 1.5.0 and earlier are unchanged.",
+  "instrument": {
+    "instrument_id": "syn:fund:DEMO-A:class-a",
+    "unit": "FUND_SHARE",
+    "scale": 7,
+    "description": "DEMO-A class A participation (synthetic)",
+    "synthetic": true
+  },
+  "representations": [
+    {
+      "representation_id": "rep-stellar-testnet-demoa",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "standard": "stellar_classic",
+      "network": "stellar:testnet",
+      "network_passphrase": "Test SDF Network ; September 2015",
+      "asset_code": "DEMOA",
+      "issuer": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+      "amount_scale": 7
+    }
+  ],
+  "representation_ratio": "1:1",
+  "pricing": {
+    "cash_unit": "USD",
+    "cash_scale": 2,
+    "price_fact": "price_approved",
+    "expected_payment": "units_times_approved_price",
+    "fees": "none",
+    "rounding": "inexact_is_unknown",
+    "tolerance": "none"
+  },
+  "correlation": {
+    "operation_key": "request_ref",
+    "institutional_link": "operation_ref_equals_request_ref",
+    "price_link": "explicit_price_ref",
+    "chain_link": "explicit_execution_link_only",
+    "account_link": "approved_identity_link",
+    "account_namespace": "shared_pseudonymous_account_ref",
+    "unlinked_payment_candidate": "payment_ref_equals_request_settlement_ref",
+    "settlement_ref_namespace": "bank_payment_ref"
+  },
+  "payment_deadline": {
+    "anchor": "accepted_at",
+    "hours": 48,
+    "calendar": "none_exact_utc_hours",
+    "on_time": "effective_at_or_before_due",
+    "judged_with": "snapshot_evaluation_clock",
+    "absence_after_due": "BREAK_only_with_sufficient_bank_coverage",
+    "absence_coverage": "half_open_interval_must_contain_the_due_instant",
+    "absence_requires": "clock_and_economic_cut_after_due",
+    "time_precision": "second",
+    "late_payment": "breach_persists",
+    "declared_due_mismatch": "UNKNOWN_DEADLINE_DATA_CONFLICT_judge_computed_due"
+  },
+  "ta_journal": {
+    "journal_id": "ta-journal-demoa",
+    "ordering": "source_assigned_strict_total_order",
+    "position_semantics": "state_after_its_sequence",
+    "scope": "synthetic_demo_a_only"
+  },
+  "quantity": {
+    "request": "fixed_quantity_settled_in_full",
+    "position": "available_immediately_before_acceptance_by_ta_sequence",
+    "position_reconstruction": "journal_changes_with_ta_coverage_no_age_window",
+    "retirement": "burn_to_issuer",
+    "burn_before_acceptance": "UNKNOWN_does_not_fulfil_but_contradicts_a_cancellation"
+  },
+  "cancellation": {
+    "authorized_by": [
+      "ta-ops-synthetic"
+    ],
+    "valid_when": "effective_at_or_after_acceptance",
+    "effect": "extinguishes_pending_settlement_obligations",
+    "settlement_despite_cancellation": "BREAK_review_required",
+    "automatic_reversal": false,
+    "evidence_retraction": "not_a_cancellation",
+    "effective_after_due": "keeps_a_demonstrated_breach",
+    "retracted_cancellation": "no_cancellation_in_force_with_ta_coverage",
+    "reactivation": "UNKNOWN_unsupported",
+    "foreign_cancellation": "out_of_scope",
+    "contradictory_association": "UNKNOWN_keep_conflict",
+    "request_retraction": "LOSS_OF_SUPPORT_in_dependent_controls_only",
+    "invalid_retraction": "UNKNOWN_INVALID_RETRACTION_keep_both"
+  },
+  "sources": [
+    {
+      "source_id": "ta-synthetic",
+      "kind": "transfer_agent",
+      "authoritative_for": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "mapping_ref": "ta-redemption-frozen@1.0.0",
+      "parser_ref": "frozen-json-synthetic@1.0.0",
+      "description": "Transfer agent: accepted redemption requests, cancellations, reactivations, positions and their journal, and register debits."
+    },
+    {
+      "source_id": "bank-synthetic",
+      "kind": "bank",
+      "authoritative_for": [
+        "cash_settled"
+      ],
+      "mapping_ref": "bank-redemption-frozen@1.0.0",
+      "parser_ref": "frozen-json-synthetic@1.0.0",
+      "description": "Bank: redemption payments to the investor."
+    },
+    {
+      "source_id": "pricing-synthetic",
+      "kind": "pricing_agent",
+      "authoritative_for": [
+        "price_approved"
+      ],
+      "mapping_ref": "pricing-frozen-synthetic@1.0.0",
+      "parser_ref": "frozen-json-synthetic@1.0.0",
+      "description": "Fund administrator: approved, versioned price per unit."
+    },
+    {
+      "source_id": "stellar-testnet-frozen",
+      "kind": "stellar_ledger",
+      "authoritative_for": [
+        "token_movement"
+      ],
+      "mapping_ref": "stellar-frozen-synthetic@1.0.0",
+      "parser_ref": "stellar-frozen-parser@1.0.0",
+      "description": "Frozen synthetic Stellar testnet burns of DEMOA (payment to the issuer). Authoritative only for on-chain retirement, with provider_claimed coverage."
+    }
+  ],
+  "coverage_requirements": [
+    {
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated",
+        "position_held",
+        "position_changed",
+        "units_registered"
+      ],
+      "min_level": "internally_checked",
+      "must_cover": "interval_named_by_each_control",
+      "scope": "account",
+      "filters": "only_those_keeping_every_record_of_the_predicate",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false
+    },
+    {
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "min_level": "internally_checked",
+      "must_cover": "interval_named_by_each_control",
+      "scope": "account_and_currency",
+      "filters": "only_those_keeping_every_record_of_the_predicate",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false
+    },
+    {
+      "source_id": "pricing-synthetic",
+      "fact_types": [
+        "price_approved"
+      ],
+      "min_level": "internally_checked",
+      "must_cover": "interval_named_by_each_control",
+      "scope": "none",
+      "filters": "only_those_keeping_every_record_of_the_predicate",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false
+    },
+    {
+      "source_id": "stellar-testnet-frozen",
+      "fact_types": [
+        "token_movement"
+      ],
+      "min_level": "provider_claimed",
+      "must_cover": "interval_named_by_each_control",
+      "scope": "none",
+      "filters": "only_those_keeping_every_record_of_the_predicate",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false,
+      "quarantine_scope": "records_bearing_on_operation",
+      "quarantine_policy": {
+        "evidence": "never_credits_fulfilment",
+        "blocking": "only_controls_whose_conclusion_it_could_change",
+        "certificates": "active_until_explicit_supersession_within_chain_scope",
+        "classification": "relied_on_only_when_supported_by_the_snapshot",
+        "unapproved_parties": "outside_declared_scope_unless_linked_associated_or_unresolved"
+      },
+      "absence_needs_chain_scope": true
+    }
+  ],
+  "controls": [
+    {
+      "control_id": "redemption.declared_due_consistency",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted"
+      ],
+      "comparison": "data_consistency",
+      "applies": "always",
+      "coverage": "positive_evidence_only",
+      "left": "payment_due_at declared by the TA",
+      "right": "accepted_at + 48 exact hours (profile)",
+      "failure_codes": []
+    },
+    {
+      "control_id": "redemption.price_vs_approved",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "price_approved"
+      ],
+      "comparison": "exact_equal",
+      "applies": "always",
+      "coverage": "positive_evidence_only",
+      "left": "price_per_unit stated in the request",
+      "right": "approved price for the request's price_ref",
+      "failure_codes": [
+        "PRICE_MISMATCH"
+      ]
+    },
+    {
+      "control_id": "redemption.units_within_position",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "position_held",
+        "position_changed"
+      ],
+      "comparison": "at_most",
+      "applies": "always",
+      "coverage": "reconstruction_interval",
+      "left": "units requested",
+      "right": "available immediately before acceptance (holding - reservations, by TA sequence)",
+      "failure_codes": [
+        "UNITS_EXCEED_POSITION"
+      ]
+    },
+    {
+      "control_id": "redemption.cash_vs_expected",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "price_approved",
+        "cash_settled"
+      ],
+      "comparison": "exact_equal",
+      "applies": "unless_cancelled",
+      "coverage": "positive_evidence_only",
+      "left": "cash paid by the bank to the requesting account",
+      "right": "units requested x approved price",
+      "failure_codes": [
+        "CASH_AMOUNT_MISMATCH",
+        "PAYMENT_TO_WRONG_ACCOUNT"
+      ]
+    },
+    {
+      "control_id": "redemption.payment_deadline",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "cash_settled"
+      ],
+      "comparison": "deadline",
+      "applies": "unless_cancelled",
+      "coverage": "absence_interval",
+      "left": "effective time of the payment",
+      "right": "accepted_at + 48 exact hours (computed)",
+      "failure_codes": [
+        "PAYMENT_LATE",
+        "PAYMENT_MISSED"
+      ]
+    },
+    {
+      "control_id": "redemption.ta_units_vs_request",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "units_registered"
+      ],
+      "comparison": "exact_equal",
+      "applies": "unless_cancelled",
+      "coverage": "positive_evidence_only",
+      "left": "units debited in the TA register",
+      "right": "units requested",
+      "failure_codes": [
+        "UNITS_MISMATCH"
+      ]
+    },
+    {
+      "control_id": "redemption.burn_vs_request",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "token_movement"
+      ],
+      "comparison": "exact_equal",
+      "applies": "unless_cancelled",
+      "coverage": "positive_evidence_only",
+      "left": "units burned (payments to the issuer) after acceptance, linked to the request",
+      "right": "units requested",
+      "failure_codes": [
+        "UNITS_MISMATCH"
+      ]
+    },
+    {
+      "control_id": "redemption.cancellation_valid",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "redemption_reactivated"
+      ],
+      "comparison": "validity",
+      "applies": "cancellation",
+      "coverage": "absence_interval",
+      "left": "cancellation in force",
+      "right": "authority, effective time and account of the profile",
+      "failure_codes": []
+    },
+    {
+      "control_id": "redemption.no_settlement_after_cancellation",
+      "mandatory": true,
+      "requires": [
+        "redemption_accepted",
+        "redemption_cancelled",
+        "cash_settled",
+        "token_movement"
+      ],
+      "comparison": "no_settlement",
+      "applies": "cancellation",
+      "coverage": "absence_interval",
+      "left": "payments and burns linked to the cancelled request",
+      "right": "none, with bank and chain coverage",
+      "failure_codes": [
+        "SETTLED_DESPITE_CANCELLATION"
+      ]
+    }
+  ],
+  "rules_ref": "redemption-synthetic-rules@1.6.0",
+  "result_precedence": "BREAK>UNKNOWN>MATCH",
+  "evidence_policy": {
+    "absent": "UNKNOWN",
+    "conflicting_authoritative": "UNKNOWN",
+    "correction": "latest_revision_known_at_snapshot",
+    "retraction_without_replacement": "UNKNOWN_LOSS_OF_SUPPORT",
+    "duplicate_same_content": "single_effect",
+    "duplicate_different_content": "SOURCE_CONFLICT",
+    "failed_chain_transaction": "no_economic_effect",
+    "technical_error": "UNKNOWN"
+  },
+  "unsupported": [
+    "fees",
+    "partial_execution",
+    "multiple_cash_payments",
+    "fx_conversion",
+    "rounding",
+    "business_day_calendar",
+    "transfer_retirement",
+    "automatic_reversal",
+    "omnibus_account",
+    "sac_events",
+    "soroban_custom_token",
+    "amount_time_matching",
+    "business_reactivation",
+    "position_age_window",
+    "burn_before_acceptance"
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95/operations?cursor=\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95/operations?cursor=21772645217349637\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95/operations?cursor=21772645217349633\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349633/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349633"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349633"
+          }
+        },
+        "id": "21772645217349633",
+        "paging_token": "21772645217349633",
+        "transaction_successful": true,
+        "source_account": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2026-10-07T10:51:22Z",
+        "transaction_hash": "836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95",
+        "asset_type": "native",
+        "from": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "to": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "amount": "1.5100600",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "LUSD",
+            "asset_issuer": "GBCMRD6NDL2RAJUOFQ25EHZVO3IRIGNESWE4QDRFB4AVFIP7IT5BRCJ6"
+          }
+        ],
+        "source_amount": "0.2479821",
+        "source_max": "0.2529418",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "USDC",
+        "source_asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349634"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349634/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349634"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349634"
+          }
+        },
+        "id": "21772645217349634",
+        "paging_token": "21772645217349634",
+        "transaction_successful": true,
+        "source_account": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "type": "create_account",
+        "type_i": 0,
+        "created_at": "2026-10-07T10:51:22Z",
+        "transaction_hash": "836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95",
+        "starting_balance": "3.6000000",
+        "funder": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "account": "GC2456KO5MCFTYIU43ETIX633XGODPSPGUVEO2QJIB77TBD2HMIQRKYI"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349635"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349635/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349635"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349635"
+          }
+        },
+        "id": "21772645217349635",
+        "paging_token": "21772645217349635",
+        "transaction_successful": true,
+        "source_account": "GC2456KO5MCFTYIU43ETIX633XGODPSPGUVEO2QJIB77TBD2HMIQRKYI",
+        "type": "change_trust",
+        "type_i": 6,
+        "created_at": "2026-10-07T10:51:22Z",
+        "transaction_hash": "836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "limit": "922337203685.4775807",
+        "trustee": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "trustor": "GC2456KO5MCFTYIU43ETIX633XGODPSPGUVEO2QJIB77TBD2HMIQRKYI"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349636"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349636/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349636"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349636"
+          }
+        },
+        "id": "21772645217349636",
+        "paging_token": "21772645217349636",
+        "transaction_successful": true,
+        "source_account": "GC2456KO5MCFTYIU43ETIX633XGODPSPGUVEO2QJIB77TBD2HMIQRKYI",
+        "type": "set_options",
+        "type_i": 5,
+        "created_at": "2026-10-07T10:51:22Z",
+        "transaction_hash": "836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95",
+        "signer_key": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "signer_weight": 1
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349637"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772645217349637/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772645217349637"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772645217349637"
+          }
+        },
+        "id": "21772645217349637",
+        "paging_token": "21772645217349637",
+        "transaction_successful": true,
+        "source_account": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2026-10-07T10:51:22Z",
+        "transaction_hash": "836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "from": "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+        "to": "GC2456KO5MCFTYIU43ETIX633XGODPSPGUVEO2QJIB77TBD2HMIQRKYI",
+        "amount": "5.0000000"
+      }
+    ]
+  }
+}

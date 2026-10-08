@@ -2,7 +2,7 @@
   "$defs": {
     "IdentityLink": {
       "additionalProperties": false,
-      "description": "Approved link between an institutional account reference and a chain address.",
+      "description": "Approved link between an institutional account reference and a chain address.\n\nSchema 1.1 also admits a muxed sub-account (M strkey).\nA link names exactly one address: a link to a base account never approves its muxed\nsub-accounts, and a link to a sub-account never approves its base account or another\nsub-account. Schema 1.0 admits only base accounts, so earlier links stay identical.",
       "properties": {
         "account_ref": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
@@ -37,7 +37,10 @@
           "type": "string"
         },
         "schema_version": {
-          "const": "1.0",
+          "enum": [
+            "1.0",
+            "1.1"
+          ],
           "title": "Schema Version",
           "type": "string"
         },

@@ -33,14 +33,18 @@ from invaria.contracts.bundle import (
 )
 from invaria.contracts.chain import ChainTarget, ExecutionLinkSet, IngestionCheckpoint
 from invaria.contracts.mapping import CsvMapping
+from invaria.contracts.profile import RedemptionProfile
 from invaria.query.models import (
     AccessProfile,
+    ComparisonView,
     ConclusionChangeView,
     ConclusionView,
     CoverageReport,
     DiscrepancyView,
     EvidenceView,
     MissingEvidenceView,
+    OperationsView,
+    TimelineView,
     TraceView,
 )
 
@@ -51,6 +55,7 @@ CONTRACTS: dict[str, type[BaseModel]] = {
     "coverage-set": CoverageSet,
     "identity-link-set": IdentityLinkSet,
     "operation-profile": OperationProfile,
+    "redemption-profile": RedemptionProfile,
     "snapshot": SnapshotRef,
     "evaluation-result": EvaluationResult,
     "scenario-catalog": ScenarioCatalog,
@@ -68,6 +73,9 @@ CONTRACTS: dict[str, type[BaseModel]] = {
     "query-conclusion-change": ConclusionChangeView,
     "query-evidence": EvidenceView,
     "query-coverage": CoverageReport,
+    "query-operations": OperationsView,
+    "query-timeline": TimelineView,
+    "query-comparison": ComparisonView,
     "chain-target": ChainTarget,
     "execution-link-set": ExecutionLinkSet,
     "ingestion-checkpoint": IngestionCheckpoint,

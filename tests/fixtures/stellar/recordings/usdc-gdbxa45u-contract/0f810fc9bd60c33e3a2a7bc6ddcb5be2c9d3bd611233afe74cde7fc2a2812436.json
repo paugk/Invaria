@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-07T15:13:19+00:00",
+  "method": "POST",
+  "request_body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"getNetwork\"}",
+  "response_sha256": "3cdceec60c390eb57312196ad5873bf1e63b0e9d28d7db23654655e40bd1bde2",
+  "status": 200,
+  "url": "https://soroban-testnet.stellar.org"
+}

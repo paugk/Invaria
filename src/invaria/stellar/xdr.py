@@ -1,8 +1,9 @@
 """Minimal XDR for the Stellar values Invaria reads. Standard library only; not an SDK.
 
 Supports exactly what the SAC adapter needs and rejects anything else explicitly:
-ScVal Symbol, String, Address (account or contract), I128; Asset encoding; SAC contract
-id derivation (CAP-46 HashIdPreimage ENVELOPE_TYPE_CONTRACT_ID / FROM_ASSET).
+ScVal Symbol, String, Address (account, contract, muxed account, claimable balance,
+liquidity pool), I128; Asset encoding; SAC contract id derivation (CAP-46
+HashIdPreimage ENVELOPE_TYPE_CONTRACT_ID / FROM_ASSET).
 """
 
 from __future__ import annotations
@@ -16,6 +17,8 @@ from invaria.contracts.stellar import (
     _crc16_xmodem,
     decode_account_id,
     encode_account_id,
+    encode_muxed_account,
+    encode_strkey,
 )
 
 SCV_U64 = 5
@@ -28,6 +31,9 @@ SCV_SYMBOL = 15
 SCV_ADDRESS = 18
 SC_ADDRESS_ACCOUNT = 0
 SC_ADDRESS_CONTRACT = 1
+SC_ADDRESS_MUXED_ACCOUNT = 2
+SC_ADDRESS_CLAIMABLE_BALANCE = 3
+SC_ADDRESS_LIQUIDITY_POOL = 4
 ENVELOPE_TYPE_CONTRACT_ID = 8
 CONTRACT_ID_PREIMAGE_FROM_ASSET = 1
 _CONTRACT_VERSION = 2 << 3
@@ -36,6 +42,15 @@ MAX_STRING = 1024
 
 class XdrError(ValueError):
     """Value outside the supported subset or malformed bytes."""
+
+
+class UnsupportedAddress(XdrError):
+    """An ScAddress of a type this decoder does not represent (an unknown type, or a
+    claimable balance id of a type other than V0)."""
+
+    def __init__(self, address_kind: int) -> None:
+        super().__init__(f"unsupported ScAddress type {address_kind}")
+        self.address_kind = address_kind
 
 
 def encode_contract_id(raw: bytes) -> str:
@@ -87,7 +102,11 @@ def sac_contract_id(code: str, issuer: str, network_passphrase: str) -> str:
 
 @dataclass(frozen=True)
 class ScAddress:
-    kind: str  # "account" | "contract"
+    """A decoded ScAddress as a typed technical party: its kind and its SEP-23 strkey (G, C,
+    M, B or L), a lossless encoding of the XDR bytes. Never an economic holder by itself: a
+    muxed account's M strkey names a base account and a sub-account id, not who holds it."""
+
+    kind: str  # "account" | "contract" | "muxed_account" | "claimable_balance" | ...
     strkey: str
 
 
@@ -124,6 +143,11 @@ class _Reader:
         return data
 
 
+def string_bytes(value: str) -> bytes:
+    """The exact bytes of a decoded ScString (see ``SCV_STRING``)."""
+    return value.encode("utf-8", "surrogateescape")
+
+
 def decode_scval(b64: str) -> ScValue:
     """Decode one base64 ScVal of a supported type; reject everything else."""
     try:
@@ -158,11 +182,16 @@ def _read_scval(reader: _Reader, depth: int) -> ScValue:
         value = struct.unpack(">Q", reader.take(8))[0]
     elif kind == SCV_BYTES:
         value = reader.opaque()
-    elif kind in (SCV_SYMBOL, SCV_STRING):
+    elif kind == SCV_SYMBOL:
         try:
             value = reader.opaque().decode("utf-8")
         except UnicodeDecodeError as error:
-            raise XdrError("non UTF-8 string") from error
+            raise XdrError("non UTF-8 symbol") from error
+    elif kind == SCV_STRING:
+        # An ScString holds bytes, not necessarily UTF-8 (a text memo carried as
+        # ``to_muxed_id`` may be any 28 bytes): kept losslessly; ``string_bytes`` gives
+        # them back exactly.
+        value = reader.opaque().decode("utf-8", "surrogateescape")
     elif kind == SCV_ADDRESS:
         address_kind = reader.int32()
         if address_kind == SC_ADDRESS_ACCOUNT:
@@ -171,8 +200,22 @@ def _read_scval(reader: _Reader, depth: int) -> ScValue:
             value = ScAddress("account", encode_account_id(reader.take(32)))
         elif address_kind == SC_ADDRESS_CONTRACT:
             value = ScAddress("contract", encode_contract_id(reader.take(32)))
+        elif address_kind == SC_ADDRESS_MUXED_ACCOUNT:
+            # MuxedEd25519Account: the u64 id, then the base account's ed25519 key.
+            muxed_id = struct.unpack(">Q", reader.take(8))[0]
+            base = encode_account_id(reader.take(32))
+            value = ScAddress("muxed_account", encode_muxed_account(base, muxed_id))
+        elif address_kind == SC_ADDRESS_CLAIMABLE_BALANCE:
+            # ClaimableBalanceID: union type (0, V0) and a 32-byte hash.
+            if reader.int32() != 0:
+                raise UnsupportedAddress(address_kind)
+            value = ScAddress(
+                "claimable_balance", encode_strkey("claimable_balance", b"\x00" + reader.take(32))
+            )
+        elif address_kind == SC_ADDRESS_LIQUIDITY_POOL:
+            value = ScAddress("liquidity_pool", encode_strkey("liquidity_pool", reader.take(32)))
         else:
-            raise XdrError(f"unsupported ScAddress type {address_kind}")
+            raise UnsupportedAddress(address_kind)
     elif kind == SCV_I128:
         hi = struct.unpack(">q", reader.take(8))[0]
         lo = struct.unpack(">Q", reader.take(8))[0]

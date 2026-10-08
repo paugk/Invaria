@@ -1,0 +1,15 @@
+{
+  "synthetic": true,
+  "source_id": "ta-synthetic",
+  "record": {
+    "record_key": "CAN-RED-0001",
+    "revision": 1,
+    "valid_time": "2026-10-08T00:00:00Z",
+    "payload": {
+      "payload_type": "redemption_cancelled",
+      "account_ref": "acct-pseudo-0001",
+      "cancelled_at": "2026-10-08T00:00:00Z",
+      "authorized_by": "ta-ops-synthetic"
+    }
+  }
+}

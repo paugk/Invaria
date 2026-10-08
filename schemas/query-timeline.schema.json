@@ -1,0 +1,185 @@
+{
+  "$defs": {
+    "EvaluationEntry": {
+      "additionalProperties": false,
+      "description": "A stored evaluation, placed at the knowledge time of its snapshot.",
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "currency": {
+          "enum": [
+            "current",
+            "stale",
+            "superseded",
+            "not_published"
+          ],
+          "title": "Currency",
+          "type": "string"
+        },
+        "engine_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Engine Ref",
+          "type": "string"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evaluation",
+          "title": "Kind",
+          "type": "string"
+        },
+        "previous_evaluation_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Evaluation Id"
+        },
+        "result": {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "at",
+        "evaluation_id",
+        "result",
+        "currency",
+        "valid_at",
+        "previous_evaluation_id",
+        "engine_ref"
+      ],
+      "title": "EvaluationEntry",
+      "type": "object"
+    },
+    "EvidenceEntry": {
+      "additionalProperties": false,
+      "description": "A revision epoch: evidence (or a registration) that invalidated the conclusion.",
+      "properties": {
+        "at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "At"
+        },
+        "cause": {
+          "enum": [
+            "registered",
+            "evidence_appended",
+            "profile_changed",
+            "explicit"
+          ],
+          "title": "Cause",
+          "type": "string"
+        },
+        "epoch": {
+          "title": "Epoch",
+          "type": "integer"
+        },
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "evidence",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "at",
+        "epoch",
+        "cause",
+        "evidence_ids"
+      ],
+      "title": "EvidenceEntry",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-timeline:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "evaluation": "#/$defs/EvaluationEntry",
+            "evidence": "#/$defs/EvidenceEntry"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/EvidenceEntry"
+          },
+          {
+            "$ref": "#/$defs/EvaluationEntry"
+          }
+        ]
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "operation_ref": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Operation Ref",
+      "type": "string"
+    },
+    "truncated": {
+      "title": "Truncated",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "operation_ref",
+    "entries",
+    "truncated",
+    "limitations"
+  ],
+  "title": "TimelineView",
+  "type": "object"
+}

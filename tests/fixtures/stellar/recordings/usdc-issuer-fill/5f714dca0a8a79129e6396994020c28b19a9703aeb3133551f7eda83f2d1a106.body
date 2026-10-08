@@ -1,0 +1,121 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/operations/21772022447157249/effects?cursor=\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/operations/21772022447157249/effects?cursor=21772022447157249-4\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/operations/21772022447157249/effects?cursor=21772022447157249-1\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772022447157249"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772022447157249-1"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772022447157249-1"
+          }
+        },
+        "id": "0021772022447157249-0000000001",
+        "paging_token": "21772022447157249-1",
+        "account": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        "type": "account_credited",
+        "type_i": 2,
+        "created_at": "2026-10-07T10:39:17Z",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "amount": "34567.0000000"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772022447157249"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772022447157249-2"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772022447157249-2"
+          }
+        },
+        "id": "0021772022447157249-0000000002",
+        "paging_token": "21772022447157249-2",
+        "account": "GB4MMSZ5FY3KOCMMN77DNJBSKXFZVRXMLM5SKKDIVGTWGR55DKJM7GSD",
+        "type": "account_debited",
+        "type_i": 3,
+        "created_at": "2026-10-07T10:39:17Z",
+        "asset_type": "credit_alphanum12",
+        "asset_code": "USDCAllow",
+        "asset_issuer": "GAWZGWFOURKXZ4XYXBGFADZM4QIG6BJNM74XIZCEIU3BHM62RN2MDEZN",
+        "amount": "34567.0000000"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772022447157249"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772022447157249-3"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772022447157249-3"
+          }
+        },
+        "id": "0021772022447157249-0000000003",
+        "paging_token": "21772022447157249-3",
+        "account": "GB4MMSZ5FY3KOCMMN77DNJBSKXFZVRXMLM5SKKDIVGTWGR55DKJM7GSD",
+        "type": "trade",
+        "type_i": 33,
+        "created_at": "2026-10-07T10:39:17Z",
+        "seller": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "offer_id": "32",
+        "sold_amount": "34567.0000000",
+        "sold_asset_type": "credit_alphanum12",
+        "sold_asset_code": "USDCAllow",
+        "sold_asset_issuer": "GAWZGWFOURKXZ4XYXBGFADZM4QIG6BJNM74XIZCEIU3BHM62RN2MDEZN",
+        "bought_amount": "34567.0000000",
+        "bought_asset_type": "credit_alphanum4",
+        "bought_asset_code": "USDC",
+        "bought_asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      {
+        "_links": {
+          "operation": {
+            "href": "https://horizon-testnet.stellar.org/operations/21772022447157249"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21772022447157249-4"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21772022447157249-4"
+          }
+        },
+        "id": "0021772022447157249-0000000004",
+        "paging_token": "21772022447157249-4",
+        "account": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "type": "trade",
+        "type_i": 33,
+        "created_at": "2026-10-07T10:39:17Z",
+        "seller": "GB4MMSZ5FY3KOCMMN77DNJBSKXFZVRXMLM5SKKDIVGTWGR55DKJM7GSD",
+        "offer_id": "32",
+        "sold_amount": "34567.0000000",
+        "sold_asset_type": "credit_alphanum4",
+        "sold_asset_code": "USDC",
+        "sold_asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "bought_amount": "34567.0000000",
+        "bought_asset_type": "credit_alphanum12",
+        "bought_asset_code": "USDCAllow",
+        "bought_asset_issuer": "GAWZGWFOURKXZ4XYXBGFADZM4QIG6BJNM74XIZCEIU3BHM62RN2MDEZN"
+      }
+    ]
+  }
+}

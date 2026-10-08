@@ -1,5 +1,5 @@
 """Structural coherence of the synthetic corpus. These tests do not evaluate scenarios:
-expected results are specifications; tests/engine checks that the evaluator reproduces them."""
+expected results are specifications for the future evaluator."""
 
 from __future__ import annotations
 
@@ -102,6 +102,7 @@ def test_observations_use_profile_sources_and_versions(
         assert observation.instrument_id == profile.instrument.instrument_id
         if observation.payload is not None and hasattr(observation.payload, "units"):
             units = observation.payload.units
+            assert units is not None
             assert (units.unit, units.scale) == ("FUND_SHARE", profile.instrument.scale)
 
 

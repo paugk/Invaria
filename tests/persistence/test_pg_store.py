@@ -14,11 +14,13 @@ import psycopg
 import pytest
 from psycopg import errors
 
-from invaria.contracts.observation import Observation
+from invaria.contracts.observation import Observation, TokenMovementPayload, is_muxed
 from invaria.corpus_loader import Corpus, load_corpus
 from invaria.engine.evaluate import evaluate
 from invaria.ingest import ImportContext, import_csv
+from invaria.persistence.dsn import with_database
 from invaria.persistence.migrate import MigrationTampered, available_migrations, migrate
+from invaria.persistence.provision import prepare_for_migrator
 from invaria.persistence.store import ImmutableConflict, PgStore, SnapshotInvalid
 from invaria.vertical_testnet import run_testnet_vertical
 
@@ -28,8 +30,7 @@ ADMIN_DSN = os.environ.get("INVARIA_TEST_DATABASE_URL")
 
 def _dsn_for(database: str) -> str:
     assert ADMIN_DSN is not None
-    base, _, _ = ADMIN_DSN.rpartition("/")
-    return f"{base}/{database}"
+    return with_database(ADMIN_DSN, database)
 
 
 @pytest.fixture
@@ -42,6 +43,7 @@ def database() -> Iterator[str]:
         admin.execute(f"CREATE DATABASE {name}")
     try:
         with psycopg.connect(_dsn_for(name)) as conn:
+            prepare_for_migrator(conn)
             migrate(conn)
         yield _dsn_for(name)
     finally:
@@ -99,6 +101,66 @@ def test_migrations_are_idempotent_and_tamper_evident(connect: Any) -> None:
     (version, sql), *_ = available_migrations()
     with pytest.raises(MigrationTampered):
         migrate(conn, [(version, sql + b"\n-- edited after being applied\n")])
+
+
+ROLES = ("invaria_owner", "invaria_app", "invaria_reader")
+TABLE_ACL = ["invaria_app=ar", "invaria_owner=arwdDxtm", "invaria_reader=r"]
+SEQUENCE_ACL = ["invaria_app=U", "invaria_owner=rwU"]
+
+
+def test_final_privileges_do_not_depend_on_the_migrator(database: str) -> None:
+    """The state a superuser migrator leaves (pinned 17.11 container, 2026-10-08), whether
+    or not the migrator is one: provisioning only makes the migrator a member of the roles;
+    it grants nothing to ``invaria_app``, ``invaria_reader`` or PUBLIC."""
+    with psycopg.connect(database, autocommit=True) as conn:
+        assert prepare_for_migrator(conn) == []  # idempotent (and a no-op for a superuser)
+        schema = conn.execute(
+            "SELECT nspowner::regrole::text, nspacl::text[] FROM pg_namespace "
+            "WHERE nspname = 'invaria'"
+        ).fetchone()
+        assert schema is not None
+        assert schema[0] == "invaria_owner"
+        assert sorted(schema[1]) == [
+            "invaria_app=U/invaria_owner",
+            "invaria_owner=UC/invaria_owner",
+            "invaria_reader=U/invaria_owner",
+        ]
+        relations = conn.execute(
+            "SELECT relname, relkind::text, relowner::regrole::text, relacl::text[] "
+            "FROM pg_class WHERE relnamespace = 'invaria'::regnamespace"
+        ).fetchall()
+        assert {owner for _, _, owner, _ in relations} == {"invaria_owner"}
+        acl = {
+            (kind, name): sorted(a.removesuffix("/invaria_owner") for a in (acl or []))
+            for name, kind, _, acl in relations
+        }
+        tables = sorted(name for kind, name in acl if kind == "r")
+        assert len(tables) == 16 and "schema_migrations" in tables
+        for name in tables:
+            expected = (
+                ["invaria_app=r", "invaria_owner=arwdDxtm"]
+                if name == "schema_migrations"
+                else TABLE_ACL
+            )
+            assert acl[("r", name)] == expected, name
+        sequences = [name for kind, name in acl if kind == "S"]
+        assert len(sequences) == 4
+        assert all(acl[("S", name)] == SEQUENCE_ACL for name in sequences)
+        assert all(not a for (kind, _), a in acl.items() if kind == "i")  # indexes: no ACL
+        # The roles keep their attributes and are members of nothing.
+        attrs = conn.execute(
+            "SELECT rolname, rolsuper, rolinherit, rolcreaterole, rolcreatedb, rolcanlogin, "
+            "rolreplication, rolbypassrls FROM pg_roles WHERE rolname = ANY(%s)",
+            (list(ROLES),),
+        ).fetchall()
+        assert sorted(attrs) == sorted(
+            (r, False, True, False, False, False, False, False) for r in ROLES
+        )
+        assert conn.execute(
+            "SELECT count(*) FROM pg_auth_members WHERE member IN "
+            "(SELECT oid FROM pg_roles WHERE rolname = ANY(%s))",
+            (list(ROLES),),
+        ).fetchone() == (0,)
 
 
 # ------------------------------------------------- scenario parity via the database
@@ -317,7 +379,9 @@ def test_csv_import_against_database_journal(connect: Any, corpus: Corpus) -> No
 
 def test_testnet_evaluation_from_database(connect: Any) -> None:
     runs = run_testnet_vertical(
-        FIXTURES / "corpus/subscription-testnet", FIXTURES / "stellar", CORPUS_DIR / "mappings"
+        FIXTURES / "corpus/subscription-testnet-1.4.0",
+        FIXTURES / "stellar",
+        CORPUS_DIR / "mappings",
     )
     linked = next(r for r in runs if r.scenario.scenario_id == "TN-LINKED")
     inputs = linked.inputs
@@ -330,3 +394,108 @@ def test_testnet_evaluation_from_database(connect: Any) -> None:
     store.create_snapshot(inputs.snapshot)
     from_db = evaluate(store.load_inputs(tenant, inputs.snapshot.snapshot_id))
     assert from_db == linked.evaluation and from_db.result.result == "MATCH"
+
+
+def test_muxed_ids_and_memos_round_trip_exactly(connect: Any) -> None:
+    """The u64 sub-account ids (0, 2^53 and 2^64 - 1) and the
+    memo survive jsonb as the exact text written; nothing is turned into a number. A
+    sub-account id 0 is a key holding "0"; no sub-account is the key's absence, read back as
+    None, never as 0. 2^53 is the first integer a binary double cannot tell from its
+    neighbour (2^53 + 1 rounds to it): it comes from a DERIVED copy of the to-zero payment,
+    since the synthetic recordings do not carry it."""
+    import tempfile
+
+    from invaria.contracts.base import parse_contract
+    from invaria.contracts.chain import ChainTarget
+    from invaria.stellar.adapter import ingest_horizon_payments, ingest_sac_events
+    from invaria.stellar.http import ReplayClient
+    from invaria.stellar.sources import Horizon, Rpc, verify_network
+    from invaria.stellar.store import IngestStore
+
+    synthetic = FIXTURES / "stellar/synthetic/muxed"
+    target = parse_contract(ChainTarget, (synthetic / "target.json").read_text("utf-8"))
+    client = ReplayClient(synthetic / "recordings")
+    horizon = Horizon("https://horizon.synthetic.invalid", client)
+    rpc = Rpc("https://rpc.synthetic.invalid", client)
+    check = verify_network(horizon, rpc, "stellar:testnet")
+    recorded_at = datetime.fromisoformat("2026-10-07T16:00:00+00:00")
+    with tempfile.TemporaryDirectory() as tmp:
+        ingest = IngestStore(Path(tmp))
+        ingest_horizon_payments(
+            target,
+            horizon,
+            ingest,
+            start_ledger=90000500,
+            end_ledger=90000530,
+            history=(check.horizon_elder_ledger, check.horizon_latest_ledger),
+            recorded_at=recorded_at,
+            page_limit=3,
+        )
+        ingest_sac_events(
+            target,
+            rpc,
+            horizon,
+            ingest,
+            start_ledger=90000500,
+            end_ledger=90000530,
+            recorded_at=recorded_at,
+        )
+        observations = ingest.observations()
+    zero = next(
+        o
+        for o in observations
+        if isinstance(o.payload, TokenMovementPayload) and o.payload.to_muxed_id == "0"
+    )
+    assert isinstance(zero.payload, TokenMovementPayload)
+    beyond_double = zero.model_copy(
+        update={
+            "observation_id": "obs-derived-u64-2-53",
+            "source": zero.source.model_copy(update={"record_key": "derived-2-53:0:0"}),
+            "payload": zero.payload.model_copy(update={"to_muxed_id": str(2**53)}),
+        }
+    )
+    observations = [*observations, beyond_double]
+    store = PgStore(connect())
+    store.append_observations(observations)
+    for o in observations:
+        assert store.load_observation(o.tenant_id, o.observation_id) == o
+    loaded = {
+        o.observation_id: store.load_observation(o.tenant_id, o.observation_id).payload
+        for o in observations
+    }
+    plain = [
+        i
+        for i, p in loaded.items()
+        if isinstance(p, TokenMovementPayload) and p.to_muxed_id is None
+    ]
+    assert plain  # payments to a base account: no sub-account, None, not "0"
+    absent = {
+        row[0]
+        for row in store.conn.execute(
+            "SELECT observation_id FROM invaria.observations "
+            "WHERE document->>'fact_type' = 'token_movement' "
+            "AND NOT document->'payload' ? 'to_muxed_id'"
+        ).fetchall()
+    }
+    assert set(plain) <= absent  # absence is the key's absence in jsonb, never 0 or null
+    zero_payload = loaded[zero.observation_id]
+    assert isinstance(zero_payload, TokenMovementPayload)
+    assert zero_payload.to_muxed_id == "0" and is_muxed(zero_payload)
+    raw = {
+        row[0]
+        for row in store.conn.execute(
+            "SELECT document->'payload'->>'to_muxed_id' FROM invaria.observations "
+            "WHERE document->'payload' ? 'to_muxed_id'"
+        ).fetchall()
+    }
+    assert {"0", "9007199254740992", "18446744073709551615", "42"} <= raw
+    assert float(2**53 + 1) == float(2**53)  # what a JSON number would have lost
+    kinds = {
+        row[0]
+        for row in store.conn.execute(
+            "SELECT jsonb_typeof(document->'payload'->'to_muxed_id') FROM invaria.observations "
+            "WHERE document->'payload' ? 'to_muxed_id'"
+        ).fetchall()
+    }
+    assert kinds == {"string"}
+    store.conn.rollback()

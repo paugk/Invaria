@@ -16,7 +16,12 @@ from invaria.contracts.base import (
     VersionRef,
 )
 from invaria.contracts.coverage import CoverageCertificate, CoverageLevel, TimeInterval
-from invaria.contracts.evaluation import ControlStatus, FinancialResult, ReasonCode
+from invaria.contracts.evaluation import (
+    ControlStatus,
+    FinancialResult,
+    OperationState,
+    ReasonCode,
+)
 from invaria.contracts.observation import FactType, Observation
 from invaria.contracts.quantity import Quantity
 
@@ -79,12 +84,15 @@ class VersionsView(Contract):
     profile_ref: VersionRef
     rules_ref: VersionRef
     engine_ref: VersionRef
+    # current / retired / blocked / unknown under the local policy
+    engine_status: Literal["current", "retired", "blocked", "unknown"]
 
 
 class ConclusionView(Contract):
     evaluation_id: Identifier
     operation_ref: Identifier
     result: FinancialResult
+    operation_state: OperationState | None
     snapshot: SnapshotView
     currency: CurrencyView
     controls: list[ControlView]
@@ -194,6 +202,71 @@ class CoverageReport(Contract):
     certificates: list[CoverageView]
     unmet: list[NonEmptyText]
     limitations: list[NonEmptyText]
+
+
+class OperationItem(Contract):
+    operation_ref: Identifier
+    watched: bool
+    evaluation_id: Identifier | None
+    result: FinancialResult | None
+    currency: Currency | None
+    known_at: UtcDatetime | None
+    evaluations: int
+
+
+class OperationsView(Contract):
+    items: list[OperationItem]
+    result_filter: FinancialResult | None
+    truncated: bool
+    limitations: list[NonEmptyText]
+
+
+class EvidenceEntry(Contract):
+    """A revision epoch: evidence (or a registration) that invalidated the conclusion."""
+
+    kind: Literal["evidence"]
+    at: UtcDatetime | None
+    epoch: int
+    cause: Literal["registered", "evidence_appended", "profile_changed", "explicit"]
+    evidence_ids: Ids
+
+
+class EvaluationEntry(Contract):
+    """A stored evaluation, placed at the knowledge time of its snapshot."""
+
+    kind: Literal["evaluation"]
+    at: UtcDatetime
+    evaluation_id: Identifier
+    result: FinancialResult
+    currency: Currency
+    valid_at: UtcDatetime
+    previous_evaluation_id: Identifier | None
+    engine_ref: VersionRef  # evaluations by different engine versions never merge
+
+
+TimelineEntry = Annotated[EvidenceEntry | EvaluationEntry, Field(discriminator="kind")]
+
+
+class TimelineView(Contract):
+    operation_ref: Identifier
+    entries: list[TimelineEntry]
+    truncated: bool
+    limitations: list[NonEmptyText]
+
+
+class ControlComparison(Contract):
+    control_id: Identifier
+    mandatory: bool
+    left_status: ControlStatus | None
+    right_status: ControlStatus | None
+    changed: bool
+
+
+class ComparisonView(Contract):
+    left: ConclusionView
+    right: ConclusionView
+    controls: list[ControlComparison]
+    change: ConclusionChangeView
 
 
 class QueryErrorView(Contract):

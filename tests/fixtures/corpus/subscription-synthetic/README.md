@@ -2,6 +2,8 @@
 
 **Todo en esta carpeta es sintético.** Ningún dato procede de una institución, banco, TA ni de la red Stellar. Las cuentas Stellar son StrKeys válidas derivadas de `sha256("invaria:synthetic:account:...")`. Los hashes de transacción son `sha256("invaria:synthetic:tx:<etiqueta>")`. Los ledgers son números inventados. Ninguno corresponde a una transacción de testnet obtenida o verificada. El test `tests/contracts/test_corpus.py` recalcula estas derivaciones.
 
+**Perfil histórico desde la regla de ausencia con alcance:** el perfil actual de la suscripción sintética es `fund-subscription-synthetic@1.1.0` (`../subscription-synthetic-1.1.0`). Este 1.0.0 no declara `absence_needs_chain_scope`, así que su certificado on-chain sin alcance sigue acreditando la completitud de la entrega (límite declarado). Sigue siendo la base del golden K3, de los bundles y del verificador y de las pruebas de persistencia.
+
 Las decisiones del perfil son de este fixture, no políticas de fondos reales: coincidencia exacta, sin comisiones, sin redondeo, sin tolerancia, y quién es la autoridad de cada tipo de hecho.
 
 ## Caso
@@ -43,7 +45,7 @@ La cobertura exigida es de nivel `internally_checked`, sin huecos ni filas en cu
 | `mappings/` | Mappings CSV versionados. Importar los CSV de `raw/` con ellos reproduce las observaciones institucionales y los certificados de cobertura (`tests/ingest/`). |
 | `observations/<timeline>.json` | Registro de entregas de cada línea temporal. Las correcciones y retiradas son revisiones nuevas con `supersedes`; nada se edita. Las observaciones comunes son idénticas entre líneas temporales. |
 | `coverage.json` | Certificados de cobertura por fuente e intervalo. |
-| `scenarios.json` | Snapshots cerrados y **resultados esperados escritos antes de que existiera el evaluador**, con su justificación. `invaria check` los reproduce. |
+| `scenarios.json` | Snapshots cerrados y **resultados esperados escritos antes de que exista un evaluador**, con su justificación. |
 | `bundle_manifest_K2.draft.json` | Manifest inicial del paquete de evidencia de K2: hashes de artefactos. Firma, exportación y replay: `not_implemented`. |
 
 ## Escenarios

@@ -12,7 +12,12 @@ from pydantic import Field, StringConstraints, model_validator
 
 from invaria.contracts.base import Contract, Identifier, NonEmptyText, UtcDatetime
 from invaria.contracts.quantity import MAX_SCALE, Unit
-from invaria.contracts.stellar import NETWORK_PASSPHRASES, StellarAccountId, StellarNetwork
+from invaria.contracts.stellar import (
+    NETWORK_PASSPHRASES,
+    StellarAccountId,
+    StellarAddress,
+    StellarNetwork,
+)
 
 
 class InstrumentRef(Contract):
@@ -28,7 +33,7 @@ class StellarClassicRepresentation(Contract):
 
     Classic amounts carry 7 decimals. Access through the Stellar Asset Contract (SAC) is
     the same underlying asset and must never be counted as a second issuance; the
-    synthetic profile does not ingest SAC events at all (declared unsupported).
+    first synthetic profile does not ingest SAC events at all (declared unsupported).
     """
 
     representation_id: Identifier
@@ -48,13 +53,19 @@ class StellarClassicRepresentation(Contract):
 
 
 class IdentityLink(Contract):
-    """Approved link between an institutional account reference and a chain address."""
+    """Approved link between an institutional account reference and a chain address.
 
-    schema_version: Literal["1.0"]
+    Schema 1.1 also admits a muxed sub-account (M strkey).
+    A link names exactly one address: a link to a base account never approves its muxed
+    sub-accounts, and a link to a sub-account never approves its base account or another
+    sub-account. Schema 1.0 admits only base accounts, so earlier links stay identical.
+    """
+
+    schema_version: Literal["1.0", "1.1"]
     link_id: Identifier
     account_ref: Identifier
     network: StellarNetwork
-    address: StellarAccountId
+    address: StellarAddress
     valid_from: UtcDatetime
     valid_to: UtcDatetime | None
     approval_ref: Identifier
@@ -64,4 +75,6 @@ class IdentityLink(Contract):
     def _interval(self) -> Self:
         if self.valid_to is not None and self.valid_to <= self.valid_from:
             raise ValueError("valid_to must be after valid_from")
+        if self.schema_version == "1.0" and self.address.startswith("M"):
+            raise ValueError("a muxed sub-account needs an IdentityLink of schema 1.1")
         return self

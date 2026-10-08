@@ -1,0 +1,11 @@
+{
+  "synthetic": true,
+  "source_id": "bank-synthetic",
+  "record": {
+    "export": "cov-bank-s4",
+    "interval": [
+      "2026-10-04T00:00:00Z",
+      "2026-10-08T10:00:00Z"
+    ]
+  }
+}

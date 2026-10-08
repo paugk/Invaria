@@ -9,12 +9,14 @@ import sys
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from invaria.bundle import build_bundle, verify_bundle
 from invaria.bundle.signing import TrustPolicy, load_private_key, sign_bundle
 from invaria.contracts.base import parse_contract
 from invaria.contracts.bundle import TrustStore
 from invaria.corpus_loader import Corpus, load_corpus
+from invaria.engine.common import provenance_problem
 from invaria.engine.evaluate import Evaluation, evaluate
 from invaria.engine.explain import explain, explain_change, export_evaluation
 from invaria.stellar import cli as stellar_cli
@@ -22,6 +24,9 @@ from invaria.stellar.http import ChainUnavailable
 from invaria.stellar.sources import DataUnavailable, NetworkMismatch
 from invaria.vertical import run_vertical
 from invaria.vertical_testnet import run_testnet_vertical
+
+if TYPE_CHECKING:
+    from invaria.persistence.backup import PgTools
 
 
 def _evaluate(corpus: Corpus, scenario_id: str) -> Evaluation:
@@ -47,6 +52,15 @@ def mismatches(corpus: Corpus, scenario_id: str, evaluation: Evaluation) -> list
                     f"{control.control_id}.{name}: {getattr(got, name)!r} != "
                     f"expected {getattr(control, name)!r}"
                 )
+    if evaluation.result.operation_state != expected.operation_state:
+        problems.append(
+            f"operation_state {evaluation.result.operation_state!r} != expected "
+            f"{expected.operation_state!r}"
+        )
+    if len(evaluation.result.controls) != len(expected.controls):
+        problems.append(
+            f"{len(evaluation.result.controls)} controls != expected {len(expected.controls)}"
+        )
     if list(evaluation.effective_observation_ids) != expected.effective_observation_ids:
         problems.append(
             f"effective {list(evaluation.effective_observation_ids)} != expected "
@@ -151,6 +165,7 @@ def cmd_verify(
     trust_store: Path | None,
     trust_at: str | None,
     min_signatures: int,
+    engine_policy: str = "any",
 ) -> int:
     store = (
         parse_contract(TrustStore, trust_store.read_text("utf-8"))
@@ -164,13 +179,19 @@ def cmd_verify(
         expected_manifest_sha256=expected,
         trust_store=store,
         policy=policy,
+        engine_policy="current" if engine_policy == "current" else "any",
     )
     print(
         f"status {report.status} | financial result {report.financial_result} | "
-        f"level {report.level} | trust {report.trust}"
+        f"level {report.level} | trust {report.trust} | "
+        f"engine {report.engine_status or 'not reached'}"
+    )
+    implementation = (
+        f", {report.engine_implementation} implementation" if report.engine_implementation else ""
     )
     print(
         f"manifest sha256 {report.manifest_sha256} | engine {report.local_engine_ref} "
+        f"[{report.engine_status or 'not reached'}{implementation}] "
         f"(source {report.engine_source_sha256[:16]}) | "
         f"artifacts checked {report.artifacts_checked}"
     )
@@ -184,6 +205,16 @@ def cmd_verify(
 def cmd_demo_testnet(corpus: Path, stellar: Path, mappings: Path) -> int:
     runs = run_testnet_vertical(corpus, stellar, mappings)
     print("\n".join(runs[0].log[:3]))
+    refused = next((p for r in runs if (p := provenance_problem(r.inputs))), None)
+    if refused is not None:
+        # A historical profile: today's adapter produces its on-chain evidence with a mapping
+        # the profile does not admit, and nothing is relabelled.
+        print(f"\nREFUSED: {refused}")
+        print(
+            "no new evaluation of this corpus can be made with today's adapter; its expected "
+            "results document what was evaluated with the mapping it declares"
+        )
+        return 1
     failures = 0
     for run in runs:
         problems = run.mismatches()
@@ -218,6 +249,103 @@ def cmd_mcp_serve(access_profile: Path, audit_log: Path | None) -> int:
     return 0
 
 
+def cmd_console_serve(access_profile: Path, port: int, audit_log: Path | None) -> int:
+    """Serve the read-only evidence console on 127.0.0.1 (needs the `db` extra)."""
+    import psycopg
+
+    from invaria.console.server import serve
+    from invaria.persistence.store import READER_ROLE, PgStore
+    from invaria.query.models import AccessProfile
+    from invaria.query.service import AuditLog, QueryService
+
+    dsn = os.environ.get("INVARIA_DATABASE_URL")
+    if not dsn:
+        raise ValueError("set INVARIA_DATABASE_URL (kept outside the repository)")
+    access = parse_contract(AccessProfile, access_profile.read_text("utf-8"))
+    store = PgStore(psycopg.connect(dsn), role=READER_ROLE)
+    serve(QueryService(store, access, AuditLog(audit_log) if audit_log else None), port)
+    return 0
+
+
+def _admin_dsn() -> str:
+    dsn = os.environ.get("INVARIA_ADMIN_DATABASE_URL")
+    if not dsn:
+        raise ValueError("set INVARIA_ADMIN_DATABASE_URL (admin URL, kept outside the repository)")
+    return dsn
+
+
+def _container_image(container: str) -> str:
+    import subprocess
+
+    out = subprocess.run(
+        ["docker", "inspect", "--format", "{{.Config.Image}}", container],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return out.stdout.strip()
+
+
+def cmd_db(args: argparse.Namespace) -> int:
+    """Logical backup / restore / verification through pg tools in the pinned container."""
+    from invaria.persistence.backup import BackupError, PgTools
+
+    tools = PgTools(("docker", "exec", "-i", args.container))
+    admin = _admin_dsn()
+    try:
+        return _db(args, tools, admin)
+    except BackupError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+
+
+def _db(args: argparse.Namespace, tools: PgTools, admin: str) -> int:
+    import time
+    from datetime import UTC, datetime
+
+    from invaria.persistence.backup import (
+        create_backup,
+        read_manifest,
+        restore_backup,
+        verify_restore,
+        write_manifest,
+    )
+
+    if args.db_command == "backup":
+        started = time.monotonic()
+        manifest, dump = create_backup(
+            admin,
+            args.database,
+            tools,
+            args.out,
+            backup_id=args.backup_id,
+            container_image=_container_image(args.container),
+            created_at=datetime.now(UTC).isoformat(timespec="seconds"),
+        )
+        digest = write_manifest(manifest, args.manifest)
+        elapsed = time.monotonic() - started
+        rows = sum(int(t["rows"]) for t in manifest.tables.values())
+        print(f"dump {dump} ({manifest.dump_bytes} bytes, sha256 {manifest.dump_sha256})")
+        print(f"manifest {args.manifest} sha256 {digest}: keep it apart from the dump")
+        print(f"cut: exported snapshot; {len(manifest.tables)} tables, {rows} rows; {elapsed:.2f}s")
+        return 0
+    manifest = read_manifest(args.manifest)
+    if args.db_command == "restore":
+        started = time.monotonic()
+        created = restore_backup(admin, args.dump, manifest, args.target, tools)
+        print(f"restored into new database {args.target}; roles rebuilt: {created or 'none'}")
+        print(f"restore took {time.monotonic() - started:.2f}s")
+    started = time.monotonic()
+    report = verify_restore(admin, args.target, manifest, args.dump)
+    print(
+        f"{report.status}: {report.reproduced}/{report.evaluations} evaluations reproduced "
+        f"with their exact engine; verification took {time.monotonic() - started:.2f}s"
+    )
+    for reason in report.reasons:
+        print(f"  - {reason}")
+    return 0 if report.status == "RESTORE_VERIFIED" else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="invaria", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -250,16 +378,46 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--trust-store", type=Path, help="TrustStore JSON chosen by the verifier")
     verify.add_argument("--trust-at", help="judge keys at this UTC time instead of signed_at")
     verify.add_argument("--min-signatures", type=int, default=1)
+    verify.add_argument(
+        "--engine-policy",
+        choices=["any", "current"],
+        default="any",
+        help="current: refuse to reproduce conclusions of retired engines",
+    )
     mcp = sub.add_parser("mcp", help="read-only consultative MCP server")
     mcp_sub = mcp.add_subparsers(dest="mcp_command", required=True)
     serve = mcp_sub.add_parser("serve", help="serve over stdio; DSN from INVARIA_DATABASE_URL")
     serve.add_argument("--access-profile", type=Path, required=True)
     serve.add_argument("--audit-log", type=Path, help="append-only JSONL access log")
+    console = sub.add_parser("console", help="read-only local evidence console (REST + HTML)")
+    console_sub = console.add_subparsers(dest="console_command", required=True)
+    cserve = console_sub.add_parser(
+        "serve", help="serve on 127.0.0.1; DSN from INVARIA_DATABASE_URL"
+    )
+    cserve.add_argument("--access-profile", type=Path, required=True)
+    cserve.add_argument("--port", type=int, default=8765, help="0 picks a free port")
+    cserve.add_argument("--audit-log", type=Path, help="append-only JSONL access log")
+    db = sub.add_parser("db", help="logical backup, restore and restore verification")
+    db_sub = db.add_subparsers(dest="db_command", required=True)
+    backup = db_sub.add_parser("backup", help="pg_dump from one exported snapshot")
+    backup.add_argument("--database", required=True)
+    backup.add_argument("--out", type=Path, required=True, help="new directory for the dump")
+    backup.add_argument("--manifest", type=Path, required=True, help="kept apart from the dump")
+    backup.add_argument("--backup-id", required=True)
+    for name in ("restore", "verify-restore"):
+        cmd = db_sub.add_parser(name, help=f"{name} into/against a dedicated database")
+        cmd.add_argument("--dump", type=Path, required=True)
+        cmd.add_argument("--manifest", type=Path, required=True)
+        cmd.add_argument("--target", required=True, help="new database (never overwritten)")
+    for cmd in (backup, *(db_sub.choices[n] for n in ("restore", "verify-restore"))):
+        cmd.add_argument("--container", default="invaria-pg-dev")
     stellar_cli.add_parser(sub)
     testnet = sub.add_parser(
         "demo-testnet", help="evaluate SUB-0001 with real testnet evidence (replayed offline)"
     )
-    testnet.add_argument("corpus", type=Path, help="tests/fixtures/corpus/subscription-testnet")
+    testnet.add_argument(
+        "corpus", type=Path, help="tests/fixtures/corpus/subscription-testnet-1.6.0"
+    )
     testnet.add_argument("--stellar", type=Path, default=Path("tests/fixtures/stellar"))
     testnet.add_argument(
         "--mappings",
@@ -284,9 +442,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.trust_store,
                 args.trust_at,
                 args.min_signatures,
+                args.engine_policy,
             )
         if args.command == "mcp":
             return cmd_mcp_serve(args.access_profile, args.audit_log)
+        if args.command == "db":
+            return cmd_db(args)
+        if args.command == "console":
+            return cmd_console_serve(args.access_profile, args.port, args.audit_log)
         if args.command == "sign":
             return cmd_sign(args.bundle, args.key_file, args.key_id, args.signed_at)
         corpus = load_corpus(args.corpus)

@@ -48,7 +48,14 @@
               "order_accepted",
               "cash_settled",
               "units_registered",
-              "token_movement"
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
             ],
             "type": "string"
           },
@@ -101,6 +108,19 @@
           "title": "Institutional Link",
           "type": "string"
         },
+        "muxed_account_link": {
+          "anyOf": [
+            {
+              "const": "identity_link_to_the_muxed_address_only",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Muxed Account Link"
+        },
         "operation_key": {
           "const": "order_ref",
           "title": "Operation Key",
@@ -119,13 +139,46 @@
     "CoverageRequirement": {
       "additionalProperties": false,
       "properties": {
+        "absence_needs_chain_scope": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Absence Needs Chain Scope"
+        },
+        "completeness_needs_coverage": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Completeness Needs Coverage"
+        },
         "fact_types": {
           "items": {
             "enum": [
               "order_accepted",
               "cash_settled",
               "units_registered",
-              "token_movement"
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
             ],
             "type": "string"
           },
@@ -151,6 +204,30 @@
           "const": "order_valid_time_to_valid_at",
           "title": "Must Cover",
           "type": "string"
+        },
+        "quarantine_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QuarantinePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "quarantine_scope": {
+          "anyOf": [
+            {
+              "const": "records_bearing_on_operation",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quarantine Scope"
         },
         "quarantined_records_allowed": {
           "const": false,
@@ -345,17 +422,81 @@
       "title": "Quantity",
       "type": "object"
     },
+    "QuarantinePolicy": {
+      "additionalProperties": false,
+      "description": "What a quarantined record of the chain coverage can and cannot do (profiles\nfund-subscription-testnet@1.2.0 and fund-redemption-synthetic@1.5.0 on).\n\nDeclared explicitly so that ``quarantined_records_allowed: false`` keeps the meaning it\nhad in the profiles that predate this policy, where a quarantined record bearing on the\noperation blocks every comparison of its source:\n\n- ``evidence``: a quarantined record never credits fulfilment;\n- ``blocking``: its existence makes UNKNOWN only the controls whose conclusion resolving\n  it could change; a control it cannot change is not blocked automatically;\n- ``certificates``: a quarantine stays active until a later certificate of the same chain\n  scope, including its route and ledger range, explicitly supersedes it; the absence of\n  a record in a certificate of another scope resolves nothing;\n- ``classification``: a record's ``nature`` and ``chain_operation`` are relied on to set\n  a record aside only when the snapshot's own artifacts support them;\n- ``unapproved_parties``: a party that cannot be or is not approved for the account\n  (a contract, an account without IdentityLink) is not thereby foreign; an effect or\n  record naming only such parties is outside the declared scope unless an\n  ExecutionLink, an explicit association or an unresolved participant brings it in.",
+      "properties": {
+        "blocking": {
+          "const": "only_controls_whose_conclusion_it_could_change",
+          "title": "Blocking",
+          "type": "string"
+        },
+        "certificates": {
+          "const": "active_until_explicit_supersession_within_chain_scope",
+          "title": "Certificates",
+          "type": "string"
+        },
+        "classification": {
+          "const": "relied_on_only_when_supported_by_the_snapshot",
+          "title": "Classification",
+          "type": "string"
+        },
+        "evidence": {
+          "const": "never_credits_fulfilment",
+          "title": "Evidence",
+          "type": "string"
+        },
+        "unapproved_parties": {
+          "const": "outside_declared_scope_unless_linked_associated_or_unresolved",
+          "title": "Unapproved Parties",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence",
+        "blocking",
+        "certificates",
+        "classification",
+        "unapproved_parties"
+      ],
+      "title": "QuarantinePolicy",
+      "type": "object"
+    },
     "SourceAuthority": {
       "additionalProperties": false,
-      "description": "Authority is per fact type. No source is a universal source of truth.",
+      "description": "Authority is per fact type. No source is a universal source of truth.\n\n``mapping_ref`` is the mapping of the source's authoritative records;\n``additional_mapping_refs`` (fund-subscription-testnet@1.4.0 on) are the other mappings\nthe profile admits for this source (a chain source also writes chain effects and the\nmovements only one route reads). A new evaluation is refused when an observation of a\ndeclared source was produced by a mapping the profile does not admit for it: it is\nnever relabelled nor read as if another mapping had produced it. Absent,\nthe source admits only ``mapping_ref``; it is omitted when serialized, so existing\nprofiles stay byte-identical.",
       "properties": {
+        "additional_mapping_refs": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Additional Mapping Refs"
+        },
         "authoritative_for": {
           "items": {
             "enum": [
               "order_accepted",
               "cash_settled",
               "units_registered",
-              "token_movement"
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
             ],
             "type": "string"
           },
@@ -374,7 +515,8 @@
             "order_management",
             "bank",
             "transfer_agent",
-            "stellar_ledger"
+            "stellar_ledger",
+            "pricing_agent"
           ],
           "title": "Kind",
           "type": "string"
@@ -408,7 +550,7 @@
     },
     "StellarClassicRepresentation": {
       "additionalProperties": false,
-      "description": "A Stellar Classic asset: network + asset code + issuer.\n\nClassic amounts carry 7 decimals. Access through the Stellar Asset Contract (SAC) is\nthe same underlying asset and must never be counted as a second issuance; the\nsynthetic profile does not ingest SAC events at all (declared unsupported).",
+      "description": "A Stellar Classic asset: network + asset code + issuer.\n\nClassic amounts carry 7 decimals. Access through the Stellar Asset Contract (SAC) is\nthe same underlying asset and must never be counted as a second issuance; the\nfirst synthetic profile does not ingest SAC events at all (declared unsupported).",
       "properties": {
         "amount_scale": {
           "const": 7,

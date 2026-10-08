@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-07T13:38:10+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "94ec665c59893f406805c481a41c3ddff318766bba239a12ccf15f726b64c056",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/assets?asset_code=P0B41B8&asset_issuer=GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS"
+}

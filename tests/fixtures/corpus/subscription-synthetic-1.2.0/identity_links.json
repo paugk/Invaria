@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-subscription-synthetic-1.2.0",
+  "synthetic": true,
+  "links": [
+    {
+      "schema_version": "1.0",
+      "link_id": "link-0001",
+      "account_ref": "acct-pseudo-0001",
+      "network": "stellar:testnet",
+      "address": "GA2JRO6WKTHMJTH7TDAXHNDHWT5SF72VKABPO2G6RL5BCGKTNIPIBEKW",
+      "valid_from": "2026-09-01T00:00:00Z",
+      "valid_to": null,
+      "approval_ref": "approval-synthetic-0001",
+      "recorded_at": "2026-09-01T00:00:00Z"
+    }
+  ]
+}

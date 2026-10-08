@@ -1,0 +1,2 @@
+payment_ref,order_ref,account_ref,amount,currency,status,value_time,revision
+PAY-0001,SUB-0001,acct-pseudo-0001,100000.00,USD,SETTLED,2026-10-01T12:00:00Z,1

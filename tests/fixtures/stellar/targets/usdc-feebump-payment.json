@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-usdc-feebump-payment",
+  "tenant_id": "tenant-testnet-sample",
+  "network": "stellar:testnet",
+  "asset_code": "USDC",
+  "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "account": "GB3NNNLA2HVB2YKP3BXQIOT2UUZAZXZ25WC6IY542ZHAFHD56G2IS65Y",
+  "unit": "USDC",
+  "instrument_id": "testnet:asset:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "representation_id": "rep-testnet-classic-USDC-GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+  "synthetic": false,
+  "description": "Real Stellar testnet USDC observed for account GB3NNNLA, which receives a USDC payment inside a fee bump transaction (outer 415723e7, inner 57753597). Third-party public testnet data, unrelated to the synthetic DEMO-A subscription."
+}

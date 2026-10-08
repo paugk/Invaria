@@ -1,0 +1,83 @@
+{
+  "commit": "c736292474bce39a79f7d41246498db42f8e9468",
+  "commit_tree": "803a418a2af71929dd8dbb5ec99255e108047f68",
+  "dependencies": "uv.lock at that commit pins pydantic 2.13.5 / pydantic-core 2.46.5, the same versions as the development uv.lock",
+  "engine_ref": "invaria-engine@0.1.0",
+  "evaluate_py_last_changed_in": "cb6a2997af8a603f25ab205fc387f9e0dc9b05bf",
+  "files": {
+    "src/invaria/__init__.py": {
+      "git_blob": "a7837b27393323a2de6c9cda5021f5627c7f8dbf",
+      "sha256": "e764d33d584b9df36b78e9ecd11d080b377318e8f53594561281b5f49ae1f29f"
+    },
+    "src/invaria/contracts/__init__.py": {
+      "git_blob": "d137d28395409b205415d747068c76607fb61ba5",
+      "sha256": "1348eef1b38ad95674881f2350b6b86734fc9f0af63691a7efc4a050d7f5ff1a"
+    },
+    "src/invaria/contracts/base.py": {
+      "git_blob": "f79057f41e0fcb45864d1943f9b67c43e3ef43ee",
+      "sha256": "d27d357cdcd11bb846bbc374f5a2fd1df08acfe7e10ab80302a2bb98427a1c96"
+    },
+    "src/invaria/contracts/bundle.py": {
+      "git_blob": "73741db4a016a6fb169b8ce94b569e6cb92b9026",
+      "sha256": "3fd45a18743ba9bbcfda1f1e786cc86986b9e90e03529d7a0825fc272cb179b0"
+    },
+    "src/invaria/contracts/chain.py": {
+      "git_blob": "d2bc3380fe04dd398637cfd112b4ba346e421859",
+      "sha256": "fa11720b2334a49509dca0d83634f3732c69dcb860a5159915da5e0530de6ba8"
+    },
+    "src/invaria/contracts/corpus.py": {
+      "git_blob": "00b1fd001e340b6943152401908936a69deefd01",
+      "sha256": "e0ebddbc8b5807a2c12f4ac1e2c5079911b0db157020bef95d395fdf1c926071"
+    },
+    "src/invaria/contracts/coverage.py": {
+      "git_blob": "a7919001b49df2a7b0b9cdcdea040565f4d6fd56",
+      "sha256": "2f5f62bb0281c10f05fdfdfc7732670218728f486c78ccabe353998065d854f2"
+    },
+    "src/invaria/contracts/evaluation.py": {
+      "git_blob": "ee5065a80bfbbd870c9b3805e7cdb24077d982ae",
+      "sha256": "3a24f8aec34021bed5f8442af0766127e34edb99bfd42c188c39f734a0d6bcdc"
+    },
+    "src/invaria/contracts/identity.py": {
+      "git_blob": "8261005de11e34ee32e6992a77f037eafc5735a9",
+      "sha256": "d9543cfdd2c2dee82821ec3f35f331657d52e96c9035a0741e5a19359d7d26fb"
+    },
+    "src/invaria/contracts/mapping.py": {
+      "git_blob": "77d4e0889773709a2b126565bc598d5ae05f3d5d",
+      "sha256": "821130fc55f8b21690a95e4a3a622c909b496a351a015301e526c62c475eaf55"
+    },
+    "src/invaria/contracts/observation.py": {
+      "git_blob": "020eb6cb9dbb491741c418e0d99a6df7545c517e",
+      "sha256": "94c45c8d11d1a481f74bc5397bb26625a41a1a1e7db8c90f1ce9a185b811b793"
+    },
+    "src/invaria/contracts/profile.py": {
+      "git_blob": "e2a85d3088fc31183e7775d48ef2e9a9e3b1f401",
+      "sha256": "cdfa6a5b26807aca2bd30e952a7e3281d65eaab1423f3799c761b37225586f5d"
+    },
+    "src/invaria/contracts/quantity.py": {
+      "git_blob": "45457864f25aaab450c9314a7a340fa8e992fda5",
+      "sha256": "3b81c803411cc4c9f56dae8a13c4a3164cee336c7f697b76d0369749df88d751"
+    },
+    "src/invaria/contracts/schema_export.py": {
+      "git_blob": "4c06efcd86c491c9d4669e035b95db7686af1d78",
+      "sha256": "6b9771a419956e0491fc0f5d292f9400b5ee0e9d9dcc6e55fafc73313cf93d9d"
+    },
+    "src/invaria/contracts/stellar.py": {
+      "git_blob": "45cf2d6e7baeb5d0e1cd349bf6ea650aec600dd6",
+      "sha256": "fcd09ed865b439fc39754491228de452b6866b65f7d50c2328dfe45db3e78657"
+    },
+    "src/invaria/engine/__init__.py": {
+      "git_blob": "400021618ba0c7baa8a5d3364a5183a854e34091",
+      "sha256": "99ad093eeb2d76d53e8e032856457ff72a8bf6238cf58bc4080349f1429af3cb"
+    },
+    "src/invaria/engine/evaluate.py": {
+      "git_blob": "c94feb65549482e81d59a8ef4baf1b4baa2bf832",
+      "sha256": "2931b272405aa7222bc58c059e8de0a99bbc9da426ecb89b04db01c3f08acc2a"
+    },
+    "uv.lock": {
+      "git_blob": "f8547f0d4f9e0de0910d769bc026942e3a9cc39f",
+      "sha256": "6f338c147597544d7e1d5a9654513414722718b7d933f9f892184ff22feabbf1"
+    }
+  },
+  "scope": "import closure of invaria.engine.evaluate at that commit (invaria, invaria.contracts.*, invaria.engine, invaria.engine.evaluate) plus uv.lock; nothing else is needed to evaluate",
+  "source": "https://github.com/paugk/Invaria (branch opensource/core-initial)"
+}

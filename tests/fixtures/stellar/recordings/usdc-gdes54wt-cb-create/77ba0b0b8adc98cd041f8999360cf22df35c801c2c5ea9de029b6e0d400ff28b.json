@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-10-07T15:13:59+00:00",
+  "method": "GET",
+  "request_body": null,
+  "response_sha256": "37a33d9d3624e019633ca0ab9139292eaea8358eed82f7365c0f5c6946a48220",
+  "status": 200,
+  "url": "https://horizon-testnet.stellar.org/claimable_balances/000000000014743f789bf5c08054067bdb6f14d33c0b70f177ee9749725d660765479214/operations?order=asc&limit=200&include_failed=true"
+}

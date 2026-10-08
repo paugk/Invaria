@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "source_id": "ta-synthetic",
+  "record": {
+    "record_key": "RED-0001",
+    "revision": 1,
+    "valid_time": "2026-10-05T10:00:00Z",
+    "payload": {
+      "payload_type": "redemption_accepted",
+      "account_ref": "acct-pseudo-0001",
+      "units": {
+        "atoms": "1000000000",
+        "scale": 7,
+        "unit": "FUND_SHARE"
+      },
+      "price_ref": "price:DEMO-A:2026-10-04",
+      "price_per_unit": {
+        "atoms": "10000",
+        "scale": 2,
+        "unit": "USD"
+      },
+      "accepted_at": "2026-10-05T10:00:00Z",
+      "payment_due_at": "2026-10-07T10:00:00Z",
+      "journal_id": "ta-journal-demoa",
+      "sequence": 1005,
+      "settlement_ref": null
+    }
+  }
+}

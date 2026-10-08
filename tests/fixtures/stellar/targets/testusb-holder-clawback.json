@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-testusb-holder-clawback",
+  "tenant_id": "tenant-testnet-sample",
+  "network": "stellar:testnet",
+  "asset_code": "TESTUSB",
+  "asset_issuer": "GCWSNDOOTAGUCTR4X62RCH5UOAUVSWV5VL2AZSCWBK27DHL2IFQDPHVX",
+  "account": "GBV6VEMHOOLOAHERL4JO35X3IDLR4HQIZ3BTUYXFCAO4Z526COZMUJMN",
+  "unit": "TESTUSB",
+  "instrument_id": "testnet:asset:TESTUSB:GCWSNDOOTAGUCTR4X62RCH5UOAUVSWV5VL2AZSCWBK27DHL2IFQDPHVX",
+  "representation_id": "rep-testnet-classic-TESTUSB-GCWSNDOOTAGUCTR4X62RCH5UOAUVSWV5VL2AZSCWBK27DHL2IFQDPHVX",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": null,
+  "synthetic": false,
+  "description": "Real Stellar testnet TESTUSB (issuer GCWSNDOO) observed for holder GBV6VEMH, whose balance the issuer claws back (a Classic clawback operation, not listed among the holder's payments). Third-party public testnet data, unrelated to the synthetic DEMO-A subscription."
+}

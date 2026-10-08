@@ -1,0 +1,11 @@
+{
+  "synthetic": true,
+  "source_id": "pricing-synthetic",
+  "record": {
+    "export": "cov-price-s1",
+    "interval": [
+      "2026-10-04T00:00:00Z",
+      "2026-10-06T09:00:00Z"
+    ]
+  }
+}

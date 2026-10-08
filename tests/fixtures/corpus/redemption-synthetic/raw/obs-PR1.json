@@ -1,0 +1,18 @@
+{
+  "synthetic": true,
+  "source_id": "pricing-synthetic",
+  "record": {
+    "record_key": "price:DEMO-A:2026-10-04",
+    "revision": 1,
+    "valid_time": "2026-10-04T22:00:00Z",
+    "payload": {
+      "payload_type": "price_approved",
+      "price_ref": "price:DEMO-A:2026-10-04",
+      "price_per_unit": {
+        "atoms": "10000",
+        "scale": 2,
+        "unit": "USD"
+      }
+    }
+  }
+}

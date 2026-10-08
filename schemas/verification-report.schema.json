@@ -21,10 +21,44 @@
       ],
       "title": "Bundle Id"
     },
+    "engine_implementation": {
+      "anyOf": [
+        {
+          "enum": [
+            "current",
+            "compatibility"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Engine Implementation"
+    },
     "engine_source_sha256": {
       "pattern": "^[a-f0-9]{64}$",
       "title": "Engine Source Sha256",
       "type": "string"
+    },
+    "engine_status": {
+      "anyOf": [
+        {
+          "enum": [
+            "current",
+            "retired",
+            "blocked",
+            "unknown"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Engine Status"
     },
     "financial_result": {
       "anyOf": [

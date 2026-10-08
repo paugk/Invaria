@@ -104,6 +104,23 @@ class Horizon:
             },
         )
 
+    def transaction_operations(self, tx_hash: str) -> Page:
+        """All operations of a transaction (at most 100), to learn an operation's type."""
+        return self.get(f"/transactions/{tx_hash}/operations", {"order": "asc", "limit": "200"})
+
+    def claimable_balance_operations(self, balance_id: str, limit: int = 200) -> Page:
+        """The history of a claimable balance (its native hex id), failed operations
+        included; Horizon keeps it after the balance is claimed or clawed back."""
+        return self.get(
+            f"/claimable_balances/{balance_id}/operations",
+            {"order": "asc", "limit": str(limit), "include_failed": "true"},
+        )
+
+    def operation_effects(self, operation_id: str, limit: int = 200) -> Page:
+        return self.get(
+            f"/operations/{operation_id}/effects", {"order": "asc", "limit": str(limit)}
+        )
+
 
 class Rpc:
     def __init__(self, url: str, client: HttpClient) -> None:

@@ -31,5 +31,10 @@ jobs:
       - name: Offline scenario checks
         run: |
           uv run --locked invaria check tests/fixtures/corpus/subscription-synthetic
-          uv run --locked invaria demo-testnet tests/fixtures/corpus/subscription-testnet
-          uv run --locked invaria verify tests/fixtures/bundles/K3
+          uv run --locked invaria check tests/fixtures/corpus/subscription-synthetic-1.2.0
+          uv run --locked invaria check tests/fixtures/corpus/redemption-synthetic-1.7.0
+          uv run --locked invaria demo-testnet tests/fixtures/corpus/subscription-testnet-1.6.0
+          uv run --locked invaria verify tests/fixtures/bundles/K3-engine-0.10.0 \
+            --expect-manifest-sha256 d612eb4ed9b1a951b9d2a94558d2f3f82599113899dfeef79f7156abcdf4ba64
+          # historical golden of the retired 0.1.0, reproduced by its compatibility implementation
+          uv run --locked invaria verify tests/fixtures/bundles/K3 --expect-manifest-sha256 bec6969130fed2f8d64ca92c65fb6c4808c5d5beae65e83bd1283cd61c7b447f

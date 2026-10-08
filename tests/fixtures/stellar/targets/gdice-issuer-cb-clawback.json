@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_id": "testnet-gdice-issuer-cb-clawback",
+  "tenant_id": "tenant-testnet-sample",
+  "network": "stellar:testnet",
+  "asset_code": "gdICE",
+  "asset_issuer": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+  "account": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+  "unit": "GDICE",
+  "instrument_id": "testnet:asset:gdICE:GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+  "representation_id": "rep-testnet-classic-gdICE-GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+  "source_id": "stellar-testnet",
+  "expected_sac_contract_id": null,
+  "synthetic": false,
+  "description": "Real Stellar testnet gdICE observed for its issuer GAYYH44S in the ledger of a clawback_claimable_balance (the holder is a claimable balance, not an account). Third-party public testnet data, unrelated to the synthetic DEMO-A subscription."
+}

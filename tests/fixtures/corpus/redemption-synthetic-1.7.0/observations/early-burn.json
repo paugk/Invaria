@@ -1,0 +1,240 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-redemption-synthetic-1.7.0",
+  "timeline_id": "early-burn",
+  "synthetic": true,
+  "observations": [
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-RQ1",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "redemption_accepted",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": "RED-0001",
+      "source": {
+        "source_id": "ta-synthetic",
+        "record_key": "RED-0001",
+        "revision": 1
+      },
+      "valid_time": "2026-10-05T10:00:00Z",
+      "recorded_at": "2026-10-05T10:05:00Z",
+      "provenance": {
+        "raw_sha256": "e6bdafcf3fd57a521d5a8615e50d80b34d948a8447af2e1d619b1d24b29d4818",
+        "raw_locator": "raw/obs-RQ1.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "ta-redemption-frozen@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "redemption_accepted",
+        "account_ref": "acct-pseudo-0001",
+        "units": {
+          "atoms": "1000000000",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        },
+        "price_ref": "price:DEMO-A:2026-10-04",
+        "price_per_unit": {
+          "atoms": "10000",
+          "scale": 2,
+          "unit": "USD"
+        },
+        "accepted_at": "2026-10-05T10:00:00Z",
+        "payment_due_at": "2026-10-07T10:00:00Z",
+        "journal_id": "ta-journal-demoa",
+        "sequence": 1005,
+        "settlement_ref": null
+      },
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-PS1",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "position_held",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": "RED-0001",
+      "source": {
+        "source_id": "ta-synthetic",
+        "record_key": "POS-1004",
+        "revision": 1
+      },
+      "valid_time": "2026-10-05T10:00:00Z",
+      "recorded_at": "2026-10-05T10:05:00Z",
+      "provenance": {
+        "raw_sha256": "09c7b90c3eae332ed99d86dde5061611b9fab993de45f546231af5c71807ca28",
+        "raw_locator": "raw/obs-PS1.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "ta-redemption-frozen@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "position_held",
+        "account_ref": "acct-pseudo-0001",
+        "units": {
+          "atoms": "10000000000",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        },
+        "reserved": {
+          "atoms": "0",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        },
+        "as_of": "2026-10-05T10:00:00Z",
+        "journal_id": "ta-journal-demoa",
+        "sequence": 1004
+      },
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-PR1",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "price_approved",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": null,
+      "source": {
+        "source_id": "pricing-synthetic",
+        "record_key": "price:DEMO-A:2026-10-04",
+        "revision": 1
+      },
+      "valid_time": "2026-10-04T22:00:00Z",
+      "recorded_at": "2026-10-04T22:05:00Z",
+      "provenance": {
+        "raw_sha256": "c10e23a0d1989e213443d55baaf6a32225f82694d30bc736a3df0fa2a786595c",
+        "raw_locator": "raw/obs-PR1.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "pricing-frozen-synthetic@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "price_approved",
+        "price_ref": "price:DEMO-A:2026-10-04",
+        "price_per_unit": {
+          "atoms": "10000",
+          "scale": 2,
+          "unit": "USD"
+        }
+      },
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-UR1",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "units_registered",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": "RED-0001",
+      "source": {
+        "source_id": "ta-synthetic",
+        "record_key": "REG-RED-0001",
+        "revision": 1
+      },
+      "valid_time": "2026-10-05T14:00:00Z",
+      "recorded_at": "2026-10-05T14:05:00Z",
+      "provenance": {
+        "raw_sha256": "88248e6a41a00871eadfe43a2d51a9c0b3cd7747d0f8282044aebc68a7bf6e15",
+        "raw_locator": "raw/obs-UR1.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "ta-redemption-frozen@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "units_registered",
+        "account_ref": "acct-pseudo-0001",
+        "units": {
+          "atoms": "1000000000",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        }
+      },
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-BN-EARLY",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "token_movement",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": "rep-stellar-testnet-demoa",
+      "operation_ref": "RED-0001",
+      "source": {
+        "source_id": "stellar-testnet-frozen",
+        "record_key": "a27e05093c6ca0d420596bd929f66ec96f94fbc87fb0f36c97be880bfbdd9e97:0",
+        "revision": 1
+      },
+      "valid_time": "2026-10-05T09:30:00Z",
+      "recorded_at": "2026-10-05T09:31:00Z",
+      "provenance": {
+        "raw_sha256": "2f7e612ccb115852f0846128d77d961c718ad8c30c6d2f31480d5ad1e211ef15",
+        "raw_locator": "raw/obs-BN-EARLY.json",
+        "parser_ref": "stellar-frozen-parser@1.0.0",
+        "mapping_ref": "stellar-frozen-synthetic@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "token_movement",
+        "from_address": "GA2JRO6WKTHMJTH7TDAXHNDHWT5SF72VKABPO2G6RL5BCGKTNIPIBEKW",
+        "to_address": "GDMYHWUG6BLHEGQSTMCAGUFUZFRZ6XGXJSHDKMDUZ6IRCKJ4FGZCCZVZ",
+        "units": {
+          "atoms": "1000000000",
+          "scale": 7,
+          "unit": "FUND_SHARE"
+        },
+        "chain": {
+          "network": "stellar:testnet",
+          "ledger": 1100042,
+          "tx_hash": "a27e05093c6ca0d420596bd929f66ec96f94fbc87fb0f36c97be880bfbdd9e97",
+          "operation_index": 0,
+          "tx_successful": true
+        }
+      },
+      "synthetic": true
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "obs-PY1",
+      "tenant_id": "tenant-synthetic-demo",
+      "kind": "assertion",
+      "fact_type": "cash_settled",
+      "instrument_id": "syn:fund:DEMO-A:class-a",
+      "representation_id": null,
+      "operation_ref": "RED-0001",
+      "source": {
+        "source_id": "bank-synthetic",
+        "record_key": "PAY-RED-0001",
+        "revision": 1
+      },
+      "valid_time": "2026-10-06T15:00:00Z",
+      "recorded_at": "2026-10-06T15:30:00Z",
+      "provenance": {
+        "raw_sha256": "80f28900b0d89b3da60c7ca649fd782ba6e8805e865d072bf23825ee442b0b4b",
+        "raw_locator": "raw/obs-PY1.json",
+        "parser_ref": "frozen-json-synthetic@1.0.0",
+        "mapping_ref": "bank-redemption-frozen@1.0.0"
+      },
+      "supersedes": null,
+      "payload": {
+        "payload_type": "cash_settled",
+        "account_ref": "acct-pseudo-0001",
+        "payment_ref": "PAY-RED-0001",
+        "amount": {
+          "atoms": "1000000",
+          "scale": 2,
+          "unit": "USD"
+        }
+      },
+      "synthetic": true
+    }
+  ]
+}

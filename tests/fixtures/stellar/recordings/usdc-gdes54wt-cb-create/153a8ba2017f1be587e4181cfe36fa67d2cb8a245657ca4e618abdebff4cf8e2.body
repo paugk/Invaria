@@ -1,0 +1,63 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/000000001bbf2c978edbb93b21708d98baa454769723803e253f1e19499d477b1b9f97d4/operations?cursor=\u0026include_failed=true\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/000000001bbf2c978edbb93b21708d98baa454769723803e253f1e19499d477b1b9f97d4/operations?cursor=21580488380530689\u0026include_failed=true\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/000000001bbf2c978edbb93b21708d98baa454769723803e253f1e19499d477b1b9f97d4/operations?cursor=21580488380530689\u0026include_failed=true\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21580488380530689"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/31ee0a50083da27c3d8bdca54cef159655d2bc2bfff23136d9f326693799d2ae"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21580488380530689/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21580488380530689"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21580488380530689"
+          }
+        },
+        "id": "21580488380530689",
+        "paging_token": "21580488380530689",
+        "transaction_successful": true,
+        "source_account": "GDES54WTI6UAVS6HQGRAFQTJ3KGC6YNO7HYO7ZZEYD6ANBPKPKA67H4L",
+        "type": "create_claimable_balance",
+        "type_i": 14,
+        "created_at": "2026-10-04T20:43:02Z",
+        "transaction_hash": "31ee0a50083da27c3d8bdca54cef159655d2bc2bfff23136d9f326693799d2ae",
+        "sponsor": "GDES54WTI6UAVS6HQGRAFQTJ3KGC6YNO7HYO7ZZEYD6ANBPKPKA67H4L",
+        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "amount": "0.5000000",
+        "claimants": [
+          {
+            "destination": "GCTX4XTBIICQCEVLAVM6BKEJ2YP3YWJ4I3ZIHJGH7YRNSSX5WREE7AO4",
+            "predicate": {
+              "unconditional": true
+            }
+          },
+          {
+            "destination": "GDES54WTI6UAVS6HQGRAFQTJ3KGC6YNO7HYO7ZZEYD6ANBPKPKA67H4L",
+            "predicate": {
+              "not": {
+                "rel_before": "3600"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

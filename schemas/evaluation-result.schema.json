@@ -51,7 +51,24 @@
             "QUARANTINED_INPUT",
             "UNSUPPORTED_CAPABILITY",
             "EVALUATION_ERROR",
-            "NOT_APPLICABLE_BY_PROFILE"
+            "NOT_APPLICABLE_BY_PROFILE",
+            "PRICE_MISMATCH",
+            "UNITS_EXCEED_POSITION",
+            "PAYMENT_LATE",
+            "PAYMENT_MISSED",
+            "SETTLED_DESPITE_CANCELLATION",
+            "INEXACT_AMOUNT",
+            "PAYMENT_NOT_DUE",
+            "INVALID_CANCELLATION",
+            "EXTINGUISHED_BY_CANCELLATION",
+            "NO_CANCELLATION",
+            "DEADLINE_DATA_CONFLICT",
+            "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+            "AMBIGUOUS_SEQUENCE",
+            "POSITION_NOT_BEFORE_ACCEPTANCE",
+            "REACTIVATION_UNSUPPORTED",
+            "PAYMENT_TO_WRONG_ACCOUNT",
+            "INVALID_RETRACTION"
           ],
           "title": "Reason Code",
           "type": "string"
@@ -81,6 +98,7 @@
     },
     "EvaluationVersions": {
       "additionalProperties": false,
+      "description": "``mapping_refs`` are the mappings the profile admits (copied from the snapshot);\n``evidence_mapping_refs`` (subscription 0.8.0, redemption 0.9.0 on) are the\nmappings that actually produced the observations of the profile's sources in the\nsnapshot, each named in its observation's provenance. It may name a mapping the profile\ndoes not admit: such an evaluation is the EVALUATION_ERROR that refuses it, and it says\nwhy. Absent in artifacts of earlier engines, which did not state it; omitted when None,\nso they stay byte-identical.",
       "properties": {
         "casm": {
           "const": "1.0",
@@ -91,6 +109,22 @@
           "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
           "title": "Engine Ref",
           "type": "string"
+        },
+        "evidence_mapping_refs": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Mapping Refs"
         },
         "mapping_refs": {
           "items": {
@@ -189,6 +223,19 @@
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
       "title": "Operation Ref",
       "type": "string"
+    },
+    "operation_state": {
+      "anyOf": [
+        {
+          "const": "cancelled",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Operation State"
     },
     "result": {
       "enum": [

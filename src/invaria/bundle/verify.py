@@ -21,7 +21,13 @@ from pydantic import BaseModel, ValidationError
 from invaria.bundle.build import MANIFEST, R1_ARTIFACTS, canonical_json, mapping_path, raw_path
 from invaria.bundle.fs import Stop as _Stop
 from invaria.bundle.fs import inventory, json_depth, open_root, read_at
-from invaria.bundle.runtime import TRUSTED_ENGINES, TRUSTED_NORMALIZERS, engine_source_sha256
+from invaria.bundle.runtime import (
+    BLOCKED_ENGINES,
+    RETIRED_ENGINES,
+    TRUSTED_ENGINES,
+    TRUSTED_NORMALIZERS,
+    engine_source_sha256,
+)
 from invaria.bundle.signing import SIGNATURE_FILE, TrustPolicy, evaluate_trust
 from invaria.contracts.base import StrictJsonError, parse_contract
 from invaria.contracts.bundle import (
@@ -37,8 +43,15 @@ from invaria.contracts.bundle import (
 from invaria.contracts.evaluation import EvaluationResult, FinancialResult, SnapshotRef
 from invaria.contracts.mapping import CsvMapping
 from invaria.contracts.observation import Observation
-from invaria.contracts.profile import OperationProfile
+from invaria.contracts.profile import Profile, parse_profile
 from invaria.engine.evaluate import ENGINE_REF, EvaluationInputs
+from invaria.engine.versions import (
+    ENGINE_IMPLEMENTATION,
+    ENGINE_OPERATION,
+    EngineImplementation,
+    EngineStatus,
+    engine_status,
+)
 from invaria.ingest.csv_import import ImportContext, ParseResult, parse_csv
 
 MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
@@ -80,6 +93,10 @@ class _Report:
     signer_key_ids: list[str] = field(default_factory=list)
     renormalized: list[str] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
+    engine_ref: str = ENGINE_REF  # the local engine that replayed (or would replay) it
+    engine_status: EngineStatus | None = None
+    engine_policy: Literal["any", "current"] = "any"
+    engine_implementation: EngineImplementation | None = None
 
     def trust(self) -> TrustState:
         if self.anchored and self.signer_key_ids:
@@ -104,11 +121,24 @@ class _Report:
             manifest_sha256=self.manifest_sha256,
             trust=self.trust(),
             signer_key_ids=sorted(self.signer_key_ids),
-            local_engine_ref=ENGINE_REF,
+            local_engine_ref=self.engine_ref,
+            engine_status=self.engine_status,
+            engine_implementation=self.engine_implementation,
             engine_source_sha256=engine_source_sha256(),
             artifacts_checked=self.artifacts_checked,
             renormalized_observation_ids=sorted(self.renormalized),
         )
+
+
+def _parse_profile(data: bytes) -> Profile:
+    if json_depth(data) > MAX_JSON_DEPTH:
+        raise _Stop("REJECTED", f"profile.json nests JSON deeper than {MAX_JSON_DEPTH}")
+    try:
+        return parse_profile(data.decode("utf-8"))
+    except (UnicodeDecodeError, StrictJsonError, ValidationError, ValueError, RecursionError) as e:
+        raise _Stop(
+            "REJECTED", f"profile.json is not a valid operation profile: {type(e).__name__}"
+        ) from e
 
 
 def _parse[M: BaseModel](model: type[M], data: bytes, name: str) -> M:
@@ -136,7 +166,7 @@ def _check_consistency(
     snapshot: SnapshotRef,
     evidence: BundleEvidence,
     recorded: EvaluationResult,
-    profile: OperationProfile,
+    profile: Profile,
 ) -> None:
     ids = {manifest.snapshot_id, snapshot.snapshot_id, evidence.snapshot_id, recorded.snapshot_id}
     if len(ids) != 1:
@@ -189,7 +219,7 @@ class _R2:
     """R2 state: parse each (raw file, mapping, recorded_at) once; every row cited once."""
 
     snapshot: SnapshotRef
-    profile: OperationProfile
+    profile: Profile
     contents: dict[str, bytes]
     members: dict[str, Observation]
     parsed: dict[tuple[str, str, str], ParseResult | str] = field(default_factory=dict)
@@ -199,7 +229,7 @@ class _R2:
 def _renormalize(
     evidence: BundleEvidence,
     snapshot: SnapshotRef,
-    profile: OperationProfile,
+    profile: Profile,
     contents: dict[str, bytes],
     report: _Report,
 ) -> None:
@@ -373,19 +403,44 @@ def _verify(
         report.reasons.append(f"{path} absent; only needed for R2")
 
     snapshot = _parse(SnapshotRef, contents["snapshot.json"], "snapshot.json")
-    profile = _parse(OperationProfile, contents["profile.json"], "profile.json")
+    profile = _parse_profile(contents["profile.json"])
     evidence = _parse(BundleEvidence, contents["evidence.json"], "evidence.json")
     recorded = _parse(EvaluationResult, contents["evaluation.json"], "evaluation.json")
     report.financial_result = recorded.result
     _check_consistency(manifest, snapshot, evidence, recorded, profile)
 
+    report.engine_status = engine_status(recorded.versions.engine_ref)
+    report.engine_ref = recorded.versions.engine_ref  # what the report is about, replayed or not
+    operation = ENGINE_OPERATION.get(recorded.versions.engine_ref)
+    if operation is not None and operation != profile.operation_type:
+        raise _Stop(
+            "INCOMPLETE",
+            f"engine {recorded.versions.engine_ref} evaluates {operation} profiles, not "
+            f"{profile.operation_type}; it is not replayed and no other engine is substituted",
+        )
+    if report.engine_status == "retired" and report.engine_policy == "current":
+        raise _Stop(
+            "INCOMPLETE",
+            f"engine {recorded.versions.engine_ref} is retired "
+            f"({RETIRED_ENGINES[recorded.versions.engine_ref]}) and the policy requires a "
+            "current engine; the historical conclusion is not reproduced",
+        )
+    if recorded.versions.engine_ref in BLOCKED_ENGINES:
+        raise _Stop(
+            "INCOMPLETE",
+            f"engine {recorded.versions.engine_ref} is blocked by policy: "
+            f"{BLOCKED_ENGINES[recorded.versions.engine_ref]}; it is not replayed and no "
+            "other engine is substituted",
+        )
     engine = TRUSTED_ENGINES.get(recorded.versions.engine_ref)
     if engine is None:
         raise _Stop(
             "INCOMPLETE",
             f"engine {recorded.versions.engine_ref} is not available "
-            f"locally ({ENGINE_REF}); nothing from the bundle is executed",
+            f"locally ({', '.join(sorted(TRUSTED_ENGINES))}); no other engine is substituted "
+            "and nothing from the bundle is executed",
         )
+    report.engine_implementation = ENGINE_IMPLEMENTATION[recorded.versions.engine_ref][0]
     replayed = engine(
         EvaluationInputs(
             snapshot=snapshot,
@@ -409,6 +464,15 @@ def _verify(
     report.reasons.append(
         f"R1 replay reproduced {recorded.result} with {recorded.versions.engine_ref}"
     )
+    if report.engine_status == "retired":
+        provenance = ENGINE_IMPLEMENTATION[recorded.versions.engine_ref][1]
+        report.reasons.append(
+            f"engine {recorded.versions.engine_ref} is retired: "
+            f"{RETIRED_ENGINES[recorded.versions.engine_ref]}. The result coincided with a "
+            f"compatibility implementation ({provenance}). "
+            "Reproducing a historical conclusion does not validate it under the current "
+            "semantics; a new evaluation is a different operation"
+        )
     if report.level == "R2":
         _renormalize(evidence, snapshot, profile, contents, report)
         report.reasons.append(
@@ -426,10 +490,15 @@ def verify_bundle(
     expected_manifest_sha256: str | None = None,
     trust_store: TrustStore | None = None,
     policy: TrustPolicy | None = None,
+    engine_policy: Literal["any", "current"] = "any",
 ) -> VerificationReport:
+    """``engine_policy="current"`` refuses to reproduce a conclusion of a retired engine
+    (INCOMPLETE); the default reproduces it with that label's (compatibility)
+    implementation and says so."""
     if expected_manifest_sha256 is not None and not _SHA256.fullmatch(expected_manifest_sha256):
         raise ValueError("expected manifest sha256 must be 64 lowercase hex characters")
     report = _Report(level=level, expected_manifest_sha256=expected_manifest_sha256)
+    report.engine_policy = engine_policy
     try:
         return _verify(root, report, trust_store, policy or TrustPolicy())
     except _Stop as stop:

@@ -1,0 +1,10 @@
+{
+  "synthetic": true,
+  "source_id": "ta-synthetic",
+  "record": {
+    "record_key": "CAN-RED-0001",
+    "revision": 2,
+    "valid_time": "2026-10-05T11:00:00Z",
+    "retracted": true
+  }
+}

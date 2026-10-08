@@ -1,0 +1,66 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/00000000a289e1ce546ecd110d133353a50dc3ffeacf11423e9b11b8bcd465cf47de9149/operations?cursor=\u0026include_failed=true\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/00000000a289e1ce546ecd110d133353a50dc3ffeacf11423e9b11b8bcd465cf47de9149/operations?cursor=21739436530212866\u0026include_failed=true\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon-testnet.stellar.org/claimable_balances/00000000a289e1ce546ecd110d133353a50dc3ffeacf11423e9b11b8bcd465cf47de9149/operations?cursor=21739436530212866\u0026include_failed=true\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/operations/21739436530212866"
+          },
+          "transaction": {
+            "href": "https://horizon-testnet.stellar.org/transactions/a8a92a5d390fa7e429d6918acadec79de3ea707ebf8bfc9966b4d3d697023f44"
+          },
+          "effects": {
+            "href": "https://horizon-testnet.stellar.org/operations/21739436530212866/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=desc\u0026cursor=21739436530212866"
+          },
+          "precedes": {
+            "href": "https://horizon-testnet.stellar.org/effects?order=asc\u0026cursor=21739436530212866"
+          }
+        },
+        "id": "21739436530212866",
+        "paging_token": "21739436530212866",
+        "transaction_successful": true,
+        "source_account": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "type": "create_claimable_balance",
+        "type_i": 14,
+        "created_at": "2026-10-07T00:07:02Z",
+        "transaction_hash": "a8a92a5d390fa7e429d6918acadec79de3ea707ebf8bfc9966b4d3d697023f44",
+        "sponsor": "GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "asset": "gdICE:GAYYH44SS4OSFDY4WXMWM2BKRA2RG5M6NZULUQWGHKGFASFY2ZVI7IHX",
+        "amount": "236606.9830652",
+        "claimants": [
+          {
+            "destination": "GCDNOY3X7YX5MYPMFOHVUUOBH2SVJFYVXY74QVDT7SC5RSL44R3RA6Y7",
+            "predicate": {
+              "not": {
+                "unconditional": true
+              }
+            }
+          },
+          {
+            "destination": "GB4N4VR7SVNAG5HY63NSCNPMK5GYFQAHEV4ICUPKR5KPLSTA3ERVD722",
+            "predicate": {
+              "not": {
+                "abs_before": "2026-08-03T00:59:59Z",
+                "abs_before_epoch": "1785718799"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

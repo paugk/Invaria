@@ -7,7 +7,9 @@ Invaria is an operational-integrity and reproducible-evidence layer for tokenize
 
 Invaria keeps the evidence needed to explain that conclusion.
 
-**This branch contains the first implemented building blocks and an offline vertical for one synthetic fund subscription.** It is not the MVP: there is no REST API or UI yet, and the Stellar adapter only covers a first subset.
+**This branch contains the implemented building blocks, offline verticals for a synthetic fund subscription and a synthetic redemption, and a demo subscription evaluated with real Stellar testnet evidence.** It is not the MVP and not production-ready. The Stellar adapter covers a declared subset, and the local console is a read-only demo.
+
+**[CAPABILITIES.md](CAPABILITIES.md)** lists what each component can and cannot conclude, with its declared limits: absence of settlement, completeness of what was observed, `valid_at`, and historical replay.
 
 ## What is in this branch
 
@@ -16,18 +18,20 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Canonical contracts (typed, strict, immutable) | `src/invaria/contracts/` | Implemented and tested |
 | JSON Schemas (2020-12) generated from the contracts | `schemas/` | Implemented; a test fails on drift |
 | Deterministic CSV ingestion with versioned declarative mappings | `src/invaria/ingest/` | Implemented and tested |
-| Pure evaluator, explanations and minimal export | `src/invaria/engine/` | Implemented; reproduces all 9 corpus scenarios |
+| Pure evaluators (subscription and redemption), explanations and minimal export | `src/invaria/engine/` | Implemented; versioned engines (current, retired for replay only, blocked) |
 | Offline CLI (`invaria`) | `src/invaria/cli.py` | Implemented |
 | Directory evidence bundles: offline R1/R2 replay, detached Ed25519 signatures, hardened verifier | `src/invaria/bundle/` | Implemented; trust comes only from the verifier's own trust store |
-| Synthetic corpus: one demo fund subscription, 9 scenarios | `tests/fixtures/corpus/subscription-synthetic/` | Synthetic data; expected results written before the evaluator, now reproduced |
-| Golden bundle for scenario K3 | `tests/fixtures/bundles/K3/` | Must stay byte-identical to a fresh build |
+| Synthetic corpora: a demo fund subscription (9 scenarios) and a redemption (46 scenarios), one directory per profile version | `tests/fixtures/corpus/` (index in its README) | Synthetic data; expected results written by hand, reproduced by the evaluators |
+| Golden bundles for scenario K3 (one per subscription engine) and frozen redemption bundles | `tests/fixtures/bundles/` | Rebuilt byte for byte by their engines (retired ones through compatibility implementations) |
 | Golden verifier corpus: 22 cases covering every verifier status | `tests/fixtures/bundles/corpus/` | Public keys and signatures only; no private key |
-| Read-only Stellar adapter (Horizon + RPC) | `src/invaria/stellar/` | Classic payments implemented; SAC subset implemented, other SAC cases explicitly excluded |
+| Read-only Stellar adapter (Horizon + RPC) | `src/invaria/stellar/` | Payments and SAC movements; path payments, DEX fills, clawbacks, typed counterparties, muxed accounts and memos recorded explicitly (see CAPABILITIES.md) |
 | Recorded real Stellar testnet samples | `tests/fixtures/stellar/` | Third-party USDC samples and Invaria's own DEMOA issuance, replayed offline |
-| Demo subscription evaluated with real testnet evidence | `src/invaria/vertical_testnet.py`, `tests/fixtures/corpus/subscription-testnet/` | 4 scenarios; on-chain evidence replayed through the adapter |
+| Demo subscription evaluated with real testnet evidence | `src/invaria/vertical_testnet.py`, `tests/fixtures/corpus/subscription-testnet-1.6.0/` (current profile) | 4 scenarios; on-chain evidence replayed through the adapter |
 | Append-only PostgreSQL persistence (optional `db` extra) | `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
 | Read-only consultative MCP server (optional `mcp` extra) | `src/invaria/query/`, `src/invaria/mcp_server.py` | Implemented; stdio only; tests need a real PostgreSQL (opt-in) |
 | Invalidation, revision epochs and transactional outbox | `src/invaria/engine/dependencies.py`, `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
+| Logical backup and verified restore (optional `db` extra) | `src/invaria/persistence/backup.py` | Implemented; tests need PostgreSQL and the pinned container (opt-in) |
+| Local read-only evidence console: REST and HTML, no JavaScript | `src/invaria/console/` | Implemented; listens on 127.0.0.1 only; tests need PostgreSQL (opt-in) |
 
 ### Contracts
 - **Exact quantities.** Integer atoms as a string, plus an explicit scale (0–38) and unit. Floats, exponents, NaN and duplicate JSON keys are rejected before validation.
@@ -98,12 +102,7 @@ The report also carries the digest of the local replay code (`engine_source_sha2
 - **Asset identity.** The asset is identified by network, code and issuer. The Stellar Asset Contract (SAC) id is derived locally. Horizon must publish the same `contract_id`, or none while the SAC is not deployed: testnet still emits unified events under the derived id.
 - **Classic path (Horizon).** Reads an account's payments, including failed transactions, which are observed without economic effect. Provenance goes down to ledger, transaction, operation index and the sha256 of the exact raw page. Pagination is bounded; coverage certificates are `provider_claimed`.
 - **SAC path (RPC `getEvents`).** Reads `transfer`, `mint` and `burn` events between accounts. Testnet emits unified events (CAP-67): a Classic payment also appears as a SAC event. Both paths share one economic-effect key (`<tx>:<op>:<ordinal>`), so the same effect counts once; differing content is kept as a visible conflict.
-- **Explicit exclusions**, each with a reason:
-  - path payments in the Classic path;
-  - contract, claimable-balance or liquidity-pool counterparties;
-  - u64 `to_muxed_id` values (a muxed destination or a memo id, indistinguishable from the event);
-  - clawback;
-  - custom Soroban tokens.
+- **Effects that are not deliveries.** Path payments, DEX fills and clawbacks are recorded as `chain_effect`, never as `token_movement`. Contract, claimable-balance and liquidity-pool counterparties are typed by StrKey. Muxed ids and memos are kept exactly; a muxed address is attributed only through an explicit `IdentityLink` to it. Anything the adapter cannot resolve is quarantined with its reason. Custom Soroban tokens stay out of scope. Details and limits: [CAPABILITIES.md](CAPABILITIES.md).
 - **Checkpoints and availability.** Checkpoints advance only after the corresponding page is written and fsync'ed. A range outside Horizon history or RPC retention is reported as data unavailable (exit code 3), never as "no activity".
 - **No implicit links.** An on-chain effect is linked to an operation only through an explicit, approved `ExecutionLink`. Memo text, amount or timing never link.
 
@@ -119,7 +118,7 @@ uv run --locked invaria stellar ingest --target tests/fixtures/stellar/targets/u
 `tests/fixtures/stellar/` holds **real, public, third-party testnet data** (USDC, captured 2026-10-05; see its README). It is unrelated to the synthetic demo fund. The offline tests replay it with sockets blocked. An opt-in live test runs with `INVARIA_LIVE_TESTNET=1 uv run --locked pytest -m live_testnet tests/stellar`. Testnet is reset periodically, so after a reset that test skips.
 
 ### Demo subscription with real testnet evidence
-`invaria demo-testnet tests/fixtures/corpus/subscription-testnet` evaluates the demo subscription `SUB-0001` with:
+`invaria demo-testnet tests/fixtures/corpus/subscription-testnet-1.6.0` evaluates the demo subscription `SUB-0001` with:
 - **Synthetic institutional records:** order, bank and transfer agent.
 - **Real on-chain evidence:** our own DEMOA issuance on Stellar testnet. The issuer `GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP` paid 1,000 DEMOA to the investor `GC6XNJNZOULFUZJBYORCTVNWI6UX5AVOEDC7EXDQM77BPFMQA3VWOYLK` (tx `87835238…`). The same issuance also includes a deliberately failed payment and an unlinked duplicate with the same memo.
 
@@ -132,7 +131,7 @@ The adapter replays the recorded responses; nothing is fetched.
 | TN-OVER-LINKED | the delivery and, wrongly, the duplicate | BREAK, +1,000 shares |
 | TN-LINKED-FAILED | only the failed transaction | UNKNOWN: a failed transaction has no effect |
 
-The demo profile accepts `provider_claimed` coverage for the on-chain source. Horizon and RPC are operated by the same provider, so this is a declared project decision, not independent verification. Institutional sources still require `internally_checked`. This is not a real fund.
+Earlier demo corpora (`subscription-testnet`, `-1.1.0`, `-1.2.0`) admit an older payment mapping, so a new evaluation with today's adapter output refuses them (exit code 1); `-1.3.0` to `-1.5.0` are earlier profiles that still give 4/4. The demo profile accepts `provider_claimed` coverage for the on-chain source. Horizon and RPC are operated by the same provider, so this is a declared project decision, not independent verification. Institutional sources still require `internally_checked`. This is not a real fund.
 
 ### Persistence (PostgreSQL, optional)
 `invaria.persistence` stores observations, coverage certificates, identity links, profiles, closed snapshots and evaluations append-only. Install it with the `db` extra (`psycopg` 3).
@@ -151,7 +150,7 @@ INVARIA_TEST_DATABASE_URL=postgresql://postgres:<local>@127.0.0.1:55432/postgres
   uv run --locked pytest -m postgres tests/persistence
 ```
 
-Without `INVARIA_TEST_DATABASE_URL` these tests are skipped with an explicit reason.
+Without `INVARIA_TEST_DATABASE_URL` these tests are skipped with an explicit reason. A migrator that is not a superuser (for example on a managed PostgreSQL) must run `invaria.persistence.provision.prepare_for_migrator` before `migrate`; the test fixtures do. Use a direct, session-preserving connection, not a transaction-mode pooler.
 
 ### Invalidation and idempotency (PostgreSQL, optional)
 When evidence an evaluation depends on changes, that evaluation stops being current and is re-evaluated. Nothing is deleted.
@@ -196,7 +195,7 @@ INVARIA_DATABASE_URL=postgresql://... uv run invaria mcp serve \
   --access-profile access.json --audit-log access.jsonl
 ```
 
-With stdio, authentication is that of the operating-system user who starts the process. There is no REST API, OAuth or token yet. The typed answers are exported as JSON Schemas (`schemas/query-*.schema.json`, `schemas/access-profile.schema.json`).
+With stdio, authentication is that of the operating-system user who starts the process. There is no network API, OAuth or token yet; the local evidence console serves REST and HTML on 127.0.0.1 only, with a per-process token. The typed answers are exported as JSON Schemas (`schemas/query-*.schema.json`, `schemas/access-profile.schema.json`).
 
 ## Synthetic data only
 
@@ -244,11 +243,10 @@ Runtime dependencies: `pydantic`, `cryptography` (Ed25519 only). Optional: `psyc
 
 ## Not implemented yet
 
-- **Deadline rules:** no control uses the evaluation clock yet.
-- **Stellar beyond the first subset:** path payments, SAC contract and pool counterparties, muxed attribution, clawback, custom Soroban tokens, and independent verification of ledger checkpoints (on-chain coverage is `provider_claimed`).
+- **Stellar:** independent verification of ledger checkpoints (on-chain coverage is `provider_claimed`); custom Soroban tokens; contracts as approved investor addresses; mainnet.
 - **Evidence bundles:** compressed archives, R3 (source proofs), R2 for on-chain evidence, third-party timestamping of signatures, and Windows-specific path rules.
-- **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; REST API, network MCP transport with tokens, UI.
-- **Other operations:** redemptions, fees, partial fills, multiple payments, FX, omnibus accounts.
+- **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; a network API or MCP transport with tokens; point-in-time recovery or high availability.
+- **Other operations:** fees, partial fills, multiple payments, FX, omnibus accounts; business calendars for deadlines.
 - **Other sources:** XLSX, SFTP, encodings other than UTF-8, locale-specific number formats.
 
 ## License

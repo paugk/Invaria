@@ -1,8 +1,94 @@
 {
   "$defs": {
+    "ChainCoverageScope": {
+      "additionalProperties": false,
+      "description": "Which chain records a certificate read: network, ingestion target (asset\nand account), route and the ExecutionLinks the run applied (``links_sha256``: they\ndecide which notes are quarantined and which records list a link). Two certificates can\nreplace one another only within the same network, target, account, asset and links, and\nonly towards a route that includes the other's.\n\n``not_covered``: effects of the asset this route cannot see for this target (by role and\nroute); absence of one of them can never be argued from this certificate. An\nempty list declares that nothing is out of sight; absent (None) declares\nnothing, and under the scoped-absence rule it is never read as \"nothing out of sight\".",
+      "properties": {
+        "account": {
+          "title": "Account",
+          "type": "string"
+        },
+        "asset_code": {
+          "pattern": "^[A-Za-z0-9]{1,12}$",
+          "title": "Asset Code",
+          "type": "string"
+        },
+        "asset_issuer": {
+          "title": "Asset Issuer",
+          "type": "string"
+        },
+        "links_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Links Sha256",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "stellar:testnet",
+            "stellar:pubnet"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "not_covered": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "claimable_balance_clawback",
+                  "claimable_balance_claim"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Covered"
+        },
+        "route": {
+          "enum": [
+            "horizon_payments",
+            "rpc_sac_events"
+          ],
+          "title": "Route",
+          "type": "string"
+        },
+        "target_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "network",
+        "target_id",
+        "account",
+        "asset_code",
+        "asset_issuer",
+        "route",
+        "links_sha256"
+      ],
+      "title": "ChainCoverageScope",
+      "type": "object"
+    },
     "CoverageCertificate": {
       "additionalProperties": false,
       "properties": {
+        "chain_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChainCoverageScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "coverage_id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
           "title": "Coverage Id",
@@ -14,7 +100,14 @@
               "order_accepted",
               "cash_settled",
               "units_registered",
-              "token_movement"
+              "token_movement",
+              "redemption_accepted",
+              "redemption_cancelled",
+              "position_held",
+              "price_approved",
+              "position_changed",
+              "redemption_reactivated",
+              "chain_effect"
             ],
             "type": "string"
           },
@@ -62,6 +155,21 @@
           "title": "Method",
           "type": "string"
         },
+        "quarantined_records": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/QuarantinedRecord"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quarantined Records"
+        },
         "raw_sha256": {
           "items": {
             "pattern": "^[a-f0-9]{64}$",
@@ -90,10 +198,37 @@
           "title": "Schema Version",
           "type": "string"
         },
+        "scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoverageScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "source_id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
           "title": "Source Id",
           "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/SupersededCertificate"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supersedes"
         },
         "synthetic": {
           "title": "Synthetic",
@@ -126,6 +261,84 @@
       "title": "CoverageCertificate",
       "type": "object"
     },
+    "CoverageFilter": {
+      "additionalProperties": false,
+      "description": "One restriction applied to the export: keep only records whose ``field`` is in\n``values``. Only filters on the evaluated predicate's own account, currency or fact\ntype can be shown to keep every record a control needs.",
+      "properties": {
+        "field": {
+          "enum": [
+            "account_ref",
+            "currency",
+            "fact_type",
+            "status",
+            "revision",
+            "other"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "field",
+        "values"
+      ],
+      "title": "CoverageFilter",
+      "type": "object"
+    },
+    "CoverageScope": {
+      "additionalProperties": false,
+      "description": "What the export covered beyond source, fact types and interval (on the certificate):\nthe accounts and currencies, and every filter applied.",
+      "properties": {
+        "accounts": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Accounts",
+          "type": "array"
+        },
+        "currencies": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currencies"
+        },
+        "filters": {
+          "items": {
+            "$ref": "#/$defs/CoverageFilter"
+          },
+          "title": "Filters",
+          "type": "array"
+        }
+      },
+      "required": [
+        "accounts",
+        "currencies",
+        "filters"
+      ],
+      "title": "CoverageScope",
+      "type": "object"
+    },
     "LedgerRange": {
       "additionalProperties": false,
       "properties": {
@@ -145,6 +358,120 @@
         "last"
       ],
       "title": "LedgerRange",
+      "type": "object"
+    },
+    "QuarantinedRecord": {
+      "additionalProperties": false,
+      "description": "One quarantined input record and the ledger addresses it involves.\n\n``addresses`` None means its parties are unknown (e.g. an undecodable record): it then\naffects every operation evaluated on the certificate.\n\nOptional, absent when None so that earlier certificates stay identical:\n\n- ``nature``: what the evidence establishes about the record. ``clawback_identified``:\n  the event or operation identifies a clawback (the protocol emits it only for one) and\n  only its correspondence or origin is incomplete. ``movement_identified``: a movement\n  whose kind and parties are identified (a contract or pool movement, a claimable\n  balance effect with read participants) and that no current profile admits as\n  evidence. ``contradictory``: the sources\n  disagree on whether it was a clawback or something else. ``unresolved``: nature,\n  execution, asset or participants not resolved. Absent (an earlier certificate) is\n  read as ``unresolved``.\n- ``chain_operation``: ``<tx_hash>:<op_index>`` of the ledger operation, when known.\n- ``execution_links``: the operations whose explicit ExecutionLink names that ledger\n  operation. The link makes the record relevant to those operations; its addresses\n  are kept as they are, never replaced by unknown parties.",
+      "properties": {
+        "addresses": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[GCMBL][A-Z2-7]{55,68}$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Addresses"
+        },
+        "chain_operation": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}:[0-9]{1,10}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chain Operation"
+        },
+        "execution_links": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Execution Links"
+        },
+        "locator": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "nature": {
+          "anyOf": [
+            {
+              "enum": [
+                "clawback_identified",
+                "movement_identified",
+                "contradictory",
+                "unresolved"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nature"
+        },
+        "reasons": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "locator",
+        "reasons",
+        "addresses"
+      ],
+      "title": "QuarantinedRecord",
+      "type": "object"
+    },
+    "SupersededCertificate": {
+      "additionalProperties": false,
+      "description": "A certificate a later one replaces, by id and by the sha256 of its canonical JSON\n(``certificate_sha256``): two runs can produce one id with different content, and a\nreplacement holds only for the content it names.",
+      "properties": {
+        "coverage_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Coverage Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "coverage_id",
+        "sha256"
+      ],
+      "title": "SupersededCertificate",
       "type": "object"
     },
     "TimeInterval": {

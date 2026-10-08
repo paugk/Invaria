@@ -203,6 +203,18 @@ class VerificationReport(Contract):
     trust: TrustState
     signer_key_ids: list[Identifier]
     local_engine_ref: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    # What the recorded engine is under the local policy: "retired" means the
+    # conclusion was reproduced under a retired engine label, which does not validate
+    # it under the current ones. Absent when verification stopped before the engine.
+    engine_status: Literal["current", "retired", "blocked", "unknown"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    # Which code replayed it: "compatibility" is an implementation of a retired
+    # engine label, not the historical code itself. Kept apart from ``engine_status``
+    # (admission) and from ``status`` (whether the result coincided).
+    engine_implementation: Literal["current", "compatibility"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     engine_source_sha256: Sha256Hex
     artifacts_checked: Annotated[int, Field(ge=0)]
     renormalized_observation_ids: list[Identifier]

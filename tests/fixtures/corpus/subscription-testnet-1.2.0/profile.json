@@ -1,0 +1,224 @@
+{
+  "schema_version": "1.0",
+  "profile_ref": "fund-subscription-testnet@1.2.0",
+  "operation_type": "subscription",
+  "synthetic": true,
+  "disclaimer": "Demo profile, not a real fund. On-chain evidence is real Stellar testnet data from Invaria's own DEMOA issuance; order, bank and transfer-agent records are synthetic. Exact match, no fees, no rounding and the authorities are fixture decisions. Owner decision 2026-10-05: the on-chain source only requires provider_claimed coverage (Horizon and RPC are both operated by SDF, so no independent verification exists yet); institutional sources still require internally_checked. Version 1.2.0 (ADR-014, INV-013): the on-chain coverage declares its quarantine policy explicitly: a quarantined record never credits fulfilment; its existence makes UNKNOWN only the controls whose conclusion resolving it could change; a certificate's quarantine stays active until a certificate of the same chain scope explicitly supersedes it; a record's nature and ledger operation are relied on only when the snapshot supports them. 1.1.0 is unchanged: a quarantined record bearing on the operation blocks every token comparison; 1.0.0 keeps every quarantined record blocking.",
+  "instrument": {
+    "instrument_id": "testnet:asset:DEMOA:GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP",
+    "unit": "FUND_SHARE",
+    "scale": 7,
+    "description": "DEMOA participation issued on Stellar testnet (demo, no rights)",
+    "synthetic": true
+  },
+  "representations": [
+    {
+      "representation_id": "rep-testnet-classic-DEMOA-GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP",
+      "instrument_id": "testnet:asset:DEMOA:GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP",
+      "standard": "stellar_classic",
+      "network": "stellar:testnet",
+      "network_passphrase": "Test SDF Network ; September 2015",
+      "asset_code": "DEMOA",
+      "issuer": "GCGGXYAKBIOKOIMVSUTXPEHRLJJU7VB7ZIYYKUFXYIVZTTFIWKEKTBEP",
+      "amount_scale": 7
+    }
+  ],
+  "representation_ratio": "1:1",
+  "pricing": {
+    "cash_unit": "USD",
+    "cash_scale": 2,
+    "price_per_unit": {
+      "atoms": "10000",
+      "scale": 2,
+      "unit": "USD"
+    },
+    "fees": "none",
+    "rounding": "reject",
+    "tolerance": "none"
+  },
+  "correlation": {
+    "operation_key": "order_ref",
+    "institutional_link": "operation_ref_equals_order_ref",
+    "chain_link": "explicit_execution_link_only",
+    "account_link": "approved_identity_link"
+  },
+  "sources": [
+    {
+      "source_id": "oms-synthetic",
+      "kind": "order_management",
+      "authoritative_for": [
+        "order_accepted"
+      ],
+      "mapping_ref": "oms-csv-synthetic@1.0.0",
+      "parser_ref": "csv-synthetic-parser@1.0.0",
+      "description": "Order book export: accepted subscription orders and their terms."
+    },
+    {
+      "source_id": "bank-synthetic",
+      "kind": "bank",
+      "authoritative_for": [
+        "cash_settled"
+      ],
+      "mapping_ref": "bank-csv-synthetic@1.0.0",
+      "parser_ref": "csv-synthetic-parser@1.0.0",
+      "description": "Bank statement export: settled cash per payment, with revisions."
+    },
+    {
+      "source_id": "ta-synthetic",
+      "kind": "transfer_agent",
+      "authoritative_for": [
+        "units_registered"
+      ],
+      "mapping_ref": "ta-csv-synthetic@1.0.0",
+      "parser_ref": "csv-synthetic-parser@1.0.0",
+      "description": "Transfer agent register export: units registered per order."
+    },
+    {
+      "source_id": "stellar-testnet",
+      "kind": "stellar_ledger",
+      "authoritative_for": [
+        "token_movement"
+      ],
+      "mapping_ref": "stellar-classic-payment@1.0.0",
+      "parser_ref": "stellar-horizon-payments-parser@1.0.0",
+      "description": "Live Stellar testnet read through Invaria's adapter (Horizon payments; SAC events only corroborate). Authoritative only for technical execution on-chain."
+    }
+  ],
+  "coverage_requirements": [
+    {
+      "source_id": "oms-synthetic",
+      "fact_types": [
+        "order_accepted"
+      ],
+      "min_level": "internally_checked",
+      "must_cover": "order_valid_time_to_valid_at",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false
+    },
+    {
+      "source_id": "bank-synthetic",
+      "fact_types": [
+        "cash_settled"
+      ],
+      "min_level": "internally_checked",
+      "must_cover": "order_valid_time_to_valid_at",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false
+    },
+    {
+      "source_id": "ta-synthetic",
+      "fact_types": [
+        "units_registered"
+      ],
+      "min_level": "internally_checked",
+      "must_cover": "order_valid_time_to_valid_at",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false
+    },
+    {
+      "source_id": "stellar-testnet",
+      "fact_types": [
+        "token_movement"
+      ],
+      "min_level": "provider_claimed",
+      "must_cover": "order_valid_time_to_valid_at",
+      "gaps_allowed": false,
+      "quarantined_records_allowed": false,
+      "quarantine_scope": "records_bearing_on_operation",
+      "quarantine_policy": {
+        "evidence": "never_credits_fulfilment",
+        "blocking": "only_controls_whose_conclusion_it_could_change",
+        "certificates": "active_until_explicit_supersession_within_chain_scope",
+        "classification": "relied_on_only_when_supported_by_the_snapshot",
+        "unapproved_parties": "outside_declared_scope_unless_linked_associated_or_unresolved"
+      }
+    }
+  ],
+  "controls": [
+    {
+      "control_id": "subscription.order_terms",
+      "mandatory": true,
+      "requires": [
+        "order_accepted"
+      ],
+      "comparison": "exact_equal",
+      "left": "order.units x pricing.price_per_unit (exact, converted to cash scale)",
+      "right": "order.cash_amount",
+      "failure_code": "ORDER_TERMS_INCONSISTENT",
+      "when_missing": "UNKNOWN",
+      "on_conflict": "UNKNOWN",
+      "on_unsupported": "UNKNOWN"
+    },
+    {
+      "control_id": "subscription.cash_vs_order",
+      "mandatory": true,
+      "requires": [
+        "order_accepted",
+        "cash_settled"
+      ],
+      "comparison": "exact_equal",
+      "left": "current cash_settled.amount for the order (latest revision known at snapshot)",
+      "right": "order.cash_amount",
+      "failure_code": "CASH_AMOUNT_MISMATCH",
+      "when_missing": "UNKNOWN",
+      "on_conflict": "UNKNOWN",
+      "on_unsupported": "UNKNOWN"
+    },
+    {
+      "control_id": "subscription.ta_units_vs_order",
+      "mandatory": true,
+      "requires": [
+        "order_accepted",
+        "units_registered"
+      ],
+      "comparison": "exact_equal",
+      "left": "units_registered.units for the order",
+      "right": "order.units",
+      "failure_code": "UNITS_MISMATCH",
+      "when_missing": "UNKNOWN",
+      "on_conflict": "UNKNOWN",
+      "on_unsupported": "UNKNOWN"
+    },
+    {
+      "control_id": "subscription.token_units_vs_order",
+      "mandatory": true,
+      "requires": [
+        "order_accepted",
+        "token_movement"
+      ],
+      "comparison": "exact_equal",
+      "left": "sum of distinct successful issuer->investor movements explicitly linked to the order, to an address with an approved identity link",
+      "right": "order.units",
+      "failure_code": "UNITS_MISMATCH",
+      "when_missing": "UNKNOWN",
+      "on_conflict": "UNKNOWN",
+      "on_unsupported": "UNKNOWN"
+    }
+  ],
+  "rules_ref": "subscription-testnet-rules@1.2.0",
+  "result_precedence": "BREAK>UNKNOWN>MATCH",
+  "evidence_policy": {
+    "absent": "UNKNOWN",
+    "conflicting_authoritative": "UNKNOWN",
+    "correction": "latest_revision_known_at_snapshot",
+    "retraction_without_replacement": "UNKNOWN_LOSS_OF_SUPPORT",
+    "duplicate_same_content": "single_effect",
+    "duplicate_different_content": "SOURCE_CONFLICT",
+    "failed_chain_transaction": "no_economic_effect",
+    "technical_error": "UNKNOWN"
+  },
+  "unsupported": [
+    "fees",
+    "partial_fill",
+    "multiple_cash_payments",
+    "variable_nav",
+    "fx_conversion",
+    "rounding",
+    "omnibus_account",
+    "distributor_delivery",
+    "sac_events",
+    "soroban_custom_token",
+    "redemption",
+    "amount_time_matching"
+  ]
+}

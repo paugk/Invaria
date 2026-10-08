@@ -1,0 +1,260 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "corpus-subscription-testnet-1.2.0",
+  "profile_ref": "fund-subscription-testnet@1.2.0",
+  "notice": "Institutional files are synthetic. On-chain evidence is produced at run time by the Stellar adapter replaying recorded real testnet responses (tests/fixtures/stellar). Profile 1.2.0 (ADR-014); the historical corpora are ../subscription-testnet-1.1.0 (profile 1.1.0) and ../subscription-testnet (profile 1.0.0).",
+  "plan": {
+    "tenant_id": "tenant-testnet-demo",
+    "operation_ref": "SUB-0001",
+    "valid_at": "2026-10-05T00:59:00Z",
+    "known_at": "2026-10-05T01:05:00Z",
+    "imports": [
+      {
+        "coverage_id": "cov-tn-oms",
+        "raw": "oms_orders_2026-10-05.csv",
+        "mapping_ref": "oms-csv-synthetic@1.0.0",
+        "recorded_at": "2026-10-05T00:59:20Z",
+        "interval": {
+          "start": "2026-10-05T00:00:00Z",
+          "end": "2026-10-05T00:59:00Z"
+        },
+        "level": "internally_checked",
+        "method": "synthetic fixture: full export"
+      },
+      {
+        "coverage_id": "cov-tn-bank",
+        "raw": "bank_statement_2026-10-05.csv",
+        "mapping_ref": "bank-csv-synthetic@1.0.0",
+        "recorded_at": "2026-10-05T00:59:25Z",
+        "interval": {
+          "start": "2026-10-05T00:00:00Z",
+          "end": "2026-10-05T00:59:00Z"
+        },
+        "level": "internally_checked",
+        "method": "synthetic fixture: full export"
+      },
+      {
+        "coverage_id": "cov-tn-ta",
+        "raw": "ta_register_2026-10-05.csv",
+        "mapping_ref": "ta-csv-synthetic@1.0.0",
+        "recorded_at": "2026-10-05T00:59:30Z",
+        "interval": {
+          "start": "2026-10-05T00:00:00Z",
+          "end": "2026-10-05T00:59:00Z"
+        },
+        "level": "internally_checked",
+        "method": "synthetic fixture: full export"
+      }
+    ],
+    "chain": {
+      "target": "targets/demoa-own.json",
+      "recordings": "recordings/demoa-own",
+      "start_ledger": 5027650,
+      "end_ledger": 5027672,
+      "recorded_at": "2026-10-05T00:59:44Z",
+      "horizon_page_limit": 2,
+      "sac_page_limit": 200
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "TN-LINKED",
+      "rationale": "T1 (1,000 DEMOA, real, successful) is linked to SUB-0001 by the approved ExecutionLink; bank and TA confirm. T3 carries the same memo but no link, so it is not attributed; T2 failed and has no effect. All controls pass.",
+      "links": [
+        {
+          "schema_version": "1.0",
+          "network": "stellar:testnet",
+          "tx_hash": "87835238a663f716a6065a3f588000c4f2a92fa7d03a33e13a5b494d7fae99a2",
+          "operation_index": 0,
+          "ordinal": 0,
+          "operation_ref": "SUB-0001",
+          "approval_ref": "approval-owner-2026-10-05-testnet-demo",
+          "recorded_at": "2026-10-05T01:00:00+00:00"
+        }
+      ],
+      "expected": {
+        "result": "MATCH",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "TN-NO-LINK",
+      "rationale": "Without any ExecutionLink, two successful 1,000 DEMOA deliveries (T1, T3) reach the investor address. Memo, amount and time never link, so the token control cannot attribute either: UNKNOWN (AMBIGUOUS_MATCH).",
+      "links": [],
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_MATCH",
+            "delta": null
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "TN-OVER-LINKED",
+      "rationale": "A wrong approval also links the duplicate T3. Linked deliveries now sum 2,000 against an order of 1,000: a demonstrated contradiction, BREAK with delta +1,000 shares. A bad link is visible, not silent.",
+      "links": [
+        {
+          "schema_version": "1.0",
+          "network": "stellar:testnet",
+          "tx_hash": "87835238a663f716a6065a3f588000c4f2a92fa7d03a33e13a5b494d7fae99a2",
+          "operation_index": 0,
+          "ordinal": 0,
+          "operation_ref": "SUB-0001",
+          "approval_ref": "approval-owner-2026-10-05-testnet-demo",
+          "recorded_at": "2026-10-05T01:00:00+00:00"
+        },
+        {
+          "schema_version": "1.0",
+          "network": "stellar:testnet",
+          "tx_hash": "00fd0148b4dc7d334169406bdc0af3829ffe53c72396c563b0077da4300d34bf",
+          "operation_index": 0,
+          "ordinal": 0,
+          "operation_ref": "SUB-0001",
+          "approval_ref": "approval-test-wrong-link",
+          "recorded_at": "2026-10-05T01:00:00+00:00"
+        }
+      ],
+      "expected": {
+        "result": "BREAK",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "FAIL",
+            "reason_code": "UNITS_MISMATCH",
+            "delta": {
+              "atoms": "10000000000",
+              "scale": 7,
+              "unit": "FUND_SHARE"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "TN-LINKED-FAILED",
+      "rationale": "Only the failed T2 is linked. A failed transaction has no economic effect, so no successful linked delivery exists; the unlinked T1 and T3 remain ambiguous: UNKNOWN, never MATCH.",
+      "links": [
+        {
+          "schema_version": "1.0",
+          "network": "stellar:testnet",
+          "tx_hash": "29bca5708470cb6e912b1e97f3c55f64c038b74a9d3c266639ddd6bce6fb6126",
+          "operation_index": 0,
+          "ordinal": 0,
+          "operation_ref": "SUB-0001",
+          "approval_ref": "approval-test-failed-link",
+          "recorded_at": "2026-10-05T01:00:00+00:00"
+        }
+      ],
+      "expected": {
+        "result": "UNKNOWN",
+        "controls": [
+          {
+            "control_id": "subscription.order_terms",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.cash_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.ta_units_vs_order",
+            "mandatory": true,
+            "status": "PASS",
+            "reason_code": "EXACT_MATCH",
+            "delta": null
+          },
+          {
+            "control_id": "subscription.token_units_vs_order",
+            "mandatory": true,
+            "status": "UNKNOWN",
+            "reason_code": "AMBIGUOUS_MATCH",
+            "delta": null
+          }
+        ]
+      }
+    }
+  ]
+}

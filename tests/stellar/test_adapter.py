@@ -21,17 +21,29 @@ import pytest
 from invaria.cli import main
 from invaria.contracts.base import parse_contract
 from invaria.contracts.chain import ChainTarget, ExecutionLink
-from invaria.contracts.observation import Observation, TokenMovementPayload
+from invaria.contracts.observation import (
+    ChainEffectPayload,
+    ChainParty,
+    Observation,
+    TokenMovementPayload,
+    TransactionMemo,
+    party_identity,
+)
+from invaria.contracts.stellar import claimable_balance_hex
 from invaria.stellar.adapter import (
     Exclusion,
+    PendingBalanceEffect,
+    classic_clawback,
     ingest_horizon_payments,
     ingest_sac_events,
     integrate_chain,
+    least_resolved,
     normalize_horizon_record,
     normalize_sac_event,
     resolve_sac_contract,
     toid_parts,
 )
+from invaria.stellar.executions import executions
 from invaria.stellar.http import (
     ChainUnavailable,
     ReplayClient,
@@ -57,11 +69,28 @@ TARGETS = FIXTURES / "targets"
 ISSUER = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 USDC_SAC = "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
 TESTNET = "Test SDF Network ; September 2015"
+# The testnet USDC/XLM liquidity pool seen in the path payment samples (Horizon id
+# 4cd1f6defba237ee...); never attributed to its liquidity providers.
+POOL_ID = "LBGND5W67ORDP3WLYX7P4JM7RHV4JNPN2SIRNPVVKNWEANH4JDLD7Q7I"
+GDQLIJ = "GDQLIJV7OYIFRNZ7TZ7TCKB5YGHWECCUX2Q3PCKS7RBIWC7PDN6LAQUE"
 RECORDED_AT = datetime(2026, 10, 5, 0, 41, tzinfo=UTC)
 SAMPLES = {
     "usdc-gclcz": (5024520, 5024600),
     "usdc-issuer": (5015930, 5015945),
     "usdc-gb4mm": (5000475, 5000490),
+    "usdc-gcdkpp": (5061229, 5061233),
+    "usdc-gazy2f": (5061281, 5061285),
+    "usdc-gbain6": (5069339, 5069339),
+    "usdc-issuer-fill": (5069194, 5069194),
+    "testusb-holder-clawback": (5070992, 5070992),
+    "testusb-issuer-clawback": (5070992, 5070992),
+    "gdice-issuer-cb-clawback": (5061607, 5061607),
+    "p0b41b8-holder-admin-clawback": (5070289, 5070289),
+    # Typed parties (captured 2026-10-07)
+    "usdc-gdes54wt-cb-create": (5024596, 5024599),
+    "usdc-gapnrjhi-cb-claim": (5024599, 5024599),
+    "usdc-gdbxa45u-contract": (5024520, 5024524),
+    "usdc-feebump-payment": (5052280, 5052280),
 }
 
 
@@ -128,6 +157,11 @@ def movement(observation: Observation) -> TokenMovementPayload:
     return observation.payload
 
 
+def effect(observation: Observation) -> ChainEffectPayload:
+    assert isinstance(observation.payload, ChainEffectPayload)
+    return observation.payload
+
+
 # ------------------------------------------------------------- network identity
 
 
@@ -172,17 +206,23 @@ def test_classic_sample_gclcz(tmp_path: Path) -> None:
     assert all(o.representation_id and o.instrument_id.endswith(ISSUER) for o in classic.appended)
     assert all(movement(o).chain.tx_successful for o in classic.appended)
     assert all(o.operation_ref is None for o in classic.appended)  # nothing links to SUB-0001
-    # unified SAC events: 5 are the same economic effects; 1 carries a u64 to_muxed_id (memo id)
-    assert sac.complete and sac.appended == () and sac.duplicates == 5
-    assert [e.reason for e in sac.exclusions] == ["MUXED_ACCOUNT"]
+    # unified SAC events: the same 6 economic effects. One carries the u64 to_muxed_id
+    # 732207663626: the Classic payment names no muxed receiver and its memo is the id
+    # 732207663626, so under CAP-67 the u64 is that memo, never a sub-account.
+    # Until increment 4 it was quarantined as MUXED_ACCOUNT.
+    assert sac.complete and sac.appended == () and sac.duplicates == 6
+    assert sac.exclusions == ()
     assert len(store.observations()) == 6
+    memos = [movement(o).memo for o in classic.appended]
+    assert TransactionMemo(memo_type="id", value="732207663626") in memos
+    assert all(movement(o).to_muxed_id is None for o in classic.appended)
     coverage = {c.coverage_id.rsplit("-", 2)[0]: c for c in store.coverage()}
     horizon_cov = coverage["cov-testnet-usdc-gclcz-horizon_payments"]
     assert (horizon_cov.records_received, horizon_cov.records_quarantined) == (6, 0)
     assert horizon_cov.level == "provider_claimed" and horizon_cov.is_gap_free
     assert horizon_cov.ledger_range is not None and horizon_cov.ledger_range.first == 5024520
     sac_cov = coverage["cov-testnet-usdc-gclcz-rpc_sac_events"]
-    assert sac_cov.records_quarantined == 1 and not sac_cov.is_gap_free
+    assert sac_cov.records_quarantined == 0
 
 
 def test_issuer_burn_is_one_effect_across_paths(tmp_path: Path) -> None:
@@ -196,17 +236,212 @@ def test_issuer_burn_is_one_effect_across_paths(tmp_path: Path) -> None:
     assert sac.duplicates == 1 and sac.appended == ()
 
 
-def test_path_payment_excluded_in_classic_but_sac_movements_kept(tmp_path: Path) -> None:
+def test_real_path_payment_is_kept_as_chain_effects_not_movements(tmp_path: Path) -> None:
+    """Real testnet strict_receive (usdc-gb4mm): USDCAllow -> USDC, GB4MM -> GAYF33."""
     store = IngestStore(tmp_path)
     classic, sac = ingest("usdc-gb4mm", store)
-    assert classic.appended == () and [e.reason for e in classic.exclusions] == [
-        "UNSUPPORTED_OPERATION"
-    ]
+    tx = "fbab5a26d8bcab43bf9178101e61c878148c67a2a56bb1f23a1997c5dbdc24d0"
+    gayf, gb4mm = (
+        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        target("usdc-gb4mm").account,
+    )
+    assert all(o.fact_type == "chain_effect" for o in store.observations())
+    (credit,) = classic.appended  # the source asset is not USDC: no debit effect
+    payload = effect(credit)
+    assert credit.source.record_key == f"{tx}:0:classic:credit" and credit.operation_ref is None
+    assert (payload.effect_kind, payload.account, payload.direction) == (
+        "path_payment_credit",
+        gayf,
+        "credit",
+    )
+    assert payload.units is not None and payload.units.atoms == "345670000000"
+    context = payload.path_payment
+    assert context is not None and context.operation_type == "path_payment_strict_receive"
+    assert context.source_asset.startswith("USDCAllow:") and context.source_amount == "345670000000"
+    assert context.destination_amount == "345670000000" and context.path == []
+    assert payload.transaction is not None
+    assert (payload.transaction.fee_account, payload.transaction.fee_charged.atoms) == (
+        gb4mm,
+        "200",
+    )
+    assert [e.reason for e in classic.exclusions] == ["EFFECT_NOT_A_MOVEMENT"]
     assert classic.coverage is not None and not classic.coverage.is_gap_free
+    # SAC: the conversion (mint from the issuer) and the transfer are legs, not movements.
     mint, transfer = sac.appended
-    assert (movement(mint).from_address, mint.source.record_key[-4:]) == (ISSUER, ":0:0")
-    assert movement(transfer).from_address == movement(mint).to_address
-    assert transfer.source.record_key[-4:] == ":0:1"  # second effect of the same operation
+    assert [o.source.record_key for o in sac.appended] == [f"{tx}:0:sac:0", f"{tx}:0:sac:1"]
+    # Legs are seen from their sender, whoever the watched account is.
+    assert (effect(mint).account, effect(mint).direction) == (ISSUER, "debit")
+    assert effect(mint).counterparty == ChainParty(kind="account", id=gb4mm)
+    assert (effect(transfer).account, effect(transfer).direction) == (gb4mm, "debit")
+    assert effect(transfer).counterparty == ChainParty(kind="account", id=gayf)
+    (check,) = store.correspondence()
+    assert check["status"] == "corroborated"
+    assert check["classic_net"] == check["sac_net"] == {gayf: "345670000000", gb4mm: "0"}
+    assert sac.coverage is not None and not sac.coverage.is_gap_free
+
+
+GAYF33 = "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU"
+
+
+@pytest.mark.parametrize(
+    ("sample", "tx", "submitter", "offer", "direction", "atoms", "sold", "bought"),
+    [
+        # GBAIN6's offer 894515 (LUSD for USDC) crossed by GALBIMJM's strict_receive.
+        (
+            "usdc-gbain6",
+            "836d21330e88f9b268132dc7499d05ada4e27780b210ebc36f7274ebd664ff95",
+            "GALBIMJMMFXWP2FCDPV34OJXZTZDGPXYXOYNH4XKVR2I6Q2H3XUERYNM",
+            "894515",
+            "credit",
+            "2479821",
+            "LUSD",
+            "USDC",
+        ),
+        # The issuer's offer 32 (USDC for USDCAllow) crossed by GB4MM's strict_receive: the
+        # SAC side is a mint, which the first adapter release would have read as a movement.
+        (
+            "usdc-issuer-fill",
+            "ba0ab984ac337907883f1b3d1046ab6df94a1925436b38642b64e1817dec9362",
+            "GB4MMSZ5FY3KOCMMN77DNJBSKXFZVRXMLM5SKKDIVGTWGR55DKJM7GSD",
+            "32",
+            "debit",
+            "345670000000",
+            "USDC",
+            "USDCAllow",
+        ),
+    ],
+)
+def test_real_dex_fill_is_an_exchange_effect_not_a_movement(
+    tmp_path: Path,
+    sample: str,
+    tx: str,
+    submitter: str,
+    offer: str,
+    direction: str,
+    atoms: str,
+    sold: str,
+    bought: str,
+) -> None:
+    """A fill of the watched account's offer: Horizon does not list it among the account's
+    payments, which is the endpoint's scope, not evidence that nothing moved."""
+    store = IngestStore(tmp_path)
+    classic, sac = ingest(sample, store)
+    watched = target(sample).account
+    assert classic.appended == () and classic.exclusions == ()
+    assert classic.coverage is not None and classic.coverage.is_gap_free
+    assert not any(o.fact_type == "token_movement" for o in store.observations())
+    fill_classic, fill_sac = sac.appended
+    assert fill_classic.source.record_key.startswith(f"{tx}:0:classic:fill:")
+    assert fill_sac.source.record_key.startswith(f"{tx}:0:sac:0:dex_fill:")
+    for observation in (fill_classic, fill_sac):
+        payload = effect(observation)
+        assert (payload.effect_kind, payload.account, payload.direction) == (
+            "dex_fill",
+            watched,
+            direction,
+        )
+        assert payload.units is not None and payload.units.atoms == atoms
+        assert observation.operation_ref is None
+        # The submitter is the technical counterparty, never the owner of the effect.
+        assert payload.counterparty == ChainParty(kind="account", id=submitter)
+        assert payload.exchange is not None
+        assert payload.exchange.operation_type == "path_payment_strict_receive"
+        assert payload.exchange.operation_source == submitter
+    trade = effect(fill_classic).exchange
+    assert trade is not None and trade.offer_id == offer
+    assert trade.sold_asset is not None and trade.sold_asset.split(":")[0] == sold
+    assert trade.bought_asset is not None and trade.bought_asset.split(":")[0] == bought
+    sac_exchange = effect(fill_sac).exchange
+    assert sac_exchange is not None and sac_exchange.offer_id is None
+    (check,) = store.correspondence()
+    assert (check["kind"], check["status"], check["claim"]) == (
+        "dex_fill",
+        "corroborated",
+        "aggregate_reconciliation",
+    )
+    assert [e.reason for e in sac.exclusions] == ["EFFECT_NOT_A_MOVEMENT"]
+    assert sac.coverage is not None and sac.coverage.quarantined_records is not None
+    (record,) = sac.coverage.quarantined_records
+    # In scope: the account, the submitter and the operation's destination (scope only).
+    destination = {"usdc-gbain6": submitter, "usdc-issuer-fill": GAYF33}[sample]
+    assert record.addresses == sorted({watched, submitter, destination})
+
+
+def test_real_failed_path_payment_keeps_no_amount(tmp_path: Path) -> None:
+    """Real FAILED strict_receive (usdc-gcdkpp): Horizon shows source_amount 0.0000000 and
+    the requested 40613661.1519794 XLM; neither was executed."""
+    store = IngestStore(tmp_path)
+    classic, sac = ingest("usdc-gcdkpp", store)
+    gcdkpp = target("usdc-gcdkpp").account
+    failed_tx = "c1959d21a148894d7f0e58d4a3d2873c4811a101606a9c0f2adbc9ebb0108e25"
+    (failed,) = [o for o in classic.appended if o.source.record_key.startswith(failed_tx)]
+    payload = effect(failed)
+    assert failed.source.record_key == f"{failed_tx}:0:classic:failed"
+    assert (payload.effect_kind, payload.account, payload.units) == (
+        "path_payment_failed",
+        gcdkpp,
+        None,
+    )
+    assert not payload.chain.tx_successful and payload.path_payment is not None
+    assert payload.path_payment.source_asset == f"USDC:{ISSUER}"
+    assert payload.path_payment.destination_asset == "native"
+    assert (payload.path_payment.source_amount, payload.path_payment.destination_amount) == (
+        None,
+        None,
+    )
+    assert payload.transaction is not None
+    assert payload.transaction.fee_charged.atoms == "100"
+    assert payload.transaction.result_xdr == "AAAAAAAAAGT/////AAAAAQAAAAAAAAAC////9AAAAAA="
+    checks = {e["tx_hash"]: e["status"] for e in store.correspondence()}
+    assert checks[failed_tx] == "failed_no_effect"
+    # The successful XLM -> USDC operation of the same window: credit of 341.3500694 USDC.
+    # Its SAC side has a liquidity pool leg (ScAddress type 4). Since typed parties
+    # the pool is a typed party, so the correspondence resolves (it was sac_incomplete).
+    credit_tx = "994d6b2f63c99aaba4f17094d1839ab76bdc4fb41039b50f2a722e64ee3a4c3c"
+    (credit,) = [o for o in classic.appended if o.source.record_key.startswith(credit_tx)]
+    assert credit.source.record_key == f"{credit_tx}:2:classic:credit"
+    credited = effect(credit).units
+    assert credited is not None and credited.atoms == "3413500694"
+    assert checks[credit_tx] == "corroborated"
+    (pool_leg,) = [o for o in sac.appended if effect(o).counterparty.kind == "liquidity_pool"]  # type: ignore[union-attr]
+    # The pool converts for the path payment's source; it is a party, never an account.
+    assert effect(pool_leg).counterparty == ChainParty(kind="liquidity_pool", id=POOL_ID)
+    assert (effect(pool_leg).account, effect(pool_leg).direction) == (GDQLIJ, "credit")
+    assert [e.reason for e in sac.exclusions] == ["EFFECT_NOT_A_MOVEMENT"]
+    assert all(o.fact_type == "chain_effect" for o in store.observations())
+
+
+def test_real_strict_send_to_itself_in_the_target_asset(tmp_path: Path) -> None:
+    """Real strict_send XLM -> USDC from GAZY2F to itself (usdc-gazy2f): 0.0000009 USDC."""
+    store = IngestStore(tmp_path)
+    classic, sac = ingest("usdc-gazy2f", store)
+    account = target("usdc-gazy2f").account
+    (credit,) = classic.appended
+    payload = effect(credit)
+    assert (
+        payload.effect_kind,
+        payload.account,
+        payload.units.atoms if payload.units else None,
+    ) == (
+        "path_payment_credit",
+        account,
+        "9",
+    )
+    assert payload.counterparty == ChainParty(kind="account", id=account)
+    assert payload.path_payment is not None and payload.path_payment.source_asset == "native"
+    assert payload.path_payment.source_amount == "10"  # 0.0000010 XLM, executed, unconverted
+    # The pool -> GAZY2F leg is a typed leg since increment 3 (it was undecodable), and
+    # the self transfer of GAZY2F is the other leg.
+    pool_leg, own = sorted(sac.appended, key=lambda o: o.source.record_key)
+    assert effect(pool_leg).counterparty == ChainParty(kind="liquidity_pool", id=POOL_ID)
+    assert (effect(pool_leg).account, effect(pool_leg).direction) == (account, "credit")
+    assert (effect(own).account, effect(own).direction) == (account, "debit")
+    assert effect(own).counterparty == ChainParty(kind="account", id=account)
+    (check,) = store.correspondence()
+    assert check["status"] == "corroborated"  # net and gross of GAZY2F: +0.0000009
+    # The path legs (one SAC record) plus the Horizon record of the same operation; no
+    # correspondence conflict any more.
+    assert sac.coverage is not None and sac.coverage.records_quarantined == 1 + 1
 
 
 def test_ingestion_is_deterministic(tmp_path: Path) -> None:
@@ -214,7 +449,9 @@ def test_ingestion_is_deterministic(tmp_path: Path) -> None:
     ingest("usdc-gclcz", first)
     ingest("usdc-gclcz", second)
     for name in ("observations.jsonl", "coverage.jsonl", "exclusions.jsonl"):
-        assert (tmp_path / "a" / name).read_bytes() == (tmp_path / "b" / name).read_bytes()
+        a, b = tmp_path / "a" / name, tmp_path / "b" / name
+        assert a.is_file() == b.is_file()  # gclcz has no exclusion since increment 4
+        assert not a.is_file() or a.read_bytes() == b.read_bytes()
 
 
 def test_provenance_points_to_stored_raw_pages(tmp_path: Path) -> None:
@@ -322,7 +559,7 @@ def test_redelivered_pages_do_not_duplicate_effects(tmp_path: Path) -> None:
         checkpoint.unlink()
     classic, sac = ingest("usdc-gclcz", store)
     assert classic.appended == () and classic.duplicates == 6
-    assert sac.appended == () and sac.duplicates == 5
+    assert sac.appended == () and sac.duplicates == 6  # the memo-id event corroborates too
     assert len(store.observations()) == 6
 
 
@@ -349,7 +586,10 @@ def _page_and_record(sample: str) -> tuple[Page, dict[str, Any]]:
 
 
 def _normalize(sample: str, record: dict[str, Any], page: Page) -> Any:
-    return normalize_horizon_record(target(sample), record, page, 0, RECORDED_AT, {})
+    """The single result, None when out of scope (the record-level rules give at most one)."""
+    results = normalize_horizon_record(target(sample), record, page, 0, RECORDED_AT, {})
+    assert len(results) <= 1
+    return results[0] if results else None
 
 
 def test_failed_transaction_is_observed_without_effect() -> None:
@@ -358,6 +598,34 @@ def test_failed_transaction_is_observed_without_effect() -> None:
     record["transaction"]["successful"] = False
     observation = _normalize("usdc-issuer", record, page)
     assert isinstance(observation, Observation) and not movement(observation).chain.tx_successful
+
+
+def test_a_quarantined_record_names_the_ledger_operation_as_the_engine_does() -> None:
+    """The bounded quarantine joins the adapter and the engine: a quarantined record on the
+    ledger operation of a counted delivery must carry exactly the ``<tx_hash>:<op_index>``
+    the engine builds from that delivery's chain. A real payment, and a DERIVED copy of it as a
+    contract call (which the Horizon route excludes; a muxed payment no longer is since
+    increment 4), name the same operation in the same form."""
+    page, record = _page_and_record("usdc-issuer")
+    delivery = _normalize("usdc-issuer", record, page)
+    assert isinstance(delivery, Observation)
+    chain = movement(delivery).chain
+    call = dict(
+        record,
+        type="invoke_host_function",
+        asset_balance_changes=[
+            {
+                "asset_code": record["asset_code"],
+                "asset_issuer": record["asset_issuer"],
+                "type": "transfer",
+                "from": record["from"],
+                "to": record["to"],
+            }
+        ],
+    )
+    (excluded,) = normalize_horizon_record(target("usdc-issuer"), call, page, 0, RECORDED_AT, {})
+    assert isinstance(excluded, Exclusion) and excluded.reason == "UNSUPPORTED_OPERATION"
+    assert excluded.chain_op == f"{chain.tx_hash}:{chain.operation_index}"
 
 
 @pytest.mark.parametrize(
@@ -370,11 +638,14 @@ def test_failed_transaction_is_observed_without_effect() -> None:
         ({"amount": "20.00000001"}, "MALFORMED"),
         ({"amount": "-20.0000000"}, "MALFORMED"),
         ({"paging_token": "21543293963735040"}, "MALFORMED"),
+        # an M address of another base account than ``to`` (increment 4: a consistent one
+        # is kept, test_muxed_memo.py)
         (
             {"to_muxed": "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUAAAAAAAAAAAACJUQ"},
-            "MUXED_ACCOUNT",
+            "MALFORMED",
         ),
-        ({"type": "path_payment_strict_send"}, "UNSUPPORTED_OPERATION"),
+        # a path payment record without its source asset fields cannot be read
+        ({"type": "path_payment_strict_send"}, "MALFORMED"),
     ],
 )
 def test_horizon_record_rules(change: dict[str, str], expected: str | None) -> None:
@@ -411,6 +682,12 @@ def _scval_symbol(text: str) -> str:
     ).decode()
 
 
+def _scval_amount_map(atoms: int) -> str:
+    key = base64.b64decode(_scval_symbol("amount"))
+    value = struct.pack(">iqQ", 10, atoms >> 64, atoms & (2**64 - 1))
+    return base64.b64encode(struct.pack(">iiI", 17, 1, 1) + key + value).decode()
+
+
 def _scval_contract(raw32: bytes) -> str:
     return base64.b64encode(struct.pack(">ii", 18, 1) + raw32).decode()
 
@@ -422,21 +699,58 @@ def test_real_sac_burn_maps_to_issuer_movement() -> None:
     assert movement(result).to_address == ISSUER and movement(result).units.atoms == "200000000"
 
 
+def _scval_address(kind: int, raw: bytes) -> str:
+    return base64.b64encode(struct.pack(">ii", 18, kind) + raw).decode()
+
+
 @pytest.mark.parametrize(
     ("mutate", "expected"),
     [
-        (lambda e: e["topic"].__setitem__(0, _scval_symbol("clawback")), "UNSUPPORTED_EVENT"),
-        (lambda e: e["topic"].__setitem__(1, _scval_contract(b"\x07" * 32)), "CONTRACT_PARTY"),
         (
+            # A muxed account party (ScAddress type 2), which CAP-67 never puts in the topics:
+            # decoded since increment 4, kept unresolved.
             lambda e: e["topic"].__setitem__(
-                1, base64.b64encode(struct.pack(">ii", 18, 4) + b"\x01" * 32).decode()
+                1, _scval_address(2, struct.pack(">Q", 7) + b"\x01" * 32)
+            ),
+            "MUXED_ACCOUNT",
+        ),
+        (lambda e: e["topic"].__setitem__(1, _scval_address(9, b"\x01" * 32)), "UNSUPPORTED_PARTY"),
+        (lambda e: e["topic"].__setitem__(2, _scval_symbol("EURC:" + ISSUER)), "MALFORMED"),
+        (lambda e: e.__setitem__("value", _scval_symbol("x")), "UNSUPPORTED_VALUE"),
+        (
+            # A pool is no clawback holder; it is never attributed to its providers.
+            lambda e: (
+                e["topic"].__setitem__(0, _scval_symbol("clawback"))
+                or e["topic"].__setitem__(1, _scval_address(4, b"\x01" * 32))
             ),
             "UNSUPPORTED_PARTY",
         ),
-        (lambda e: e["topic"].__setitem__(2, _scval_symbol("EURC:" + ISSUER)), "MALFORMED"),
-        (lambda e: e.__setitem__("value", _scval_symbol("x")), "UNSUPPORTED_VALUE"),
+        (
+            # An unsuccessful call moved nothing to or from a typed party either.
+            lambda e: (
+                e["topic"].__setitem__(1, _scval_contract(b"\x07" * 32))
+                or e.__setitem__("inSuccessfulContractCall", False)
+            ),
+            "UNSUCCESSFUL_EVENT",
+        ),
+        (
+            # CAP-67 gives a clawback a plain i128 amount, never a map.
+            lambda e: (
+                e["topic"].__setitem__(0, _scval_symbol("clawback"))
+                or e.__setitem__("value", _scval_amount_map(5))
+            ),
+            "UNSUPPORTED_VALUE",
+        ),
     ],
-    ids=["clawback", "contract-party", "pool-party", "other-asset-string", "non-i128-value"],
+    ids=[
+        "muxed-party",
+        "unknown-address-type",
+        "other-asset-string",
+        "non-i128-value",
+        "clawback-pool-party",
+        "unsuccessful-contract-movement",
+        "clawback-map-value",
+    ],
 )
 def test_sac_event_rules(mutate: Any, expected: str) -> None:
     page, event = _sac_event("usdc-issuer")
@@ -444,6 +758,48 @@ def test_sac_event_rules(mutate: Any, expected: str) -> None:
     result = normalize_sac_event(target("usdc-issuer"), USDC_SAC, event, 0, page, RECORDED_AT, {})
     # the issuer target is involved in every supply change, so each problem is in scope
     assert isinstance(result, Exclusion) and result.reason == expected
+
+
+@pytest.mark.parametrize(
+    ("kind", "raw", "effect_kind", "party"),
+    [
+        (1, b"\x07" * 32, "contract_transfer", "contract"),
+        (4, b"\x01" * 32, "pool_transfer", "liquidity_pool"),
+    ],
+)
+def test_a_burn_from_a_typed_party_is_a_typed_effect(
+    kind: int, raw: bytes, effect_kind: str, party: str
+) -> None:
+    """Typed parties (derived from the real burn of usdc-issuer): a contract or pool
+    party is a typed counterparty, never an account, and the effect is canonical (the
+    issuer's side of a burn)."""
+    page, event = _sac_event("usdc-issuer")
+    event["topic"][1] = _scval_address(kind, raw)
+    result = normalize_sac_event(target("usdc-issuer"), USDC_SAC, event, 0, page, RECORDED_AT, {})
+    assert isinstance(result, Observation) and result.fact_type == "chain_effect"
+    payload = effect(result)
+    assert (payload.effect_kind, payload.account, payload.direction) == (
+        effect_kind,
+        ISSUER,
+        "credit",
+    )
+    assert payload.counterparty is not None and payload.counterparty.kind == party
+    assert result.source.record_key.endswith(f":sac:0:{effect_kind}")
+    assert result.operation_ref is None
+
+
+def test_a_claimable_balance_party_waits_for_the_balances_history() -> None:
+    """A clawback of a claimable balance (derived from the real burn of usdc-issuer) is a
+    clawback with a typed holder and no account: it needs the balance's history first."""
+    page, event = _sac_event("usdc-issuer")
+    event["topic"][0] = _scval_symbol("clawback")
+    event["topic"][1] = base64.b64encode(struct.pack(">iii", 18, 3, 0) + b"\x07" * 32).decode()
+    result = normalize_sac_event(target("usdc-issuer"), USDC_SAC, event, 0, page, RECORDED_AT, {})
+    assert isinstance(result, PendingBalanceEffect)
+    assert result.expected_operation == "clawback_claimable_balance"
+    assert result.payload["account"] is None
+    assert result.payload["holder"] == {"kind": "claimable_balance", "id": result.balance_id}
+    assert result.balance_id.startswith("B") and len(result.balance_id) == 58
 
 
 def test_events_of_other_contracts_and_non_movements_are_out_of_scope() -> None:
@@ -537,21 +893,6 @@ def test_rpc_retention_error_is_data_unavailable() -> None:
     )
     with pytest.raises(DataUnavailable):
         rpc.get_events(USDC_SAC, start_ledger=4000000, end_ledger=4000010, cursor=None, limit=10)
-
-
-def test_rpc_request_asks_for_the_ledger_after_the_range() -> None:
-    """Regression: RPC's endLedger is exclusive; requesting END left ledger END unread."""
-    sent: list[dict[str, Any]] = []
-
-    class _Capture:
-        def request(self, method: str, url: str, body: bytes | None) -> Response:
-            sent.append(json.loads(body or b"{}"))
-            return Response(200, b'{"jsonrpc": "2.0", "id": 1, "result": {"events": []}}')
-
-    Rpc("https://rpc.example", _Capture()).get_events(
-        USDC_SAC, start_ledger=10, end_ledger=20, cursor=None, limit=5
-    )
-    assert (sent[0]["params"]["startLedger"], sent[0]["params"]["endLedger"]) == (10, 21)
 
 
 def test_horizon_range_outside_history_is_data_unavailable(tmp_path: Path) -> None:
@@ -687,7 +1028,11 @@ class _CursorPagingRpc(Rpc):
             "result": {
                 "events": chunk,
                 "latestLedger": self.latest,
-                "cursor": chunk[-1]["id"] if chunk else (cursor or "0"),
+                # Like the real RPC: a short page reports how far it scanned.
+                "cursor": chunk[-1]["id"]
+                if len(chunk) == limit
+                else f"{((end_ledger if cursor is None else self.latest) + 1 << 32) - 1:019d}"
+                "-4294967295",
             },
         }
         raw = json.dumps(document, sort_keys=True).encode()
@@ -707,6 +1052,17 @@ def test_sac_cursor_pagination_stops_at_end_ledger(tmp_path: Path) -> None:
     )
     fake = _CursorPagingRpc([*events, later], latest=end + 100)
     store = IngestStore(tmp_path)
+    check = verify_network(horizon, rpc, "stellar:testnet")
+    ingest_horizon_payments(
+        target("usdc-gclcz"),
+        horizon,
+        store,
+        start_ledger=start,
+        end_ledger=end,
+        history=(check.horizon_elder_ledger, check.horizon_latest_ledger),
+        recorded_at=RECORDED_AT,
+        page_limit=2,
+    )
     result = ingest_sac_events(
         target("usdc-gclcz"),
         fake,
@@ -800,3 +1156,314 @@ def test_undeployed_sac_is_accepted_but_a_different_published_id_is_not() -> Non
 
     with pytest.raises(ValueError, match="Horizon publishes SAC"):
         resolve_sac_contract(own, _Published(horizon.base_url, horizon.client))
+
+
+# ------------------------------------------------- clawback
+
+CLAWBACK_TX = "5202896d04a399164cea697423f2e02bea2f030bb2c5fa5200ef4e83c9e8b77f"
+TESTUSB_HOLDER = "GBV6VEMHOOLOAHERL4JO35X3IDLR4HQIZ3BTUYXFCAO4Z526COZMUJMN"
+TESTUSB_ISSUER = "GCWSNDOOTAGUCTR4X62RCH5UOAUVSWV5VL2AZSCWBK27DHL2IFQDPHVX"
+
+
+def test_real_account_clawback_from_holder_and_issuer_is_one_withdrawal(tmp_path: Path) -> None:
+    """Real testnet clawback of 10.123 TESTUSB from GBV6VEMH: Horizon does not list it among
+    the holder's payments; the SAC event and the Classic operation agree, and the holder's
+    and the issuer's targets record the same two effects, never four."""
+    store = IngestStore(tmp_path)
+    holder_classic, holder_sac = ingest("testusb-holder-clawback", store)
+    _, issuer_sac = ingest("testusb-issuer-clawback", store)
+    assert holder_classic.appended == () and holder_classic.coverage is not None
+    assert holder_classic.coverage.is_gap_free  # absence from payments is no contradiction
+    assert issuer_sac.conflicts == () and len(issuer_sac.appended) == 0
+    effects = store.observations()
+    assert sorted(o.source.record_key for o in effects) == [
+        f"{CLAWBACK_TX}:0:classic:clawback",
+        f"{CLAWBACK_TX}:0:sac:0:clawback",
+    ]
+    for observation in effects:
+        payload = effect(observation)
+        assert (payload.effect_kind, payload.account, payload.direction) == (
+            "clawback",
+            TESTUSB_HOLDER,
+            "debit",
+        )
+        assert payload.units is not None and payload.units.atoms == "101230000"
+        assert payload.clawback is not None and payload.clawback.issuer == TESTUSB_ISSUER
+        assert payload.clawback.asset == f"TESTUSB:{TESTUSB_ISSUER}"
+        assert observation.operation_ref is None
+    for target_id in ("testnet-testusb-holder-clawback", "testnet-testusb-issuer-clawback"):
+        check = store.current_correspondence()[(target_id, CLAWBACK_TX, 0)]
+        assert check["status"] == "corroborated"
+    assert [e.reason for e in holder_sac.exclusions] == ["EFFECT_NOT_A_MOVEMENT"]
+
+
+def test_real_clawback_is_one_execution_per_target_and_jointly(tmp_path: Path) -> None:
+    """The "two effects" of the real TESTUSB clawback are two representations (the Classic
+    operation and the SAC event) of one execution. Ingested from the holder's target alone,
+    from the issuer's alone, and both: one execution each time, never two withdrawals."""
+    holder_store = IngestStore(tmp_path / "holder")
+    issuer_store = IngestStore(tmp_path / "issuer")
+    joint_store = IngestStore(tmp_path / "joint")
+    ingest("testusb-holder-clawback", holder_store)
+    ingest("testusb-issuer-clawback", issuer_store)
+    ingest("testusb-holder-clawback", joint_store)
+    ingest("testusb-issuer-clawback", joint_store)
+    views = {
+        "holder": holder_store.observations(),
+        "issuer": issuer_store.observations(),
+        "joint": joint_store.observations(),
+        "union of the separate stores": [
+            *holder_store.observations(),
+            *issuer_store.observations(),
+        ],
+    }
+    for name, observations in views.items():
+        (execution,) = executions(observations)
+        assert execution.status == "corroborated", name
+        assert execution.key[:2] == ("stellar:testnet", CLAWBACK_TX), name
+        assert execution.key[5] == f"stellar:testnet/account/{TESTUSB_HOLDER}", name
+        assert [o.source.record_key for o in execution.representations] == [
+            f"{CLAWBACK_TX}:0:classic:clawback",
+            f"{CLAWBACK_TX}:0:sac:0:clawback",
+        ], name
+        units = {effect(o).units.atoms for o in execution.representations}  # type: ignore[union-attr]
+        assert units == {"101230000"}, name  # 10.123 TESTUSB once, not 20.246
+    # Each target keeps its own correspondence record of the same evidence.
+    for store, target_id in (
+        (holder_store, "testnet-testusb-holder-clawback"),
+        (issuer_store, "testnet-testusb-issuer-clawback"),
+    ):
+        check = store.current_correspondence()[(target_id, CLAWBACK_TX, 0)]
+        assert check["classic_effects"] == [f"{CLAWBACK_TX}:0:classic:clawback"]
+        assert check["sac_legs"] == [f"{CLAWBACK_TX}:0:sac:0:clawback"]
+
+
+def test_real_claimable_balance_clawback_and_creation_are_typed(tmp_path: Path) -> None:
+    """Real gdICE ledger 5061607 (issuer target): op 0 claws back balance b978... (ScAddress
+    type 3), op 1 mints a new balance a289... Increment 2 kept the clawback unsupported;
+    increment 3 records both with the balance as a typed party, never as an account, and
+    checks them against the balance's history (Horizon keeps it after the clawback)."""
+    store = IngestStore(tmp_path)
+    _, sac = ingest("gdice-issuer-cb-clawback", store)
+    issuer = target("gdice-issuer-cb-clawback").asset_issuer
+    horizon, _ = clients("gdice-issuer-cb-clawback")
+    clawback, created = sorted(store.observations(), key=lambda o: o.source.record_key)
+    taken, made = effect(clawback), effect(created)
+    assert (taken.effect_kind, taken.account, taken.direction) == ("clawback", None, "debit")
+    assert taken.holder is not None and taken.holder.kind == "claimable_balance"
+    assert taken.counterparty == ChainParty(kind="account", id=issuer)  # the supply side
+    assert claimable_balance_hex(str(taken.holder.id)).startswith("00000000b978c53b7fb364ed")
+    assert (made.effect_kind, made.account, made.direction) == (
+        "claimable_balance_created",
+        issuer,  # minted into the balance: the issuer's side
+        "debit",
+    )
+    assert made.counterparty is not None and made.counterparty.kind == "claimable_balance"
+    for payload in (taken, made):
+        balance = payload.claimable_balance
+        assert balance is not None
+        history = horizon.claimable_balance_operations(claimable_balance_hex(balance.balance_id))
+        (creation,) = [
+            r
+            for r in history.document["_embedded"]["records"]
+            if r["type"] == "create_claimable_balance"
+        ]
+        assert balance.creator == ChainParty(kind="account", id=creation["source_account"])
+        assert balance.claimants == [c["destination"] for c in creation["claimants"]]
+        assert issuer not in balance.claimants  # claimants are possible recipients only
+    assert taken.claimable_balance is not None
+    assert taken.claimable_balance.operation_type == "clawback_claimable_balance"
+    assert made.claimable_balance is not None
+    assert made.claimable_balance.operation_type == "create_claimable_balance"
+    checks = sorted(store.correspondence(), key=lambda c: c["op_index"])
+    assert [(c["kind"], c["status"], c["participants"]) for c in checks] == [
+        ("claimable_balance", "corroborated", "resolved")
+    ] * 2
+    assert sac.coverage is not None and sac.coverage.records_quarantined == 0
+    assert all(o.operation_ref is None for o in store.observations())
+
+
+def test_real_claimable_balance_seen_by_creator_and_claimant(tmp_path: Path) -> None:
+    """Real USDC claimable balance 53cd2191...: GDES54WT creates it (0.5 USDC, claimants
+    GAPNRJHI and GDES54WT) and GAPNRJHI claims it. Each target records its own canonical
+    effect; the balance is the same typed party in both, and nobody is presumed to have
+    received the other balances GDES54WT created."""
+    store = IngestStore(tmp_path)
+    ingest("usdc-gdes54wt-cb-create", store)
+    ingest("usdc-gapnrjhi-cb-claim", store)
+    creator = target("usdc-gdes54wt-cb-create").account
+    claimant = target("usdc-gapnrjhi-cb-claim").account
+    effects = {o.source.record_key: effect(o) for o in store.observations()}
+    created = [p for p in effects.values() if p.effect_kind == "claimable_balance_created"]
+    (claimed,) = [p for p in effects.values() if p.effect_kind == "claimable_balance_claimed"]
+    assert len(created) == 4 and all(
+        (p.account, p.direction, p.units.atoms if p.units else None)
+        == (creator, "debit", "5000000")
+        for p in created
+    )
+    assert (claimed.account, claimed.direction) == (claimant, "credit")
+    assert claimed.counterparty is not None
+    # The claimed balance is one of the four GDES54WT created (Horizon id 53cd2191...).
+    (same,) = [p for p in created if p.counterparty == claimed.counterparty]
+    assert claimable_balance_hex(str(claimed.counterparty.id)).startswith("0000000053cd2191")
+    assert claimed.claimable_balance is not None and same.claimable_balance is not None
+    assert claimed.claimable_balance.creator == ChainParty(kind="account", id=creator)
+    assert claimed.claimable_balance.claimants == same.claimable_balance.claimants
+    assert claimant in (claimed.claimable_balance.claimants or [])
+    assert claimed.claimable_balance.operation_source == claimant
+    # Identity: kind and id on the network, never the account of either side.
+    assert party_identity("stellar:testnet", claimed.counterparty).startswith(
+        "stellar:testnet/claimable_balance/B"
+    )
+    statuses = {c["status"] for c in store.correspondence()}
+    assert statuses == {"corroborated"}
+
+
+def test_real_contract_movements_keep_the_contract_as_a_party(tmp_path: Path) -> None:
+    """Real USDC transfers between GDBXA45U and contract CAYPAQDK (invoke_host_function,
+    listed by Horizon): typed contract effects, the contract never an account and its
+    owner never inferred. Horizon's record of each call stays quarantined as the Horizon
+    run left it, so the coverage still does not show these operations resolved."""
+    store = IngestStore(tmp_path)
+    classic, sac = ingest("usdc-gdbxa45u-contract", store)
+    account = target("usdc-gdbxa45u-contract").account
+    contract = "CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA"
+    effects = [effect(o) for o in store.observations()]
+    assert len(effects) == 6 and {p.effect_kind for p in effects} == {"contract_transfer"}
+    assert all(p.account == account for p in effects)
+    assert all(p.counterparty == ChainParty(kind="contract", id=contract) for p in effects)
+    assert {p.direction for p in effects} == {"debit", "credit"}
+    assert {e.reason for e in sac.exclusions} == {"EFFECT_NOT_A_MOVEMENT"}
+    assert not any(e.quarantine for e in sac.exclusions)
+    assert {e.reason for e in classic.exclusions} == {"UNSUPPORTED_OPERATION"}
+    assert sac.coverage is not None and sac.coverage.quarantined_records is not None
+    assert sac.coverage.records_quarantined == len(classic.exclusions) == 3
+    assert all(
+        r.addresses is not None and {account, contract} <= set(r.addresses)
+        for r in sac.coverage.quarantined_records
+    )
+
+
+def test_real_failed_clawback_operation_withdraws_nothing() -> None:
+    """Real FAILED Classic clawback (Horizon shows 50 TESTUSB requested): no effect."""
+    client = ReplayClient(RECORDINGS / "testusb-failed-clawback")
+    horizon = Horizon(Endpoints.resolve(None, None).horizon_url, client)
+    page = horizon.transaction_operations(
+        "4d4db33e234ee809816c992c23f18bd46bd57b962dc3c25721791fc96466de88"
+    )
+    (record,) = page.document["_embedded"]["records"]
+    assert (record["type"], record["transaction_successful"], record["amount"]) == (
+        "clawback",
+        False,
+        "50.0000000",
+    )
+    testusb = target("testusb-holder-clawback")
+    assert classic_clawback(testusb, record, page, "x", RECORDED_AT) is None
+    executed = dict(record, transaction_successful=True)
+    done = classic_clawback(testusb, executed, page, "x", RECORDED_AT)
+    assert done is not None and effect(done).units.atoms == "500000000"  # type: ignore[union-attr]
+
+
+def test_real_sac_admin_clawback_is_native_and_scoped_on_both_paths(tmp_path: Path) -> None:
+    """Real clawback by contract call (SAC admin): Horizon lists the invoke_host_function
+    among the holder's payments with a ``clawback`` balance change and no ``to``. Both runs
+    keep the holder and the issuer as its parties; there is no Classic clawback to compare."""
+    store = IngestStore(tmp_path)
+    classic, sac = ingest("p0b41b8-holder-admin-clawback", store)
+    holder = "GA7UOU2LWCN2THOL3GDY3HGUBJUAAEA2MCODHFOUCUOSYGQSLVXVAID4"
+    issuer = "GDTWQZV6BDG5QT6XAJ5PFUNPPJD7FJTML4YXYFKW7G3CC5BIN3CVJSRS"
+    (listed,) = classic.exclusions
+    assert listed.reason == "UNSUPPORTED_OPERATION"
+    assert listed.addresses is not None and set(listed.addresses) == {holder, issuer}
+    (withdrawal,) = store.observations()
+    payload = effect(withdrawal)
+    assert (payload.effect_kind, payload.representation, payload.account) == (
+        "clawback",
+        "sac",
+        holder,
+    )
+    (check,) = store.correspondence()
+    assert check["status"] == "sac_native"
+    assert sac.coverage is not None and sac.coverage.quarantined_records is not None
+    assert all(
+        r.addresses is not None and {holder, issuer} <= set(r.addresses)
+        for r in sac.coverage.quarantined_records
+    )
+    # Both records identify the clawback (the SAC event; Horizon's balance change
+    # of type clawback, the only change of the asset), on the same ledger operation; only
+    # the Classic correspondence is open.
+    chain_op = f"{payload.chain.tx_hash}:{payload.chain.operation_index}"
+    assert {(r.nature, r.chain_operation) for r in sac.coverage.quarantined_records} == {
+        ("clawback_identified", chain_op)
+    }
+    assert len(sac.coverage.quarantined_records) == 2
+
+
+def test_horizons_reading_of_a_call_identifies_a_clawback_only_when_that_is_all_it_did() -> None:
+    """The real admin clawback call moves two assets: USDC (``transfer``, another asset) and
+    P0B41B8 (``clawback``). Its only change of the target asset is a clawback with both
+    sides known: ``clawback_identified``. A DERIVED copy that adds a transfer of the target
+    asset in the same call stays unresolved."""
+    sample = "p0b41b8-holder-admin-clawback"
+    horizon, _ = clients(sample)
+    start, _ = SAMPLES[sample]
+    page = horizon.account_payments(target(sample).account, str(start << 32), 2)
+    record = copy.deepcopy(page.document["_embedded"]["records"][0])
+    assert record["type"] == "invoke_host_function"
+    (excluded,) = normalize_horizon_record(target(sample), record, page, 0, RECORDED_AT, {})
+    assert isinstance(excluded, Exclusion) and excluded.nature == "clawback_identified"
+    clawback = next(c for c in record["asset_balance_changes"] if c["type"] == "clawback")
+    record["asset_balance_changes"].append(
+        {**clawback, "type": "transfer", "to": target(sample).asset_issuer}
+    )
+    (mixed,) = normalize_horizon_record(target(sample), record, page, 0, RECORDED_AT, {})
+    assert isinstance(mixed, Exclusion) and mixed.nature is None
+    assert mixed.reason == excluded.reason == "UNSUPPORTED_OPERATION"
+
+
+def test_copies_of_one_record_take_the_least_resolved_nature() -> None:
+    assert least_resolved({"clawback_identified", "movement_identified"}) == "movement_identified"
+    assert least_resolved({"clawback_identified", "contradictory"}) == "contradictory"
+    assert least_resolved({"contradictory", "unresolved"}) == "unresolved"
+    assert least_resolved({"clawback_identified"}) == "clawback_identified"
+
+
+FEE_BUMP_OUTER = "415723e786ff24d318b7fa2942caa74344658323a57e17d62398fe4258b2dd07"
+FEE_BUMP_INNER = "5775359727749907801b0ae760a15b1b2937cfccc0cdb0d1a1819b1454dac4d0"
+
+
+def test_real_fee_bump_is_named_by_its_outer_hash_everywhere(tmp_path: Path) -> None:
+    """Real fee bump payment of 2.2367085 USDC to GB3NNNLA (usdc-feebump-payment): RPC's
+    event, Horizon's payment and Horizon's operations all name the outer hash, even when
+    the operation is looked up by the inner one, so both paths share one effect key. Only
+    the transaction resource looked up by the inner hash reports it as its ``hash``."""
+    store = IngestStore(tmp_path)
+    classic, sac = ingest("usdc-feebump-payment", store)
+    (payment,) = classic.appended
+    assert payment.source.record_key == f"{FEE_BUMP_OUTER}:0:0"
+    assert sac.appended == () and sac.duplicates == 1 and sac.conflicts == ()
+    horizon, _ = clients("usdc-feebump-payment")
+    for looked_up in (FEE_BUMP_OUTER, FEE_BUMP_INNER):
+        operations = horizon.transaction_operations(looked_up).document["_embedded"]["records"]
+        assert [o["transaction_hash"] for o in operations] == [FEE_BUMP_OUTER]
+        transaction = horizon.get(f"/transactions/{looked_up}").document
+        assert transaction["hash"] == looked_up
+        assert transaction["fee_bump_transaction"]["hash"] == FEE_BUMP_OUTER
+        assert transaction["inner_transaction"]["hash"] == FEE_BUMP_INNER
+
+
+def test_a_classic_operation_naming_another_hash_is_never_paired() -> None:
+    """DERIVED from the real failed clawback response (no real fee bump clawback exists in
+    the samples): a Classic record naming another transaction hash than the one looked up
+    is never paired with the event, so no correspondence is fabricated."""
+    client = ReplayClient(RECORDINGS / "testusb-failed-clawback")
+    horizon = Horizon(Endpoints.resolve(None, None).horizon_url, client)
+    looked_up = "4d4db33e234ee809816c992c23f18bd46bd57b962dc3c25721791fc96466de88"
+    page = horizon.transaction_operations(looked_up)
+    (record,) = page.document["_embedded"]["records"]
+    executed = dict(record, transaction_successful=True)
+    testusb = target("testusb-holder-clawback")
+    done = classic_clawback(testusb, executed, page, "x", RECORDED_AT, tx_hash=looked_up)
+    assert done is not None and effect(done).chain.tx_hash == looked_up
+    with pytest.raises(ValueError, match="another transaction hash"):
+        classic_clawback(testusb, executed, page, "x", RECORDED_AT, tx_hash="ab" * 32)

@@ -14,7 +14,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
-from invaria.engine.evaluate import ENGINE_REF, Evaluation, evaluate
+from invaria.engine.evaluate import Evaluation, evaluate
+from invaria.engine.versions import CURRENT_ENGINES
 from invaria.persistence.store import OutboxEvent, PgStore, Publication
 
 
@@ -52,8 +53,11 @@ def prepare(
     operation_ref: str,
     clocks: Clocks,
     *,
-    engine_ref: str = ENGINE_REF,
+    engine_ref: str | None = None,
 ) -> Prepared:
+    if engine_ref is not None and engine_ref not in CURRENT_ENGINES:
+        # New evaluations use current engines only; retired ones only replay.
+        raise ValueError(f"engine {engine_ref} is not selectable for new evaluations")
     head = store.scope_head(tenant_id, operation_ref)  # first: the epoch this work is for
     snapshot = store.build_snapshot(
         snapshot_id=snapshot_id_for(operation_ref, head.epoch, clocks),
@@ -75,7 +79,7 @@ def reevaluate(
     operation_ref: str,
     clocks: Clocks,
     *,
-    engine_ref: str = ENGINE_REF,
+    engine_ref: str | None = None,
 ) -> tuple[Prepared, Publication]:
     prepared = prepare(store, tenant_id, operation_ref, clocks, engine_ref=engine_ref)
     publication = store.publish(tenant_id, prepared.evaluation.result.evaluation_id, prepared.epoch)
