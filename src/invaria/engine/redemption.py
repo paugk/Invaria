@@ -76,7 +76,9 @@ from invaria.engine.common import (
     snapshot_problem,
     strict_absence_scope,
 )
+from invaria.engine.trace import ControlTrace, Step, Tracer
 from invaria.engine.versions import (
+    DIAGNOSTIC_ENGINES,
     REDEMPTION_ENGINE_0_4_0,
     REDEMPTION_ENGINE_0_5_0,
     REDEMPTION_ENGINE_0_6_0,
@@ -419,6 +421,7 @@ class _Redemption:
         self.certificates = [inputs.coverage[i] for i in self.snapshot.coverage_ids]
         self.links = [inputs.identity_links[i] for i in self.snapshot.identity_link_ids]
         self.views: dict[FactType, FactView] = {}
+        self.tracer = Tracer()  # the checks each control ran
 
     # ------------------------------------------------------------- evidence
 
@@ -1339,63 +1342,93 @@ class _Redemption:
         self, validity: RedemptionControlSpec, settlement: RedemptionControlSpec
     ) -> tuple[CancellationState, ControlResult, ControlResult]:
         """Cancellation state, with the validity and no-settlement control results."""
+        validity_trace = self.tracer[validity.control_id]
+        settlement_trace = self.tracer[settlement.control_id]
         refs: list[str] = []
         try:
-            request = self.request(refs)
-            reactivation = self.view("redemption_reactivated")
-            self._raise_for_status(reactivation)
-            view = self.view("redemption_cancelled")
-            for retraction in self._cancellation_retractions():
-                self._check_retraction(retraction)
-            self._raise_for_status_unless_withdrawn(view)
-            if view.status in ("absent", "withdrawn"):
-                detail = "no cancellation"
-                if view.status == "withdrawn":
-                    detail = self._retraction_detail(view, refs)
-                refs.append(
-                    self._certificate(
-                        "redemption_cancelled", request.accepted_at, self.snapshot.valid_at
+            with validity_trace.step("fact:redemption_accepted", refs):
+                request = self.request(refs)
+            with validity_trace.step("reactivation", refs):
+                reactivation = self.view("redemption_reactivated")
+                self._raise_for_status(reactivation)
+            with validity_trace.step("retractions", refs) as step:
+                view = self.view("redemption_cancelled")
+                retractions = self._cancellation_retractions()
+                for retraction in retractions:
+                    self._check_retraction(retraction)
+                if not retractions:
+                    step.state("not_applicable", None, "no retraction of a cancellation")
+            none: ControlResult | None = None
+            with validity_trace.step("cancellation", refs) as step:
+                step.fact = "redemption_cancelled"
+                self._raise_for_status_unless_withdrawn(view)
+                if view.status in ("absent", "withdrawn"):
+                    detail = "no cancellation"
+                    if view.status == "withdrawn":
+                        detail = self._retraction_detail(view, refs)
+                    refs.append(
+                        self._certificate(
+                            "redemption_cancelled", request.accepted_at, self.snapshot.valid_at
+                        )
                     )
+                    none = step.result(
+                        control_result(
+                            validity,
+                            "NOT_APPLICABLE",
+                            "NO_CANCELLATION",
+                            f"{detail}, with TA coverage from acceptance to valid_at",
+                            refs,
+                        )
+                    )
+                else:
+                    if reactivation.status == "asserted":
+                        raise Undecided(
+                            "REACTIVATION_UNSUPPORTED",
+                            "the cancelled request was reactivated; business reactivation is "
+                            "outside this profile",
+                            reactivation.refs,
+                        )
+                    (o,) = self._present("redemption_cancelled", refs)
+                    cancel = o.payload
+                    assert isinstance(cancel, RedemptionCancellationPayload)
+                    if cancel.account_ref != request.account_ref:
+                        # Linked to this request yet for another account: a contradictory
+                        # association. Keep the conflict visible; never drop or apply it.
+                        raise Undecided(
+                            "AMBIGUOUS_MATCH",
+                            "cancellation is linked to this request but names another account",
+                            (o.observation_id,),
+                        )
+                    problems = []
+                    if cancel.authorized_by not in self.profile.cancellation.authorized_by:
+                        problems.append(f"authorized_by {cancel.authorized_by} is not an authority")
+                    if cancel.cancelled_at < request.accepted_at:
+                        problems.append("effective before the request was accepted")
+                    if cancel.cancelled_at != o.valid_time:
+                        problems.append("effective time differs from the record's valid_time")
+                    if problems:
+                        raise Undecided(
+                            "INVALID_CANCELLATION", "cancellation: " + "; ".join(problems)
+                        )
+                    valid = step.result(
+                        control_result(
+                            validity,
+                            "PASS",
+                            "EXACT_MATCH",
+                            f"cancellation by {cancel.authorized_by} effective "
+                            f"{_iso(cancel.cancelled_at)} (recorded {_iso(o.recorded_at)})",
+                            refs,
+                        )
+                    )
+            if none is not None:
+                settlement_trace.record(
+                    "cancellation_in_force", "not_applicable", "NO_CANCELLATION", NO_CANCELLATION
                 )
-                return (
-                    "none",
-                    control_result(
-                        validity,
-                        "NOT_APPLICABLE",
-                        "NO_CANCELLATION",
-                        f"{detail}, with TA coverage from acceptance to valid_at",
-                        refs,
-                    ),
-                    _not_applicable(settlement, "no cancellation in force"),
-                )
-            if reactivation.status == "asserted":
-                raise Undecided(
-                    "REACTIVATION_UNSUPPORTED",
-                    "the cancelled request was reactivated; business reactivation is outside "
-                    "this profile",
-                    reactivation.refs,
-                )
-            (o,) = self._present("redemption_cancelled", refs)
-            cancel = o.payload
-            assert isinstance(cancel, RedemptionCancellationPayload)
-            if cancel.account_ref != request.account_ref:
-                # Linked to this request yet for another account: a contradictory
-                # association. Keep the conflict visible; never drop or apply it.
-                raise Undecided(
-                    "AMBIGUOUS_MATCH",
-                    "cancellation is linked to this request but names another account",
-                    (o.observation_id,),
-                )
-            problems = []
-            if cancel.authorized_by not in self.profile.cancellation.authorized_by:
-                problems.append(f"authorized_by {cancel.authorized_by} is not an authority")
-            if cancel.cancelled_at < request.accepted_at:
-                problems.append("effective before the request was accepted")
-            if cancel.cancelled_at != o.valid_time:
-                problems.append("effective time differs from the record's valid_time")
-            if problems:
-                raise Undecided("INVALID_CANCELLATION", "cancellation: " + "; ".join(problems))
+                return ("none", none, _not_applicable(settlement, NO_CANCELLATION))
         except Undecided as undecided:
+            settlement_trace.record(
+                "cancellation_in_force", "not_applicable", "NO_CANCELLATION", NO_VALID_CANCELLATION
+            )
             return (
                 "undecided",
                 control_result(
@@ -1405,9 +1438,12 @@ class _Redemption:
                     undecided.detail,
                     [*refs, *undecided.refs],
                 ),
-                _not_applicable(settlement, "no valid cancellation in force"),
+                _not_applicable(settlement, NO_VALID_CANCELLATION),
             )
         except Exception as error:  # a technical failure must never become PASS
+            settlement_trace.record(
+                "cancellation_in_force", "not_applicable", "NO_CANCELLATION", NO_VALID_CANCELLATION
+            )
             return (
                 "undecided",
                 control_result(
@@ -1417,15 +1453,10 @@ class _Redemption:
                     f"{type(error).__name__}: {error}",
                     refs,
                 ),
-                _not_applicable(settlement, "no valid cancellation in force"),
+                _not_applicable(settlement, NO_VALID_CANCELLATION),
             )
-        valid = control_result(
-            validity,
-            "PASS",
-            "EXACT_MATCH",
-            f"cancellation by {cancel.authorized_by} effective {_iso(cancel.cancelled_at)} "
-            f"(recorded {_iso(o.recorded_at)})",
-            refs,
+        settlement_trace.record(
+            "cancellation_in_force", "satisfied", None, "a valid cancellation is in force"
         )
         return "cancelled", valid, self._no_settlement(settlement, request, list(refs))
 
@@ -1475,68 +1506,79 @@ class _Redemption:
         for review, even before the cancellation. Proven settlement wins over another
         undecided view; absence needs bank and chain coverage of the interval.
         """
+        trace = self.tracer[spec.control_id]
         try:
-            settled: list[str] = []
-            undecided: FactView | None = None
-            for fact_type in SETTLEMENT_FACTS:
-                view = self.view(fact_type)
-                # An early burn does not fulfil the retirement, but it did happen: linked,
-                # successful and effective, it contradicts a cancellation (D-7).
-                observations = (
-                    view.observations if view.status in ("asserted", "unsupported", "early") else ()
-                )
-                if fact_type == "cash_settled" and any(
-                    isinstance(o.payload, CashPayload)
-                    and o.payload.account_ref != request.account_ref
-                    for o in observations
-                ):
-                    self._recipient_must_be_credited(refs)
-                if observations:
-                    # Positive evidence: linked, successful, effective within the cut.
-                    settled.extend(view.refs)
-                elif view.status != "absent" and undecided is None:
-                    undecided = view
-            if settled and self._policy():
-                cash = self.view("cash_settled")
-                burns = self.view("token_movement")
-                proven_by_cash = cash.status in ("asserted", "unsupported") and bool(
-                    cash.observations
-                )
-                if not proven_by_cash and burns.observations:
-                    label, quarantined, crefs, undermining, _other, notes = (
-                        self._quarantine_on_burns(burns.observations)
+            with trace.step("settlement", refs) as step:
+                settled: list[str] = []
+                undecided: FactView | None = None
+                for fact_type in SETTLEMENT_FACTS:
+                    view = self.view(fact_type)
+                    # An early burn does not fulfil the retirement, but it did happen: linked,
+                    # successful and effective, it contradicts a cancellation (D-7).
+                    observations = (
+                        view.observations
+                        if view.status in ("asserted", "unsupported", "early")
+                        else ()
                     )
-                    if undermining:
-                        # The only settlement shown is a burn whose own ledger operation a
-                        # quarantined record puts in doubt (attribution, execution, nature).
-                        raise Undecided(
-                            "QUARANTINED_INPUT",
-                            f"token_movement: {len(undermining)} of {quarantined} quarantined "
-                            f"record(s) in {label} are on the ledger operation of the burn "
-                            "that is the only settlement shown, or on one the snapshot does "
-                            "not support: whether it settled is in doubt"
-                            + "".join(f"; {note}" for note in notes),
-                            (*settled, *crefs),
+                    if fact_type == "cash_settled" and any(
+                        isinstance(o.payload, CashPayload)
+                        and o.payload.account_ref != request.account_ref
+                        for o in observations
+                    ):
+                        self._recipient_must_be_credited(refs)
+                    if observations:
+                        # Positive evidence: linked, successful, effective within the cut.
+                        settled.extend(view.refs)
+                    elif view.status != "absent" and undecided is None:
+                        undecided = view
+                if settled and self._policy():
+                    cash = self.view("cash_settled")
+                    burns = self.view("token_movement")
+                    proven_by_cash = cash.status in ("asserted", "unsupported") and bool(
+                        cash.observations
+                    )
+                    if not proven_by_cash and burns.observations:
+                        label, quarantined, crefs, undermining, _other, notes = (
+                            self._quarantine_on_burns(burns.observations)
                         )
-            if settled:
-                return control_result(
-                    spec,
-                    "FAIL",
-                    "SETTLED_DESPITE_CANCELLATION",
-                    "payment or burn linked to a cancelled request; review required, "
-                    "nothing is reversed automatically",
-                    [*refs, *settled],
-                )
-            if undecided is not None:
-                self._raise_for_status(undecided)
-            if self._bearing():
-                # Proven settlement above stays a BREAK; an absence cannot be shown while
-                # an effect on the request is unresolved.
-                raise self._unresolved_effect(refs)
-            for fact_type in SETTLEMENT_FACTS:
-                refs.append(
-                    self._certificate(fact_type, request.accepted_at, self.snapshot.valid_at)
-                )
+                        if undermining:
+                            # The only settlement shown is a burn whose own ledger operation a
+                            # quarantined record puts in doubt (attribution, execution, nature).
+                            raise Undecided(
+                                "QUARANTINED_INPUT",
+                                f"token_movement: {len(undermining)} of {quarantined} "
+                                f"quarantined record(s) in {label} are on the ledger operation "
+                                "of the burn that is the only settlement shown, or on one the "
+                                "snapshot does not support: whether it settled is in doubt"
+                                + "".join(f"; {note}" for note in notes),
+                                (*settled, *crefs),
+                            )
+                if settled:
+                    return step.result(
+                        control_result(
+                            spec,
+                            "FAIL",
+                            "SETTLED_DESPITE_CANCELLATION",
+                            "payment or burn linked to a cancelled request; review required, "
+                            "nothing is reversed automatically",
+                            [*refs, *settled],
+                        )
+                    )
+                if undecided is not None:
+                    self._raise_for_status(undecided)
+            with trace.step("chain_effects", refs) as step:
+                if self._bearing():
+                    # Proven settlement above stays a BREAK; an absence cannot be shown while
+                    # an effect on the request is unresolved.
+                    raise self._unresolved_effect(refs)
+                step.state("not_applicable", None, "no on-chain effect bears on the request")
+            with trace.step("absence_coverage", refs) as step:
+                for fact_type in SETTLEMENT_FACTS:
+                    step.fact = fact_type
+                    refs.append(
+                        self._certificate(fact_type, request.accepted_at, self.snapshot.valid_at)
+                    )
+                step.state("satisfied", "EXACT_MATCH", NO_SETTLEMENT_SHOWN)
         except Undecided as undecided_error:
             return control_result(
                 spec,
@@ -1549,14 +1591,7 @@ class _Redemption:
             return control_result(
                 spec, "UNKNOWN", "EVALUATION_ERROR", f"{type(error).__name__}: {error}", refs
             )
-        return control_result(
-            spec,
-            "PASS",
-            "EXACT_MATCH",
-            "no payment or burn linked to the cancelled request, with bank and chain "
-            "coverage from acceptance to valid_at",
-            refs,
-        )
+        return control_result(spec, "PASS", "EXACT_MATCH", NO_SETTLEMENT_SHOWN, refs)
 
     def _recipient_must_be_credited(self, refs: list[str]) -> None:
         """A linked payment to another account is a demonstrated wrong recipient only when
@@ -1582,33 +1617,81 @@ class _Redemption:
     # ------------------------------------------------------------- controls
 
     def control(self, spec: RedemptionControlSpec) -> tuple[ControlResult, Operands | None]:
+        # Each check runs in a trace step: the step records what the existing code
+        # concluded and cites; it never changes the order or the decision.
+        trace = self.tracer[spec.control_id]
         refs: list[str] = []
         try:
-            self._request_withdrawal(spec)
-            result, ops = self._decide(spec, refs)
-            if (
-                spec.control_id == "redemption.burn_vs_request"
-                and result.status in ("PASS", "FAIL")
-                and self._policy()
+            with trace.step("request_support", refs):
+                self._request_withdrawal(spec)
+            result, ops = self._decide(spec, refs, trace)
+            if spec.control_id == "redemption.burn_vs_request" and result.status in (
+                "PASS",
+                "FAIL",
             ):
-                result = self._weigh_burn_quarantine(spec, result)
-            if (
-                spec.control_id == "redemption.burn_vs_request"
-                and result.status in ("PASS", "FAIL")
-                and self._bearing()
-                and not (result.delta is not None and int(result.delta.atoms) > 0)
-            ):
-                # Equal or short: an unresolved effect could be the rest of the retirement.
-                # An excess of linked burns stays a FAIL: no effect can undo a burn.
-                raise self._unresolved_effect([*refs, *result.evidence_refs])
-            if (
-                spec.control_id == "redemption.burn_vs_request"
-                and result.status in ("PASS", "FAIL")
-                and not (result.delta is not None and int(result.delta.atoms) > 0)
-                and self.completeness
-                and self._token_requirement().completeness_needs_coverage
-            ):
-                result = self._burns_complete(spec, result)
+                excess = result.delta is not None and int(result.delta.atoms) > 0
+                with trace.step("quarantine", refs) as step:
+                    if not self._policy():
+                        step.state(
+                            "not_applicable",
+                            None,
+                            "the profile declares no quarantine policy for the burns, or no "
+                            "chain certificate is in the snapshot",
+                        )
+                    else:
+                        weighed = self._weigh_burn_quarantine(spec, result)
+                        if weighed is not result:
+                            step.state(
+                                "undetermined",
+                                "QUARANTINED_INPUT",
+                                "quarantined records bearing on the request could only add to "
+                                "this excess",
+                            )
+                            step.cite(
+                                *(r for r in weighed.evidence_refs if r not in result.evidence_refs)
+                            )
+                        result = weighed
+                with trace.step("chain_effects", refs) as step:
+                    bearing = self._bearing()
+                    if bearing and not excess:
+                        # Equal or short: an unresolved effect could be the rest of the
+                        # retirement. An excess of linked burns stays a FAIL: no effect can
+                        # undo a burn.
+                        raise self._unresolved_effect([*refs, *result.evidence_refs])
+                    if bearing:
+                        step.state(
+                            "undetermined",
+                            "UNSUPPORTED_CAPABILITY",
+                            f"on-chain effect(s) or unattributed movement(s) bearing on the "
+                            f"request ({', '.join(bearing)}) could only add to this excess",
+                        )
+                        step.aside(bearing)
+                    else:
+                        step.state(
+                            "not_applicable", None, "no on-chain effect bears on the request"
+                        )
+                with trace.step("completeness", refs) as step:
+                    if excess:
+                        step.state(
+                            "not_applicable",
+                            None,
+                            "an excess of burns does not depend on the completeness of the "
+                            "burns observed",
+                        )
+                    elif not (
+                        self.completeness and self._token_requirement().completeness_needs_coverage
+                    ):
+                        step.state(
+                            "not_applicable",
+                            None,
+                            "the profile does not require coverage to affirm that the burns "
+                            "observed are complete",
+                        )
+                    else:
+                        step.fact = "token_movement"
+                        before = set(result.evidence_refs)
+                        result = self._burns_complete(spec, result)
+                        step.cite(*(r for r in result.evidence_refs if r not in before))
             return result, ops
         except Undecided as undecided:
             return control_result(
@@ -1732,61 +1815,107 @@ class _Redemption:
         )
 
     def _decide(
-        self, spec: RedemptionControlSpec, refs: list[str]
+        self, spec: RedemptionControlSpec, refs: list[str], trace: ControlTrace
     ) -> tuple[ControlResult, Operands | None]:
         control = spec.control_id
-        request = self.request(refs)
+        with trace.step("fact:redemption_accepted", refs):
+            request = self.request(refs)
         if control == "redemption.declared_due_consistency":
-            problem = self.acceptance_problem(refs)
-            if problem is not None:
-                raise Undecided("DEADLINE_DATA_CONFLICT", problem, refs)
-            if request.payment_due_at != self.due(request):
-                raise Undecided(
-                    "DEADLINE_DATA_CONFLICT",
-                    f"{self._due_text(request)}; the computed due time is used",
-                    refs,
-                )
-            return control_result(spec, "PASS", "EXACT_MATCH", self._due_text(request), refs), None
-        if control == "redemption.price_vs_approved":
-            price = self.price(refs)
-            return self._compare(spec, request.price_per_unit, price, refs, "PRICE_MISMATCH")
-        if control == "redemption.units_within_position":
-            available = self.available_position(request, refs)
-            return self._compare(
-                spec, request.units, available, refs, "UNITS_EXCEED_POSITION", at_most=True
-            )
-        if control == "redemption.cash_vs_expected":
-            expected = self.expected_payment(request, self.price(refs))
-            cash = self._payment(request, refs)
-            if cash.account_ref != request.account_ref:
-                self._recipient_must_be_credited(refs)
-                return control_result(
-                    spec,
-                    "FAIL",
-                    "PAYMENT_TO_WRONG_ACCOUNT",
-                    f"payment linked to the request went to {cash.account_ref}, not to the "
-                    f"requesting account {request.account_ref}",
-                    refs,
+            with trace.step("acceptance_time", refs):
+                problem = self.acceptance_problem(refs)
+                if problem is not None:
+                    raise Undecided("DEADLINE_DATA_CONFLICT", problem, refs)
+            with trace.step("declared_due", refs) as step:
+                if request.payment_due_at != self.due(request):
+                    raise Undecided(
+                        "DEADLINE_DATA_CONFLICT",
+                        f"{self._due_text(request)}; the computed due time is used",
+                        refs,
+                    )
+                return step.result(
+                    control_result(spec, "PASS", "EXACT_MATCH", self._due_text(request), refs)
                 ), None
-            return self._compare(spec, cash.amount, expected, refs, "CASH_AMOUNT_MISMATCH")
+        if control == "redemption.price_vs_approved":
+            with trace.step("fact:price_approved", refs):
+                price = self.price(refs)
+            with trace.step("comparison", refs) as step:
+                return _traced(
+                    step,
+                    self._compare(spec, request.price_per_unit, price, refs, "PRICE_MISMATCH"),
+                )
+        if control == "redemption.units_within_position":
+            with trace.step("position", refs) as step:
+                step.fact = "position_changed"
+                available = self.available_position(request, refs)
+            with trace.step("comparison", refs) as step:
+                return _traced(
+                    step,
+                    self._compare(
+                        spec, request.units, available, refs, "UNITS_EXCEED_POSITION", at_most=True
+                    ),
+                )
+        if control == "redemption.cash_vs_expected":
+            with trace.step("fact:price_approved", refs):
+                price = self.price(refs)
+            with trace.step("expected_amount", refs) as step:
+                expected = self.expected_payment(request, price)
+                step.left = expected  # units x approved price, exact
+            with trace.step("fact:cash_settled", refs):
+                cash = self._payment(request, refs)
+            with trace.step("recipient", refs) as step:
+                if cash.account_ref != request.account_ref:
+                    self._recipient_must_be_credited(refs)
+                    return step.result(
+                        control_result(
+                            spec,
+                            "FAIL",
+                            "PAYMENT_TO_WRONG_ACCOUNT",
+                            f"payment linked to the request went to {cash.account_ref}, not to "
+                            f"the requesting account {request.account_ref}",
+                            refs,
+                        )
+                    ), None
+            with trace.step("comparison", refs) as step:
+                return _traced(
+                    step, self._compare(spec, cash.amount, expected, refs, "CASH_AMOUNT_MISMATCH")
+                )
         if control == "redemption.payment_deadline":
-            return self._deadline(spec, request, refs), None
+            return self._deadline(spec, request, refs, trace), None
         if control == "redemption.ta_units_vs_request":
-            (o,) = self._present("units_registered", refs)
-            assert isinstance(o.payload, UnitsPayload)
-            if o.payload.account_ref != request.account_ref:
-                raise Undecided("AMBIGUOUS_MATCH", "registry entry is for another account", refs)
-            return self._compare(spec, o.payload.units, request.units, refs, "UNITS_MISMATCH")
+            with trace.step("fact:units_registered", refs):
+                (o,) = self._present("units_registered", refs)
+                assert isinstance(o.payload, UnitsPayload)
+            with trace.step("account", refs):
+                if o.payload.account_ref != request.account_ref:
+                    raise Undecided(
+                        "AMBIGUOUS_MATCH", "registry entry is for another account", refs
+                    )
+            with trace.step("comparison", refs) as step:
+                return _traced(
+                    step,
+                    self._compare(spec, o.payload.units, request.units, refs, "UNITS_MISMATCH"),
+                )
         if control == "redemption.burn_vs_request":
-            burns = self._present("token_movement", refs)
-            units = [o.payload.units for o in burns if isinstance(o.payload, TokenMovementPayload)]
-            kinds = {(q.unit, q.scale) for q in units}
-            if len(kinds) != 1:
-                raise Undecided("UNSUPPORTED_CAPABILITY", "burns in different units/scales", refs)
-            ((unit, scale),) = kinds
-            total = Quantity(atoms=str(sum(int(q.atoms) for q in units)), scale=scale, unit=unit)
-            return self._compare(spec, total, request.units, refs, "UNITS_MISMATCH")
-        raise Undecided("EVALUATION_ERROR", f"control {control} is not implemented")
+            with trace.step("fact:token_movement", refs):
+                burns = self._present("token_movement", refs)
+                units = [
+                    o.payload.units for o in burns if isinstance(o.payload, TokenMovementPayload)
+                ]
+                kinds = {(q.unit, q.scale) for q in units}
+                if len(kinds) != 1:
+                    raise Undecided(
+                        "UNSUPPORTED_CAPABILITY", "burns in different units/scales", refs
+                    )
+                ((unit, scale),) = kinds
+                total = Quantity(
+                    atoms=str(sum(int(q.atoms) for q in units)), scale=scale, unit=unit
+                )
+            with trace.step("comparison", refs) as step:
+                return _traced(
+                    step, self._compare(spec, total, request.units, refs, "UNITS_MISMATCH")
+                )
+        with trace.step("admission", refs, quiet=True):
+            raise Undecided("EVALUATION_ERROR", f"control {control} is not implemented")
 
     def _payment(self, request: RedemptionRequestPayload, refs: list[str]) -> CashPayload:
         view = self.view("cash_settled")
@@ -1800,53 +1929,89 @@ class _Redemption:
         return o.payload
 
     def _deadline(
-        self, spec: RedemptionControlSpec, request: RedemptionRequestPayload, refs: list[str]
+        self,
+        spec: RedemptionControlSpec,
+        request: RedemptionRequestPayload,
+        refs: list[str],
+        trace: ControlTrace,
     ) -> ControlResult:
-        problem = self.acceptance_problem(refs)
-        if problem is not None:
-            raise Undecided("DEADLINE_DATA_CONFLICT", problem, refs)
-        due = self.due(request)  # the profile's rule, never the declared value
-        view = self.view("cash_settled")
-        self._raise_for_status(view)
-        wrong_recipient = ""
-        if view.status == "asserted":
-            (o,) = self._present("cash_settled", refs)
-            assert isinstance(o.payload, CashPayload)
-            if o.valid_time.microsecond:
-                raise Undecided(
-                    "UNSUPPORTED_CAPABILITY",
-                    f"payment time {o.valid_time.isoformat()} is finer than the declared "
-                    "precision (second)",
-                    refs,
-                )
-            if o.payload.account_ref == request.account_ref:
-                paid = o.valid_time
-                text = f"paid {_iso(paid)}; {self._due_text(request)}"
-                if paid <= due:
-                    return control_result(spec, "PASS", "EXACT_MATCH", f"on time: {text}", refs)
-                return control_result(
+        with trace.step("acceptance_time", refs):
+            problem = self.acceptance_problem(refs)
+            if problem is not None:
+                raise Undecided("DEADLINE_DATA_CONFLICT", problem, refs)
+        with trace.step("deadline", refs) as step:
+            step.fact = "cash_settled"
+            due = self.due(request)  # the profile's rule, never the declared value
+            view = self.view("cash_settled")
+            self._raise_for_status(view)
+            wrong_recipient = ""
+            if view.status == "asserted":
+                (o,) = self._present("cash_settled", refs)
+                assert isinstance(o.payload, CashPayload)
+                if o.valid_time.microsecond:
+                    raise Undecided(
+                        "UNSUPPORTED_CAPABILITY",
+                        f"payment time {o.valid_time.isoformat()} is finer than the declared "
+                        "precision (second)",
+                        refs,
+                    )
+                if o.payload.account_ref == request.account_ref:
+                    paid = o.valid_time
+                    text = f"paid {_iso(paid)}; {self._due_text(request)}"
+                    if paid <= due:
+                        return step.result(
+                            control_result(spec, "PASS", "EXACT_MATCH", f"on time: {text}", refs)
+                        )
+                    return step.result(
+                        control_result(
+                            spec,
+                            "FAIL",
+                            "PAYMENT_LATE",
+                            f"late by {paid - due}: {text}; a later payment does not erase the "
+                            "breach",
+                            refs,
+                        )
+                    )
+                # Paid to another account: the requesting account was not paid by it.
+                self._recipient_must_be_credited(refs)
+                wrong_recipient = f"; the linked payment went to {o.payload.account_ref}"
+            if not self._past_due(due):
+                raise self._not_due(due)
+            refs.append(
+                self._certificate("cash_settled", request.accepted_at, due, include_end=True)
+            )
+            return step.result(
+                control_result(
                     spec,
                     "FAIL",
-                    "PAYMENT_LATE",
-                    f"late by {paid - due}: {text}; a later payment does not erase the breach",
+                    "PAYMENT_MISSED",
+                    f"no payment to {request.account_ref} by {_iso(due)} (clock "
+                    f"{_iso(self.clock)}, economic cut {_iso(self.snapshot.valid_at)}), with bank "
+                    f"coverage of [{_iso(request.accepted_at)}, {_iso(due)}]{wrong_recipient}; "
+                    f"{self._due_text(request)}",
                     refs,
                 )
-            # Paid to another account: the requesting account was not paid by it.
-            self._recipient_must_be_credited(refs)
-            wrong_recipient = f"; the linked payment went to {o.payload.account_ref}"
-        if not self._past_due(due):
-            raise self._not_due(due)
-        refs.append(self._certificate("cash_settled", request.accepted_at, due, include_end=True))
-        return control_result(
-            spec,
-            "FAIL",
-            "PAYMENT_MISSED",
-            f"no payment to {request.account_ref} by {_iso(due)} (clock {_iso(self.clock)}, "
-            f"economic cut {_iso(self.snapshot.valid_at)}), with bank coverage of "
-            f"[{_iso(request.accepted_at)}, {_iso(due)}]{wrong_recipient}; "
-            f"{self._due_text(request)}",
-            refs,
-        )
+            )
+
+
+NO_CANCELLATION = "no cancellation in force"
+NO_VALID_CANCELLATION = "no valid cancellation in force"
+NO_SETTLEMENT_SHOWN = (
+    "no payment or burn linked to the cancelled request, with bank and chain coverage from "
+    "acceptance to valid_at"
+)
+ADMITTED = "snapshot, profile, engine and evidence provenance admitted"
+
+
+def _traced(
+    step: Step, outcome: tuple[ControlResult, Operands | None]
+) -> tuple[ControlResult, Operands | None]:
+    """Record a comparison the engine made in this step; returns it unchanged."""
+    result, ops = outcome
+    step.result(result)
+    if ops is not None:
+        step.compare(ops.left, ops.right, result.delta)
+    return outcome
 
 
 def _not_applicable(spec: RedemptionControlSpec, detail: str) -> ControlResult:
@@ -1887,11 +2052,14 @@ def evaluate_redemption(
     operands: dict[str, Operands] = {}
     effective: tuple[str, ...] = ()
     state: OperationState | None = None
+    tracer = Tracer()
     if problem is not None:
         controls = [
             control_result(spec, "UNKNOWN", "EVALUATION_ERROR", problem, [])
             for spec in profile.controls
         ]
+        for spec in profile.controls:
+            tracer[spec.control_id].record("admission", "undetermined", "EVALUATION_ERROR", problem)
     else:
         semantics = _SEMANTICS[engine_ref]
         evaluator = _Redemption(
@@ -1904,6 +2072,9 @@ def evaluate_redemption(
             scoped_absence=semantics.scoped_absence,
             completeness=semantics.completeness,
         )
+        tracer = evaluator.tracer
+        for spec in profile.controls:
+            tracer[spec.control_id].record("admission", "satisfied", None, ADMITTED)
         specs = {c.control_id: c for c in profile.controls}
         cancelled, validity, no_settlement = evaluator.cancellation(
             specs[VALIDITY], specs[NO_SETTLEMENT]
@@ -1919,16 +2090,30 @@ def evaluate_redemption(
                 spec.control_id == "redemption.payment_deadline" and evaluator.cancelled_after_due()
             )
             if spec.applies == "unless_cancelled" and cancelled == "cancelled" and not breach_kept:
-                controls.append(
-                    control_result(
-                        spec,
-                        "NOT_APPLICABLE",
-                        "EXTINGUISHED_BY_CANCELLATION",
-                        "pending obligation extinguished by a valid cancellation",
-                        [],
-                    )
+                extinguished = control_result(
+                    spec,
+                    "NOT_APPLICABLE",
+                    "EXTINGUISHED_BY_CANCELLATION",
+                    "pending obligation extinguished by a valid cancellation",
+                    [],
                 )
+                tracer[spec.control_id].record(
+                    "applicability",
+                    "not_applicable",
+                    "EXTINGUISHED_BY_CANCELLATION",
+                    extinguished.reason,
+                )
+                controls.append(extinguished)
                 continue
+            if spec.applies == "unless_cancelled":
+                tracer[spec.control_id].record(
+                    "applicability",
+                    "satisfied",
+                    None,
+                    "a cancellation after the due time keeps the missed deadline"
+                    if breach_kept
+                    else NO_VALID_CANCELLATION,
+                )
             outcome, ops = evaluator.control(spec)
             controls.append(outcome)
             if ops is not None:
@@ -1973,4 +2158,5 @@ def evaluate_redemption(
         # A cancelled MATCH rests on explicit, passing cancellation controls, never on
         # every obligation being not applicable.
         assert validity.status == "PASS" and no_settlement.status == "PASS"
-    return Evaluation(result, tuple(sorted(set(effective))), operands)
+    checks = tracer.frozen() if engine_ref in DIAGNOSTIC_ENGINES else {}
+    return Evaluation(result, tuple(sorted(set(effective))), operands, checks)

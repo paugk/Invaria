@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import sys
 from collections.abc import Sequence
@@ -17,8 +18,11 @@ from invaria.contracts.base import parse_contract
 from invaria.contracts.bundle import TrustStore
 from invaria.corpus_loader import Corpus, load_corpus
 from invaria.engine.common import provenance_problem
-from invaria.engine.evaluate import Evaluation, evaluate
+from invaria.engine.evaluate import Evaluation, evaluate, replay
 from invaria.engine.explain import explain, explain_change, export_evaluation
+from invaria.query.diagnostics import diagnose
+from invaria.query.models import ControlDiagnosisView, OperationObligationsView
+from invaria.query.obligations import project_obligations
 from invaria.stellar import cli as stellar_cli
 from invaria.stellar.http import ChainUnavailable
 from invaria.stellar.sources import DataUnavailable, NetworkMismatch
@@ -94,6 +98,142 @@ def cmd_evaluate(corpus: Corpus, scenario_id: str, out: Path | None) -> int:
         out.write_text(export_evaluation(snapshot, evaluation), encoding="utf-8")
         print(f"exported {out}")
     return 0
+
+
+def cmd_diagnose(
+    corpus: Corpus, scenario_id: str, control: str | None, engine: str | None, as_json: bool
+) -> int:
+    """Diagnose the controls of a scenario's evaluation: what the engine checked
+    and where it stopped, by replaying the recorded engine on the scenario's snapshot.
+    ``engine`` reproduces the evaluation a retired engine recorded instead of evaluating
+    with the current one."""
+    if scenario_id not in corpus.scenarios:
+        raise KeyError(f"unknown scenario {scenario_id!r}; known: {sorted(corpus.scenarios)}")
+    inputs = corpus.inputs_for(scenario_id)
+    recorded = replay(inputs, engine) if engine else evaluate(inputs)
+    evaluation = recorded.result
+    ids = [c.control_id for c in evaluation.controls]
+    if control is not None and control not in ids:
+        raise KeyError(f"unknown control {control!r}; known: {ids}")
+    replayed = replay(inputs, evaluation.versions.engine_ref)
+    views = [
+        diagnose(evaluation, inputs, replayed, c, stored=False) for c in ids if control in (None, c)
+    ]
+    if as_json:
+        print(json.dumps([v.model_dump(mode="json") for v in views], indent=2))
+        return 0
+    for view in views:
+        print("\n".join(diagnosis_lines(scenario_id, view)))
+        print()
+    return 0
+
+
+def diagnosis_lines(label: str, view: ControlDiagnosisView) -> list[str]:
+    concluded = "concluded" if view.concluded else "not concluded"
+    lines = [
+        f"{label} {view.control_id}: {view.status} {view.reason_code} ({concluded}); "
+        f"diagnosis {view.diagnosis}, {view.engine_ref} ({view.engine_status})"
+    ]
+    for r in view.requirements:
+        mark = "*" if r.determined_result else " "
+        category = f" ({r.category})" if r.category else ""
+        lines.append(f"  [{r.status}]{mark} {r.requirement_id}{category}: {r.explanation}")
+        cited = [
+            ("admitted", r.admitted_evidence),
+            ("questioned", r.questioned_evidence),
+            ("set aside", r.set_aside_evidence),
+            ("coverage", r.coverage_ids),
+        ]
+        refs = "; ".join(f"{name} {', '.join(ids)}" for name, ids in cited if ids)
+        if refs:
+            lines.append(f"      {refs}")
+        if r.left is not None and r.right is not None:
+            lines.append(
+                f"      {r.left.to_decimal_text()} vs {r.right.to_decimal_text()} {r.left.unit}"
+                + (f"; delta {r.delta.to_decimal_text()}" if r.delta is not None else "")
+            )
+        if r.next_step is not None:
+            lines.append(f"      next ({r.next_step.kind}): {r.next_step.description}")
+    lines += [f"  limitation: {text}" for text in view.limitations]
+    return lines
+
+
+def cmd_obligations(corpus: Corpus, scenario_id: str, engine: str | None, as_json: bool) -> int:
+    """Project the obligations the scenario's profile sets: the controls that
+    evaluate them, as the engine concluded, and what the evidence allows to affirm. One
+    replay of the recorded engine serves every control's diagnosis."""
+    if scenario_id not in corpus.scenarios:
+        raise KeyError(f"unknown scenario {scenario_id!r}; known: {sorted(corpus.scenarios)}")
+    inputs = corpus.inputs_for(scenario_id)
+    evaluation = (replay(inputs, engine) if engine else evaluate(inputs)).result
+    replayed = replay(inputs, evaluation.versions.engine_ref)
+    view = project_obligations(evaluation, inputs, replayed, stored=False)
+    if as_json:
+        print(json.dumps(view.model_dump(mode="json"), indent=2))
+        return 0
+    print("\n".join(obligation_lines(scenario_id, view)))
+    return 0
+
+
+CONDITION_CHECK_MEANING = {
+    "satisfied": "condition holds: this control applies",
+    "not_applicable": "condition does not hold: this control does not apply",
+}
+
+
+def obligation_lines(label: str, view: OperationObligationsView) -> list[str]:
+    lines = [
+        f"{label} {view.operation_ref}: stored result {view.result}; {view.versions.profile_ref}, "
+        f"{view.versions.engine_ref} ({view.versions.engine_status}); catalogue {view.catalogue}"
+        f"{f' ({view.catalogue_ref})' if view.catalogue_ref else ''}; diagnosis {view.diagnosis}",
+        f"  snapshot {view.snapshot.snapshot_id}: valid_at {view.snapshot.valid_at.isoformat()}, "
+        f"known_at {view.snapshot.known_at.isoformat()}, "
+        f"clock {view.snapshot.evaluation_clock.isoformat()}",
+    ]
+    for o in view.obligations:
+        a = o.applicability
+        lines.append(f"  {o.obligation_id}: {o.description}")
+        lines.append(f"    applicability {a.condition}: {a.state}")
+        for check in a.checks:
+            # The engine's check of the condition, not the obligation's applicability.
+            meaning = CONDITION_CHECK_MEANING.get(check.status or "", "not determined")
+            lines.append(
+                f"      condition check {check.requirement_id} in {check.control_id}: "
+                f"{check.status or 'no detail'} ({meaning})"
+            )
+        for link in o.controls:
+            concluded = "concluded" if link.concluded else "not concluded"
+            lines.append(
+                f"    [{link.role}] {link.control_id}: {link.status} {link.reason_code} "
+                f"({concluded})"
+            )
+        for item in o.observed:
+            if item.left is not None and item.right is not None:
+                delta = f"; delta {item.delta.to_decimal_text()}" if item.delta else ""
+                lines.append(
+                    f"    observed ({item.scope}) {item.control_id}: {item.status}, "
+                    f"{item.left.to_decimal_text()} vs {item.right.to_decimal_text()} "
+                    f"{item.left.unit}{delta}"
+                )
+        for block in o.blocks:
+            category = f" ({block.category})" if block.category else ""
+            lines.append(f"    block {block.control_id} {block.requirement_id}{category}")
+            if block.next_step is not None:
+                lines.append(f"      next ({block.next_step.kind}): {block.next_step.description}")
+        if o.evidence_refs or o.coverage_ids:
+            lines.append(
+                f"    evidence {', '.join(o.evidence_refs) or '-'}; "
+                f"coverage {', '.join(o.coverage_ids) or '-'}"
+            )
+        lines += [f"    basis {b.path} = {b.value}" for b in o.basis]
+        lines += [f"    not derivable: {text}" for text in o.not_derivable]
+        lines += [f"    limitation: {text}" for text in o.limitations]
+    if not view.obligations:
+        for c in view.controls:
+            lines.append(f"  {c.control_id}: {c.status} {c.reason_code}")
+    lines += [f"  not projected: {n.description}: {n.reason}" for n in view.not_projected]
+    lines += [f"  limitation: {text}" for text in view.limitations]
+    return lines
 
 
 def cmd_explain_change(corpus: Corpus, before: str, after: str) -> int:
@@ -355,6 +495,26 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("corpus", type=Path)
     run.add_argument("scenario")
     run.add_argument("--out", type=Path, help="write canonical JSON export (unsigned)")
+    diag = sub.add_parser(
+        "diagnose", help="what the engine checked per control of a scenario, and where it stopped"
+    )
+    diag.add_argument("corpus", type=Path)
+    diag.add_argument("scenario")
+    diag.add_argument("--control", help="one control id (default: every control)")
+    diag.add_argument(
+        "--engine", help="reproduce the evaluation of this engine label (current or retired)"
+    )
+    diag.add_argument("--json", action="store_true", help="print the diagnosis contract as JSON")
+    obligations = sub.add_parser(
+        "obligations",
+        help="the obligations a scenario's profile sets, their controls and blocks",
+    )
+    obligations.add_argument("corpus", type=Path)
+    obligations.add_argument("scenario")
+    obligations.add_argument(
+        "--engine", help="reproduce the evaluation of this engine label (current or retired)"
+    )
+    obligations.add_argument("--json", action="store_true", help="print the view as JSON")
     change = sub.add_parser("explain-change", help="compare two scenario evaluations")
     change.add_argument("corpus", type=Path)
     change.add_argument("before")
@@ -457,6 +617,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return cmd_check(corpus)
         if args.command == "evaluate":
             return cmd_evaluate(corpus, args.scenario, args.out)
+        if args.command == "diagnose":
+            return cmd_diagnose(corpus, args.scenario, args.control, args.engine, args.json)
+        if args.command == "obligations":
+            return cmd_obligations(corpus, args.scenario, args.engine, args.json)
         if args.command == "explain-change":
             return cmd_explain_change(corpus, args.before, args.after)
         if args.command == "bundle":

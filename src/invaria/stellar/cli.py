@@ -9,6 +9,7 @@ from pathlib import Path
 
 from invaria.contracts.base import parse_contract
 from invaria.contracts.chain import ChainTarget, ExecutionLinkSet
+from invaria.contracts.corpus import IdentityLinkSet
 from invaria.contracts.observation import TokenMovementPayload
 from invaria.stellar.adapter import (
     RunResult,
@@ -44,6 +45,11 @@ from invaria.stellar.ledger_proof import (
 )
 from invaria.stellar.sources import Endpoints, Horizon, Rpc, verify_network
 from invaria.stellar.store import IngestStore
+from invaria.stellar.trustline_reconciliation import (
+    approved_addresses,
+    reconcile,
+    select_ledgers,
+)
 
 TESTNET_ARCHIVE = "https://history.stellar.org/prd/core-testnet/core_testnet_001"
 
@@ -142,6 +148,24 @@ def add_parser(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None
         "--expect-replay-revision-sha256",
         help="sha256 of replay-run.revision-1.json obtained through a channel you trust",
     )
+    verify.add_argument(
+        "--trustline-reconciliation",
+        nargs=2,
+        metavar=("START", "END"),
+        help="reconcile the target asset's trustline of the approved accounts between these "
+        "UTC times (ledgers by verified close_time), from --replay-dir; a report only",
+    )
+    verify.add_argument(
+        "--interval-bounds",
+        choices=["half_open", "closed"],
+        default="half_open",
+        help="half_open: START <= close_time < END (default, the control's semantics); "
+        "closed: END included",
+    )
+    verify.add_argument(
+        "--approved-links", type=Path, help="identity links file naming the approved addresses"
+    )
+    verify.add_argument("--account-ref", help="the institutional account whose links apply")
 
 
 def _client(args: argparse.Namespace) -> HttpClient:
@@ -328,8 +352,43 @@ def _ledger_verify(args: argparse.Namespace) -> int:
         completeness_section = completeness_report(found, evidence, target, start, end)
     elif args.horizon_recording is not None:
         raise ValueError("--horizon-recording needs --completeness-ledgers")
-    overall = overall_result(evidence, checks, artifacts, replay, events, completeness_status)
-    out = report(evidence, checks, [cli.version], replay_section, overall, completeness_section)
+    trustline_section = None
+    if args.trustline_reconciliation is not None:
+        if artifacts is None or replay is None:
+            raise ValueError("--trustline-reconciliation needs --replay-dir")
+        if args.approved_links is None or args.account_ref is None:
+            raise ValueError("--trustline-reconciliation needs --approved-links and --account-ref")
+        start, end = (
+            datetime.fromisoformat(t.replace("Z", "+00:00")) for t in args.trustline_reconciliation
+        )
+        links = parse_contract(IdentityLinkSet, args.approved_links.read_text("utf-8")).links
+        approvals = approved_addresses(
+            links, target.network, args.account_ref, start, end, args.interval_bounds
+        )
+        temporal = select_ledgers(evidence, start, end, args.interval_bounds)
+        trustline_section = reconcile(
+            evidence, artifacts, replay, target, approvals, temporal, observations
+        )
+    elif args.approved_links is not None or args.account_ref is not None:
+        raise ValueError("--approved-links and --account-ref need --trustline-reconciliation")
+    overall = overall_result(
+        evidence,
+        checks,
+        artifacts,
+        replay,
+        events,
+        completeness_status,
+        None if trustline_section is None else trustline_section["status"],
+    )
+    out = report(
+        evidence,
+        checks,
+        [cli.version],
+        replay_section,
+        overall,
+        completeness_section,
+        trustline_section,
+    )
     text = json.dumps(out, indent=1, sort_keys=True) + "\n"
     if args.out is not None:
         args.out.write_text(text, "utf-8")
@@ -364,6 +423,48 @@ def _ledger_verify(args: argparse.Namespace) -> int:
         )
         for difference in completeness_section["differences"]:
             print(f"  {difference['kind']} {difference['key']}: {difference['detail']}")
+    if trustline_section is not None:
+        temporal_section = trustline_section["temporal"]
+        print(
+            f"trustline reconciliation {trustline_section['status']} "
+            f"({trustline_section['evidence_basis']}); interval "
+            f"{temporal_section['requested']['start']} - {temporal_section['requested']['end']} "
+            f"({temporal_section['requested']['bounds']}), ledgers "
+            f"{temporal_section['examined_ledgers']}, time coverage {temporal_section['status']}"
+        )
+        for address in trustline_section["scope"]["addresses"]:
+            print(
+                f"  approved address {address['address']}: {address['status']} "
+                f"{[(w['start'], w['end']) for w in address['applicable_subintervals']]}: "
+                f"{address['reason']}"
+            )
+        for line in trustline_section["lines"]:
+            print(
+                f"  line {line['line']['account']} {line['line']['asset']['code']}:"
+                f"{line['line']['asset']['issuer']}: {line['status']}, opening "
+                f"{line['opening']['state']} {line['opening']['balance']} "
+                f"({line['opening']['evidence']['kind']}), closing "
+                f"{line['closing']['state']} {line['closing']['balance']}, net "
+                f"{line['net_variation']}, gross in {line['gross_in']} out {line['gross_out']}"
+            )
+            for change in line["changes"]:
+                print(
+                    f"    {change['status']} ledger {change['ledger']} {change['kind']} "
+                    f"delta {change['delta']} ({change['operation_type']}): "
+                    + "; ".join(change["reasons"])
+                )
+            for item in line["events_without_change"]:
+                print(f"    {item['status']} ledger {item['ledger']}: {item['detail']}")
+            for problem in line["contradictions"]:
+                print(f"    contradiction: {problem}")
+        for tx in trustline_section["transactions"]:
+            print(
+                f"  tx {tx['tx_hash'][:12]} ledger {tx['ledger']}: {tx['status']} "
+                f"({tx['result']}), fee {tx['fee_xlm_stroops']} stroops of XLM (apart)"
+            )
+        for problem in trustline_section["problems"] + temporal_section["problems"]:
+            print(f"  reconciliation problem: {problem}")
+        print("trustline changes and events: derived from the replay, not committed by consensus")
     print(f"overall {overall['status']}")
     for key in ("contradictions", "not_established", "unauthenticated"):
         for item in overall[key]:

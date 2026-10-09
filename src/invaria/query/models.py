@@ -273,3 +273,220 @@ class QueryErrorView(Contract):
     code: Literal["FORBIDDEN", "NOT_FOUND", "VALIDATION_ERROR", "SOURCE_UNAVAILABLE"]
     message: NonEmptyText
     retryable: bool
+
+
+# ------------------------------------------------------------- control diagnosis
+
+CheckStatus = Literal[
+    "satisfied", "contradicted", "undetermined", "not_applicable", "not_evaluated"
+]
+BlockCategory = Literal[
+    "missing_evidence",
+    "withdrawn_evidence",
+    "source_conflict",
+    "inconsistent_evidence",
+    "invalid_evidence",
+    "insufficient_coverage",
+    "quarantined_input",
+    "unattributed",
+    "unsupported_capability",
+    "not_yet_due",
+    "technical_error",
+]
+NextStepKind = Literal[
+    "provide_observation",
+    "obtain_coverage",
+    "resolve_source_conflict",
+    "review_inconsistent_evidence",
+    "resolve_quarantine",
+    "provide_approved_link",
+    "await_due_time",
+    "correct_technical_error",
+    "outside_declared_capabilities",
+]
+DiagnosisBasis = Literal["reconstructed", "unavailable_for_engine", "reconstruction_mismatch"]
+
+
+class NextStepView(Contract):
+    """A deterministic suggestion derived from the block; never a promise of a result."""
+
+    kind: NextStepKind
+    description: NonEmptyText
+    fact_type: FactType | None
+    authoritative_source: Identifier | None
+    mapping_ref: VersionRef | None
+    min_coverage_level: CoverageLevel | None
+    must_cover: NonEmptyText | None
+    caveat: NonEmptyText
+
+
+class RequirementCheckView(Contract):
+    requirement_id: Annotated[str, Field(pattern=r"^[a-z_]+(:[a-z_]+)?$", max_length=64)]
+    description: NonEmptyText
+    applies_when: NonEmptyText
+    status: CheckStatus
+    # True for the one check whose outcome fixed the control's result.
+    determined_result: bool
+    category: BlockCategory | None
+    reason_code: ReasonCode | None
+    explanation: NonEmptyText
+    admitted_evidence: Ids
+    questioned_evidence: Ids
+    set_aside_evidence: Ids
+    coverage_ids: Ids
+    left: Quantity | None
+    right: Quantity | None
+    delta: Quantity | None
+    next_step: NextStepView | None
+
+
+class ControlDiagnosisView(Contract):
+    """What the engine checked for one control of a stored evaluation, and where it
+    stopped; reconstructed by replaying the recorded engine on the closed snapshot."""
+
+    schema_version: Literal["1.0"]
+    evaluation_id: Identifier
+    operation_ref: Identifier
+    snapshot: SnapshotView
+    profile_ref: VersionRef
+    rules_ref: VersionRef
+    engine_ref: VersionRef
+    engine_status: Literal["current", "retired", "blocked", "unknown"]
+    control_id: Identifier
+    mandatory: bool
+    status: ControlStatus
+    reason_code: ReasonCode
+    # PASS or FAIL; UNKNOWN and NOT_APPLICABLE conclude nothing about the obligation.
+    concluded: bool
+    diagnosis: DiagnosisBasis
+    replay_consistent: bool
+    requirements: list[RequirementCheckView]
+    limitations: list[NonEmptyText]
+
+
+# ------------------------------------------------------------ operation obligations
+
+ObligationRole = Literal["performance", "timeliness", "term", "applicability_condition"]
+ApplicabilityCondition = Literal["always", "unless_cancelled", "cancellation"]
+ApplicabilityState = Literal["applies", "not_applicable", "mixed", "not_determined"]
+CatalogueStatus = Literal["available", "unavailable_for_profile", "mismatch_with_profile"]
+ProfilePath = Annotated[
+    str, Field(pattern=r"^[a-z_]+(\[[a-z0-9_.]+\])?(\.[a-z_]+)*$", max_length=128)
+]
+
+
+class ProfileBasisView(Contract):
+    """A rule of the profile, read from the evaluation's own profile: what it requires."""
+
+    path: ProfilePath
+    value: NonEmptyText
+
+
+class ObligationControlLink(Contract):
+    """How one control informs one obligation; status and reason are the stored ones."""
+
+    control_id: Identifier
+    role: ObligationRole
+    relation: NonEmptyText
+    status: ControlStatus
+    reason_code: ReasonCode
+    concluded: bool
+
+
+class ApplicabilityCheckView(Contract):
+    """The engine's own check of the obligation's condition in one control;
+    status is None when no diagnosis is available."""
+
+    control_id: Identifier
+    requirement_id: Annotated[str, Field(pattern=r"^[a-z_]+$", max_length=64)]
+    status: CheckStatus | None
+    reason_code: ReasonCode | None
+    explanation: NonEmptyText
+
+
+class ApplicabilityView(Contract):
+    condition: ApplicabilityCondition
+    declared_by: list[ProfileBasisView]
+    # Presentation summary of the checks below, never a financial result.
+    state: ApplicabilityState
+    checks: list[ApplicabilityCheckView]
+
+
+class ObservedComparisonView(Contract):
+    """A comparison the engine recorded. ``observed_only``: it did not fix the control's
+    result, so it is not a conclusion about the obligation."""
+
+    control_id: Identifier
+    status: CheckStatus
+    scope: Literal["decided", "observed_only"]
+    left: Quantity | None
+    right: Quantity | None
+    delta: Quantity | None
+
+
+class BlockView(Contract):
+    """The undetermined check that fixed a linked control's result."""
+
+    control_id: Identifier
+    role: ObligationRole
+    requirement_id: Annotated[str, Field(pattern=r"^[a-z_]+(:[a-z_]+)?$", max_length=64)]
+    category: BlockCategory | None
+    reason_code: ReasonCode | None
+    explanation: NonEmptyText
+    next_step: NextStepView | None
+
+
+class ObligationView(Contract):
+    obligation_id: Annotated[str, Field(pattern=r"^[a-z]+\.[a-z_]+$", max_length=64)]
+    description: NonEmptyText
+    basis: Annotated[list[ProfileBasisView], Field(min_length=1)]
+    applicability: ApplicabilityView
+    controls: Annotated[list[ObligationControlLink], Field(min_length=1)]
+    observed: list[ObservedComparisonView]
+    blocks: list[BlockView]
+    evidence_refs: Ids
+    coverage_ids: Ids
+    not_derivable: list[NonEmptyText]
+    limitations: list[NonEmptyText]
+
+
+class ObligationControlView(Contract):
+    """One control of the evaluation, once, with its stored result and requirement diagnosis."""
+
+    control_id: Identifier
+    mandatory: bool
+    status: ControlStatus
+    reason_code: ReasonCode
+    concluded: bool
+    evidence_refs: Ids
+    obligations: list[Annotated[str, Field(pattern=r"^[a-z]+\.[a-z_]+$", max_length=64)]]
+    diagnosis: ControlDiagnosisView
+
+
+class NotProjectedView(Contract):
+    """A possible obligation the catalogue leaves out, and why."""
+
+    description: NonEmptyText
+    reason: NonEmptyText
+
+
+class OperationObligationsView(Contract):
+    """The obligations a catalogued profile sets for an operation, projected from the
+    profile, the closed snapshot and the stored evaluation. Not a second result."""
+
+    schema_version: Literal["1.0"]
+    operation_ref: Identifier
+    evaluation_id: Identifier
+    result: FinancialResult
+    operation_state: OperationState | None
+    snapshot: SnapshotView
+    currency: CurrencyView | None
+    versions: VersionsView
+    catalogue_ref: VersionRef | None
+    catalogue: CatalogueStatus
+    diagnosis: DiagnosisBasis
+    replay_consistent: bool
+    obligations: list[ObligationView]
+    controls: list[ObligationControlView]
+    not_projected: list[NotProjectedView]
+    limitations: list[NonEmptyText]

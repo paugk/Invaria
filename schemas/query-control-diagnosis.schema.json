@@ -1,0 +1,554 @@
+{
+  "$defs": {
+    "NextStepView": {
+      "additionalProperties": false,
+      "description": "A deterministic suggestion derived from the block; never a promise of a result.",
+      "properties": {
+        "authoritative_source": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Authoritative Source"
+        },
+        "caveat": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Caveat",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "fact_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "order_accepted",
+                "cash_settled",
+                "units_registered",
+                "token_movement",
+                "redemption_accepted",
+                "redemption_cancelled",
+                "position_held",
+                "price_approved",
+                "position_changed",
+                "redemption_reactivated",
+                "chain_effect"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Fact Type"
+        },
+        "kind": {
+          "enum": [
+            "provide_observation",
+            "obtain_coverage",
+            "resolve_source_conflict",
+            "review_inconsistent_evidence",
+            "resolve_quarantine",
+            "provide_approved_link",
+            "await_due_time",
+            "correct_technical_error",
+            "outside_declared_capabilities"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "mapping_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mapping Ref"
+        },
+        "min_coverage_level": {
+          "anyOf": [
+            {
+              "enum": [
+                "provider_claimed",
+                "internally_checked",
+                "independently_verified"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min Coverage Level"
+        },
+        "must_cover": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Must Cover"
+        }
+      },
+      "required": [
+        "kind",
+        "description",
+        "fact_type",
+        "authoritative_source",
+        "mapping_ref",
+        "min_coverage_level",
+        "must_cover",
+        "caveat"
+      ],
+      "title": "NextStepView",
+      "type": "object"
+    },
+    "Quantity": {
+      "additionalProperties": false,
+      "description": "``{\"atoms\": \"1000000000\", \"scale\": 7, \"unit\": \"FUND_SHARE\"}`` is 100 shares.",
+      "properties": {
+        "atoms": {
+          "maxLength": 79,
+          "pattern": "^(0|-?[1-9][0-9]*)$",
+          "title": "Atoms",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "atoms",
+        "scale",
+        "unit"
+      ],
+      "title": "Quantity",
+      "type": "object"
+    },
+    "RequirementCheckView": {
+      "additionalProperties": false,
+      "properties": {
+        "admitted_evidence": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Admitted Evidence",
+          "type": "array"
+        },
+        "applies_when": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Applies When",
+          "type": "string"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "enum": [
+                "missing_evidence",
+                "withdrawn_evidence",
+                "source_conflict",
+                "inconsistent_evidence",
+                "invalid_evidence",
+                "insufficient_coverage",
+                "quarantined_input",
+                "unattributed",
+                "unsupported_capability",
+                "not_yet_due",
+                "technical_error"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Category"
+        },
+        "coverage_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Coverage Ids",
+          "type": "array"
+        },
+        "delta": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "determined_result": {
+          "title": "Determined Result",
+          "type": "boolean"
+        },
+        "explanation": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "left": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next_step": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NextStepView"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "questioned_evidence": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Questioned Evidence",
+          "type": "array"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "EXACT_MATCH",
+                "CASH_AMOUNT_MISMATCH",
+                "UNITS_MISMATCH",
+                "ORDER_TERMS_INCONSISTENT",
+                "MISSING_EVIDENCE",
+                "INSUFFICIENT_COVERAGE",
+                "LOSS_OF_SUPPORT",
+                "SOURCE_CONFLICT",
+                "AMBIGUOUS_MATCH",
+                "QUARANTINED_INPUT",
+                "UNSUPPORTED_CAPABILITY",
+                "EVALUATION_ERROR",
+                "NOT_APPLICABLE_BY_PROFILE",
+                "PRICE_MISMATCH",
+                "UNITS_EXCEED_POSITION",
+                "PAYMENT_LATE",
+                "PAYMENT_MISSED",
+                "SETTLED_DESPITE_CANCELLATION",
+                "INEXACT_AMOUNT",
+                "PAYMENT_NOT_DUE",
+                "INVALID_CANCELLATION",
+                "EXTINGUISHED_BY_CANCELLATION",
+                "NO_CANCELLATION",
+                "DEADLINE_DATA_CONFLICT",
+                "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+                "AMBIGUOUS_SEQUENCE",
+                "POSITION_NOT_BEFORE_ACCEPTANCE",
+                "REACTIVATION_UNSUPPORTED",
+                "PAYMENT_TO_WRONG_ACCOUNT",
+                "INVALID_RETRACTION"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason Code"
+        },
+        "requirement_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z_]+(:[a-z_]+)?$",
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "right": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "set_aside_evidence": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Set Aside Evidence",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "satisfied",
+            "contradicted",
+            "undetermined",
+            "not_applicable",
+            "not_evaluated"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "description",
+        "applies_when",
+        "status",
+        "determined_result",
+        "category",
+        "reason_code",
+        "explanation",
+        "admitted_evidence",
+        "questioned_evidence",
+        "set_aside_evidence",
+        "coverage_ids",
+        "left",
+        "right",
+        "delta",
+        "next_step"
+      ],
+      "title": "RequirementCheckView",
+      "type": "object"
+    },
+    "SnapshotView": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_clock": {
+          "format": "date-time",
+          "title": "Evaluation Clock",
+          "type": "string"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "valid_at",
+        "known_at",
+        "evaluation_clock"
+      ],
+      "title": "SnapshotView",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-control-diagnosis:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "What the engine checked for one control of a stored evaluation, and where it\nstopped; reconstructed by replaying the recorded engine on the closed snapshot.",
+  "properties": {
+    "concluded": {
+      "title": "Concluded",
+      "type": "boolean"
+    },
+    "control_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Control Id",
+      "type": "string"
+    },
+    "diagnosis": {
+      "enum": [
+        "reconstructed",
+        "unavailable_for_engine",
+        "reconstruction_mismatch"
+      ],
+      "title": "Diagnosis",
+      "type": "string"
+    },
+    "engine_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Engine Ref",
+      "type": "string"
+    },
+    "engine_status": {
+      "enum": [
+        "current",
+        "retired",
+        "blocked",
+        "unknown"
+      ],
+      "title": "Engine Status",
+      "type": "string"
+    },
+    "evaluation_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Evaluation Id",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "mandatory": {
+      "title": "Mandatory",
+      "type": "boolean"
+    },
+    "operation_ref": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Operation Ref",
+      "type": "string"
+    },
+    "profile_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Profile Ref",
+      "type": "string"
+    },
+    "reason_code": {
+      "enum": [
+        "EXACT_MATCH",
+        "CASH_AMOUNT_MISMATCH",
+        "UNITS_MISMATCH",
+        "ORDER_TERMS_INCONSISTENT",
+        "MISSING_EVIDENCE",
+        "INSUFFICIENT_COVERAGE",
+        "LOSS_OF_SUPPORT",
+        "SOURCE_CONFLICT",
+        "AMBIGUOUS_MATCH",
+        "QUARANTINED_INPUT",
+        "UNSUPPORTED_CAPABILITY",
+        "EVALUATION_ERROR",
+        "NOT_APPLICABLE_BY_PROFILE",
+        "PRICE_MISMATCH",
+        "UNITS_EXCEED_POSITION",
+        "PAYMENT_LATE",
+        "PAYMENT_MISSED",
+        "SETTLED_DESPITE_CANCELLATION",
+        "INEXACT_AMOUNT",
+        "PAYMENT_NOT_DUE",
+        "INVALID_CANCELLATION",
+        "EXTINGUISHED_BY_CANCELLATION",
+        "NO_CANCELLATION",
+        "DEADLINE_DATA_CONFLICT",
+        "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+        "AMBIGUOUS_SEQUENCE",
+        "POSITION_NOT_BEFORE_ACCEPTANCE",
+        "REACTIVATION_UNSUPPORTED",
+        "PAYMENT_TO_WRONG_ACCOUNT",
+        "INVALID_RETRACTION"
+      ],
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "replay_consistent": {
+      "title": "Replay Consistent",
+      "type": "boolean"
+    },
+    "requirements": {
+      "items": {
+        "$ref": "#/$defs/RequirementCheckView"
+      },
+      "title": "Requirements",
+      "type": "array"
+    },
+    "rules_ref": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Rules Ref",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SnapshotView"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN",
+        "NOT_APPLICABLE"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "evaluation_id",
+    "operation_ref",
+    "snapshot",
+    "profile_ref",
+    "rules_ref",
+    "engine_ref",
+    "engine_status",
+    "control_id",
+    "mandatory",
+    "status",
+    "reason_code",
+    "concluded",
+    "diagnosis",
+    "replay_consistent",
+    "requirements",
+    "limitations"
+  ],
+  "title": "ControlDiagnosisView",
+  "type": "object"
+}

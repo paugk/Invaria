@@ -1074,6 +1074,10 @@ class ReplayEvidence:
     # tx hash -> (ledger, TransactionResultMetaV1-like processing entry)
     processing: dict[str, tuple[int, dict[str, Any]]] = field(default_factory=dict)
     ledgers: list[int] = field(default_factory=list)
+    # The decoded LedgerCloseMeta bodies by ledger, and the sha256 of the stream they were
+    # decoded from (to bind a reading of the meta to the artifacts that were checked).
+    metas: dict[int, dict[str, Any]] = field(default_factory=dict)
+    stream_sha256: str | None = None
 
 
 def verify_replay(
@@ -1105,6 +1109,7 @@ def check_replay(evidence: CheckpointEvidence, meta_stream: bytes, xdr: XdrTool)
     (only the fields in ``REPLAY_CHECKS``). It does not check where the bytes came from:
     use ``verify_replay`` for artifacts on disk."""
     replay = ReplayEvidence("INCOMPLETE", evidence.checkpoint)
+    replay.stream_sha256 = hashlib.sha256(meta_stream).hexdigest()
     if evidence.status != "VERIFIED":
         replay.status = "UNVERIFIED"
         replay.problems.append(f"checkpoint evidence is {evidence.status}")
@@ -1153,6 +1158,7 @@ def check_replay(evidence: CheckpointEvidence, meta_stream: bytes, xdr: XdrTool)
             replay.problems.append(f"ledger {seq}: replayed transactions are not the anchored ones")
             return replay
     replay.ledgers = sorted(seen)
+    replay.metas = dict(sorted(seen.items()))
     replay.status = "REPLAY_CONSISTENT"
     return replay
 
@@ -1387,6 +1393,7 @@ def overall_result(
     replay: ReplayEvidence | None = None,
     events: Sequence[EventCheck] = (),
     completeness: str | None = None,
+    reconciliation: str | None = None,
 ) -> dict[str, Any]:
     contradicted = [f"{c.observation_id}: {c.detail}" for c in checks if c.status == "CONTRADICTED"]
     contradicted += [
@@ -1403,6 +1410,13 @@ def overall_result(
     elif completeness not in (None, "COMPLETE_IN_SCOPE"):
         missing.append(f"classic payment completeness: {completeness}")
     unauthenticated = []
+    # The trustline reconciliation section, only when it was requested.
+    if reconciliation == "CONTRADICTED":
+        contradicted.append(f"trustline reconciliation: {reconciliation}")
+    elif reconciliation == "RECONCILED_UNAUTHENTICATED":
+        unauthenticated.append(f"trustline reconciliation: {reconciliation}")
+    elif reconciliation not in (None, "RECONCILED_IN_SCOPE"):
+        missing.append(f"trustline reconciliation: {reconciliation}")
     if artifacts is not None and replay is not None:
         if artifacts.status != "ARTIFACTS_MATCH":
             missing.append(f"replay artifacts are {artifacts.status}")
@@ -1442,11 +1456,14 @@ def report(
     replay: dict[str, Any] | None = None,
     overall: dict[str, Any] | None = None,
     completeness: dict[str, Any] | None = None,
+    trustline: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """A reproducible report that keeps evidence integrity, anchor trust and extraction
-    coverage apart; it says nothing about any financial result."""
+    coverage apart; it says nothing about any financial result. The trustline
+    reconciliation appears only when requested, so the report is unchanged
+    otherwise."""
     anchor = evidence.anchor
-    return {
+    out: dict[str, Any] = {
         "kind": "ledger_inclusion_report",
         "network": evidence.network,
         "checkpoint": evidence.checkpoint,
@@ -1484,3 +1501,6 @@ def report(
         "tools": sorted(tool_versions),
         "financial_evaluation": "unchanged: no profile, result or coverage level is altered",
     }
+    if trustline is not None:
+        out["trustline_reconciliation"] = trustline
+    return out

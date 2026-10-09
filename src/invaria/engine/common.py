@@ -11,7 +11,7 @@ import hashlib
 import json
 from collections.abc import Mapping, Sequence, Set
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from invaria.contracts.coverage import (
     ROUTE_INCLUDES,
@@ -43,6 +43,9 @@ from invaria.contracts.quantity import Quantity
 from invaria.contracts.stellar import base_account
 from invaria.engine.versions import BLOCKED_ENGINES, CURRENT_ENGINES, RETIRED_ENGINES
 
+if TYPE_CHECKING:
+    from invaria.engine.trace import CheckRecord
+
 LEVEL_RANK = {"provider_claimed": 0, "internally_checked": 1, "independently_verified": 2}
 
 
@@ -66,6 +69,9 @@ class Evaluation:
     result: EvaluationResult
     effective_observation_ids: tuple[str, ...]
     operands: Mapping[str, Operands] = field(default_factory=dict)
+    # The checks each control ran, in order. Diagnostic only, never part of the
+    # canonical result; empty for an engine without a declared trace (DIAGNOSTIC_ENGINES).
+    checks: Mapping[str, tuple[CheckRecord, ...]] = field(default_factory=dict)
 
 
 class Undecided(Exception):

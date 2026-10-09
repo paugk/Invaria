@@ -36,6 +36,15 @@ REDEMPTION_ENGINE_0_9_0 = "invaria-redemption-engine@0.9.0"
 REDEMPTION_ENGINE_0_10_0 = "invaria-redemption-engine@0.10.0"
 
 CURRENT_ENGINES: frozenset[str] = frozenset({SUBSCRIPTION_ENGINE_REF, REDEMPTION_ENGINE_REF})
+# Engines instrumented with a trace of their checks that is their own reasoning,
+# named by full label. Every other label, retired or blocked, has no diagnosis: retired
+# labels run as compatibility implementations of the current code, so a trace would not be
+# the historical engine's. Literal labels, never derived from the current refs, so that a
+# new current engine does not inherit or remove the capability silently; whether a label
+# keeps it on retirement is decided then.
+DIAGNOSTIC_ENGINES: frozenset[str] = frozenset(
+    {"invaria-engine@0.10.0", "invaria-redemption-engine@0.11.0"}
+)
 # The operation type each engine evaluates: a bundle naming an engine of another type is
 # never "reproduced" by it.
 ENGINE_OPERATION: Mapping[str, str] = {

@@ -36,6 +36,10 @@ jobs:
           uv run --locked invaria check tests/fixtures/corpus/subscription-synthetic-1.2.0
           uv run --locked invaria check tests/fixtures/corpus/redemption-synthetic-1.7.0
           uv run --locked invaria demo-testnet tests/fixtures/corpus/subscription-testnet-1.6.0
+          # read-only explanation views (no new result)
+          uv run --locked invaria diagnose tests/fixtures/corpus/subscription-synthetic-1.2.0 K2
+          uv run --locked invaria obligations tests/fixtures/corpus/redemption-synthetic-1.7.0 RD-CANCELLED-AFTER-DUE
+          uv run --locked invaria obligations tests/fixtures/corpus/subscription-synthetic-1.2.0 K2 --json > /dev/null
           uv run --locked invaria verify tests/fixtures/bundles/K3-engine-0.10.0 \
             --expect-manifest-sha256 d612eb4ed9b1a951b9d2a94558d2f3f82599113899dfeef79f7156abcdf4ba64
           # historical golden of the retired 0.1.0, reproduced by its compatibility implementation
@@ -86,3 +90,13 @@ jobs:
             --expect-replay-revision-sha256 89b1b95f79f78710cd4ed89228e2947e6b4dea766b6bb0b427348110cab66ddd \
             --completeness-ledgers 5027650 5027672 \
             --horizon-recording tests/fixtures/stellar/recordings/demoa-own
+          # trustline reconciliation report over the same kept replay
+          uv run --locked invaria stellar ledger-verify --archive-dir "$F/archive" --ledger 5027711 \
+            --anchor-run "$F/anchor-run/anchor-run.json" \
+            --target tests/fixtures/stellar/targets/demoa-own.json --store "$STORE" \
+            --replay-dir "$F/replay" \
+            --expect-replay-record-sha256 b7459be8c89d05d360e990cdf81bec4c7a5c7930deca6aa8f8d55c48deb9cdc2 \
+            --expect-replay-revision-sha256 89b1b95f79f78710cd4ed89228e2947e6b4dea766b6bb0b427348110cab66ddd \
+            --trustline-reconciliation 2026-10-05T00:57:20Z 2026-10-05T00:59:00Z \
+            --approved-links tests/fixtures/corpus/subscription-testnet-1.6.0/identity_links.json \
+            --account-ref acct-pseudo-0001

@@ -69,7 +69,9 @@ from invaria.engine.common import (
     snapshot_problem,
     strict_absence_scope,
 )
+from invaria.engine.trace import CheckRecord, ControlTrace, Tracer
 from invaria.engine.versions import (
+    DIAGNOSTIC_ENGINES,
     SUBSCRIPTION_ENGINE_0_1_0,
     SUBSCRIPTION_ENGINE_0_2_0,
     SUBSCRIPTION_ENGINE_0_3_0,
@@ -94,6 +96,7 @@ __all__ = [
 ]
 
 ENGINE_REF = SUBSCRIPTION_ENGINE_REF
+ADMITTED = "snapshot, profile, engine and evidence provenance admitted"
 
 
 @dataclass(frozen=True)
@@ -509,6 +512,7 @@ class _Evaluator:
         self.links = [inputs.identity_links[i] for i in self.snapshot.identity_link_ids]
         self.views: dict[FactType, FactView] = {}
         self.coverage_used: dict[FactType, str] = {}
+        self.tracer = Tracer()  # the checks each control ran
 
     # ------------------------------------------------------------- evidence
 
@@ -1197,25 +1201,32 @@ class _Evaluator:
         raise Undecided("EVALUATION_ERROR", f"control {control_id} is not implemented")
 
     def control(self, spec: ControlSpec) -> tuple[ControlResult, Operands | None]:
+        # Each check runs in a trace step: the step records what the existing code
+        # concluded and cites; it never changes the order or the decision.
+        trace = self.tracer[spec.control_id]
         order_time: datetime | None = None
         refs: list[str] = []
         try:
             for fact_type in spec.requires:
-                self._check(fact_type, order_time)
-                view = self.view(fact_type)
-                refs.extend(view.refs)
-                refs.append(self.coverage_used[fact_type])
+                with trace.step(f"fact:{fact_type}", refs):
+                    self._check(fact_type, order_time)
+                    view = self.view(fact_type)
+                    refs.extend(view.refs)
+                    refs.append(self.coverage_used[fact_type])
                 if fact_type == "order_accepted":
                     order_time = view.observations[0].valid_time
-            ops = self.operands(spec.control_id)
-            if (ops.left.unit, ops.left.scale) != (ops.right.unit, ops.right.scale):
-                raise Undecided(
-                    "UNSUPPORTED_CAPABILITY",
-                    f"operands differ in unit/scale: {ops.left.unit}/"
-                    f"{ops.left.scale} vs {ops.right.unit}/{ops.right.scale}",
-                    refs,
-                )
-            bearing = self._bearing() if "token_movement" in spec.requires else ()
+            with trace.step("operands", refs) as step:
+                ops = self.operands(spec.control_id)
+                if (ops.left.unit, ops.left.scale) != (ops.right.unit, ops.right.scale):
+                    raise Undecided(
+                        "UNSUPPORTED_CAPABILITY",
+                        f"operands differ in unit/scale: {ops.left.unit}/"
+                        f"{ops.left.scale} vs {ops.right.unit}/{ops.right.scale}",
+                        refs,
+                    )
+                step.compare(ops.left, ops.right)
+            with trace.step("chain_effects", refs, quiet=True):
+                bearing = self._bearing() if "token_movement" in spec.requires else ()
             muxed = self.muxed_bearing if "token_movement" in spec.requires else ()
         except Undecided as undecided:
             return control_result(
@@ -1226,11 +1237,44 @@ class _Evaluator:
                 spec, "UNKNOWN", "EVALUATION_ERROR", f"{type(error).__name__}: {error}", refs
             ), None
         left, right = int(ops.left.atoms), int(ops.right.atoms)
-        deferred = (
-            self.deferred.get("token_movement") if "token_movement" in spec.requires else None
+        text = f"{ops.left.to_decimal_text()} vs {ops.right.to_decimal_text()} {ops.left.unit}"
+        observed_delta = (
+            None
+            if left == right
+            else Quantity(atoms=str(left - right), scale=ops.left.scale, unit=ops.left.unit)
         )
+        # The observed comparison, before the weighing that may leave it unconcluded.
+        trace.records.append(
+            CheckRecord(
+                "comparison",
+                "satisfied" if left == right else "contradicted",
+                "EXACT_MATCH" if left == right else spec.failure_code,
+                f"observed {'equal' if left == right else 'different'}: {text}",
+                (),
+                (),
+                ops.left,
+                ops.right,
+                observed_delta,
+            )
+        )
+        token = "token_movement" in spec.requires
+        deferred = self.deferred.get("token_movement") if token else None
+        if token and deferred is None:
+            trace.record(
+                "quarantine",
+                "not_applicable",
+                None,
+                "no quarantined record bearing on the operation is weighed",
+            )
         if deferred is not None and deferred.additive and left <= right:
             pending = self._quarantine_undecided("token_movement", deferred)
+            trace.record(
+                "quarantine",
+                "undetermined",
+                pending.reason,
+                pending.detail + "; resolving them could change this result",
+                pending.refs,
+            )
             return control_result(
                 spec,
                 "UNKNOWN",
@@ -1253,23 +1297,42 @@ class _Evaluator:
                 + "".join(f"; {note}" for note in deferred.notes)
             )
             refs = [*refs, *deferred.refs]
+            trace.record(
+                "quarantine",
+                "undetermined" if deferred.additive else "satisfied",
+                "QUARANTINED_INPUT" if deferred.additive else None,
+                considered.removeprefix("; ")
+                + ("; they could only add to this excess" if deferred.additive else ""),
+                deferred.refs,
+            )
         what = (
             "whose destination no IdentityLink attributes to the account"
             if self.weighs_unattributed
             else "naming a muxed sub-account"
         )
+        if token and not muxed:
+            trace.record(
+                "attribution",
+                "not_applicable",
+                None,
+                "no movement with an unattributed destination bears on the operation",
+            )
         if muxed and (left <= right or not _declares_policy(self.profile)):
             # A movement set aside could be (part of) the delivery: an equal or short
             # comparison is UNKNOWN; an excess of counted deliveries stays a FAIL only where
             # the profile declares its quarantine policy.
+            detail = (
+                f"token_movement: movement(s) {what} ({', '.join(muxed)}) bear on the "
+                "operation"
+                + ("" if self.weighs_unattributed else " and no IdentityLink attributes them")
+                + "; they are never counted, and resolving them could change this result"
+            )
+            trace.record("attribution", "undetermined", "AMBIGUOUS_MATCH", detail, muxed, muxed)
             return control_result(
                 spec,
                 "UNKNOWN",
                 "AMBIGUOUS_MATCH",
-                f"token_movement: movement(s) {what} ({', '.join(muxed)}) bear on the "
-                "operation"
-                + ("" if self.weighs_unattributed else " and no IdentityLink attributes them")
-                + "; they are never counted, and resolving them could change this result",
+                detail,
                 [*refs, *muxed],
             ), None
         if muxed:
@@ -1277,7 +1340,17 @@ class _Evaluator:
                 f"; {len(muxed)} movement(s) {what} weighed: they could only add to an excess"
             )
             refs = [*refs, *muxed]
-        unscoped = self.unscoped if "token_movement" in spec.requires else None
+            trace.record(
+                "attribution",
+                "undetermined",
+                "AMBIGUOUS_MATCH",
+                f"{len(muxed)} movement(s) {what} weighed: they could only add to this excess",
+                muxed,
+                muxed,
+            )
+        unscoped = self.unscoped if token else None
+        if token:
+            self._trace_completeness(trace, unscoped, left <= right)
         if unscoped is not None and left <= right:
             # Equal or short says that no further delivery reached the account,
             # which a certificate without a sufficient declared chain scope cannot show.
@@ -1295,24 +1368,47 @@ class _Evaluator:
                 f"; the chain coverage cannot show the absence of further deliveries "
                 f"({unscoped[0]}), which could only add to this excess"
             )
+        if token and not bearing:
+            trace.record(
+                "chain_effects",
+                "not_applicable",
+                None,
+                "no on-chain effect bears on the operation",
+            )
         if bearing and left <= right:
             # Equal or short: an unresolved effect could be the rest of the delivery. An
             # excess of linked deliveries stays a FAIL: no effect can undo a delivery.
+            detail = (
+                "token_movement: on-chain effect bearing on the operation "
+                f"({', '.join(bearing)}); it is not admitted as delivery, and resolving it "
+                "could change this result"
+            )
+            trace.record(
+                "chain_effects", "undetermined", "UNSUPPORTED_CAPABILITY", detail, bearing, bearing
+            )
             return control_result(
                 spec,
                 "UNKNOWN",
                 "UNSUPPORTED_CAPABILITY",
-                "token_movement: on-chain effect bearing on the operation "
-                f"({', '.join(bearing)}); it is not admitted as delivery, and resolving it "
-                "could change this result",
+                detail,
                 [*refs, *bearing],
             ), None
-        text = f"{ops.left.to_decimal_text()} vs {ops.right.to_decimal_text()} {ops.left.unit}"
+        if bearing:
+            trace.record(
+                "chain_effects",
+                "undetermined",
+                "UNSUPPORTED_CAPABILITY",
+                f"on-chain effect(s) bearing on the operation ({', '.join(bearing)}) could only "
+                "add to this excess: no effect can undo a delivery",
+                bearing,
+                bearing,
+            )
         if left == right:
             return control_result(
                 spec, "PASS", "EXACT_MATCH", f"equal: {text}{considered}", refs
             ), ops
-        delta = Quantity(atoms=str(left - right), scale=ops.left.scale, unit=ops.left.unit)
+        delta = observed_delta
+        assert delta is not None
         return control_result(
             spec,
             "FAIL",
@@ -1321,6 +1417,53 @@ class _Evaluator:
             refs,
             delta,
         ), ops
+
+    def _trace_completeness(
+        self, trace: ControlTrace, unscoped: tuple[str, str] | None, equal_or_short: bool
+    ) -> None:
+        """Record the completeness check as the engine judged it: applicable only
+        when the profile requires a sufficient chain scope and this engine applies it."""
+        requirement = next(
+            r
+            for r in self.profile.coverage_requirements
+            if r.source_id == self.profile.authority_for("token_movement")
+            and "token_movement" in r.fact_types
+        )
+        if not (self.scoped_absence and requirement.absence_needs_chain_scope):
+            trace.record(
+                "completeness",
+                "not_applicable",
+                None,
+                "the profile does not require a sufficient chain scope to show the absence of "
+                "further deliveries"
+                if self.scoped_absence
+                else "this engine does not judge the chain scope",
+            )
+            return
+        if unscoped is None:
+            used = self.coverage_used.get("token_movement")
+            trace.record(
+                "completeness",
+                "satisfied",
+                None,
+                f"the chain scope of {used} shows that no further delivery reached the account",
+                (used,) if used else (),
+            )
+            return
+        trace.record(
+            "completeness",
+            "undetermined",
+            "INSUFFICIENT_COVERAGE",
+            f"token_movement: {unscoped[0]}; the chain coverage cannot show that no further "
+            "delivery reached the account"
+            + (
+                ", so an equal or short comparison is not concluded"
+                if equal_or_short
+                else ", which could only add to this excess"
+            ),
+            (unscoped[1],),
+            fact="token_movement",
+        )
 
 
 def _price_times_units(order: OrderPayload, profile: OperationProfile) -> Quantity:
@@ -1394,11 +1537,14 @@ def _dispatch(inputs: EvaluationInputs, engine_ref: str | None, *, replaying: bo
     controls: list[ControlResult] = []
     operands: dict[str, Operands] = {}
     effective: tuple[str, ...] = ()
+    tracer = Tracer()
     if problem is not None:
         controls = [
             control_result(spec, "UNKNOWN", "EVALUATION_ERROR", problem, [])
             for spec in profile.controls
         ]
+        for spec in profile.controls:
+            tracer[spec.control_id].record("admission", "undetermined", "EVALUATION_ERROR", problem)
     else:
         semantics = _SEMANTICS[engine_ref]
         evaluator = _Evaluator(
@@ -1413,7 +1559,9 @@ def _dispatch(inputs: EvaluationInputs, engine_ref: str | None, *, replaying: bo
             scoped_absence=semantics.scoped_absence,
             completeness=semantics.completeness,
         )
+        tracer = evaluator.tracer
         for spec in profile.controls:
+            tracer[spec.control_id].record("admission", "satisfied", None, ADMITTED)
             outcome, ops = evaluator.control(spec)
             controls.append(outcome)
             if ops is not None:
@@ -1444,4 +1592,5 @@ def _dispatch(inputs: EvaluationInputs, engine_ref: str | None, *, replaying: bo
         evaluation_clock=snapshot.evaluation_clock,
         assumptions=list(_assumptions(engine_ref, profile)),
     )
-    return Evaluation(result, tuple(sorted(set(effective))), operands)
+    checks = tracer.frozen() if engine_ref in DIAGNOSTIC_ENGINES else {}
+    return Evaluation(result, tuple(sorted(set(effective))), operands, checks)

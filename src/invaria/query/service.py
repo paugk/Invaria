@@ -26,6 +26,7 @@ from invaria.engine.evaluate import Evaluation, EvaluationInputs, replay
 from invaria.engine.explain import explain_change
 from invaria.engine.versions import engine_status
 from invaria.persistence.store import CurrentView, PgStore
+from invaria.query.diagnostics import diagnose, requirements_for
 from invaria.query.models import (
     LIMITATION_STORED_ONLY,
     AccessProfile,
@@ -34,6 +35,7 @@ from invaria.query.models import (
     ConclusionView,
     ControlChangeView,
     ControlComparison,
+    ControlDiagnosisView,
     ControlView,
     CoverageReport,
     CoverageView,
@@ -47,8 +49,8 @@ from invaria.query.models import (
     LegView,
     MissingEvidenceView,
     OperationItem,
+    OperationObligationsView,
     OperationsView,
-    Requirement,
     Scope,
     SnapshotView,
     TimelineEntry,
@@ -56,6 +58,7 @@ from invaria.query.models import (
     TraceView,
     VersionsView,
 )
+from invaria.query.obligations import project_obligations
 
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|\+00:00)$")
@@ -441,25 +444,7 @@ class QueryService:
             control = self._control(evaluation, _identifier(control_id, "control_id"))
             profile = self._inputs(evaluation).profile
             spec = next(c for c in profile.controls if c.control_id == control.control_id)
-            requirements = []
-            for fact_type in spec.requires:
-                source_id = profile.authority_for(fact_type)
-                source = next(s for s in profile.sources if s.source_id == source_id)
-                requirement = next(
-                    r
-                    for r in profile.coverage_requirements
-                    if r.source_id == source_id and fact_type in r.fact_types
-                )
-                requirements.append(
-                    Requirement(
-                        fact_type=fact_type,
-                        authoritative_source=source_id,
-                        mapping_ref=source.mapping_ref,
-                        min_coverage_level=requirement.min_level,
-                        must_cover=requirement.must_cover,
-                        gaps_allowed=requirement.gaps_allowed,
-                    )
-                )
+            requirements = requirements_for(profile, list(spec.requires))
             missing = control.status == "UNKNOWN" and control.reason_code != "EVALUATION_ERROR"
             note = (
                 _NOTES.get(control.reason_code, "Undecided.")
@@ -477,6 +462,49 @@ class QueryService:
             )
 
         return self._call("get_missing_evidence", "operations:read", args, body)
+
+    def diagnose_control(self, evaluation_id: str, control_id: str) -> ControlDiagnosisView:
+        """What the engine checked for a control of a stored evaluation and where it stopped.
+        Reconstructed by replaying the recorded engine on the evaluation's own
+        closed snapshot and contrasted with the stored result; not an MCP tool."""
+        args = {"evaluation_id": evaluation_id, "control_id": control_id}
+
+        def body() -> ControlDiagnosisView:
+            evaluation = self._evaluation(_identifier(evaluation_id, "evaluation_id"))
+            control = self._control(evaluation, _identifier(control_id, "control_id"))
+            inputs = self._inputs(evaluation)
+            replayed = replay(inputs, evaluation.versions.engine_ref)
+            return diagnose(evaluation, inputs, replayed, control.control_id)
+
+        return self._call("diagnose_control", "operations:read", args, body)
+
+    def get_operation_obligations(
+        self, operation_ref: str, evaluation_id: str | None = None
+    ) -> OperationObligationsView:
+        """The obligations the evaluation's profile sets for the operation, the controls
+        that evaluate them and what the evidence allows to affirm. By default the
+        published evaluation (or the latest stored one); ``evaluation_id`` picks a stored
+        evaluation of this operation, projected with its own profile and engine. One replay
+        is shared by every control's diagnosis. Not an MCP tool."""
+        args = {"operation_ref": operation_ref, "evaluation_id": evaluation_id}
+
+        def body() -> OperationObligationsView:
+            op = _identifier(operation_ref, "operation_ref")
+            if evaluation_id is None:
+                evaluation = self._basis(op)
+            else:
+                evaluation = self._evaluation(_identifier(evaluation_id, "evaluation_id"))
+                if evaluation.operation_ref != op:
+                    raise QueryError(
+                        "NOT_FOUND", f"evaluation {evaluation_id} not found for operation {op}"
+                    )
+            inputs = self._inputs(evaluation)
+            replayed = replay(inputs, evaluation.versions.engine_ref)
+            return project_obligations(
+                evaluation, inputs, replayed, currency=self._currency(evaluation)
+            )
+
+        return self._call("get_operation_obligations", "operations:read", args, body)
 
     @staticmethod
     def _control(evaluation: EvaluationResult, control_id: str) -> Any:
