@@ -1,0 +1,132 @@
+{
+ "anchors_sha256": "8edc42b9292d43d67c2b5ceff916cae59875e28313e951bb9a8af2b848e7a68e",
+ "archives": [
+  "curl -sf --max-time 120 --max-filesize 100000000 https://history.stellar.org/prd/core-testnet/core_testnet_001/{0} -o {1}",
+  "curl -sf --max-time 120 --max-filesize 100000000 https://history.stellar.org/prd/core-testnet/core_testnet_002/{0} -o {1}",
+  "curl -sf --max-time 120 --max-filesize 100000000 https://history.stellar.org/prd/core-testnet/core_testnet_003/{0} -o {1}"
+ ],
+ "checked_against_scp": [
+  {
+   "hash_prefix": "d7326c",
+   "ledger": 5095423
+  },
+  {
+   "hash_prefix": "d45f1f",
+   "ledger": 5091263
+  },
+  {
+   "hash_prefix": "4887c4",
+   "ledger": 5087103
+  },
+  {
+   "hash_prefix": "bedc92",
+   "ledger": 5082943
+  },
+  {
+   "hash_prefix": "16f69e",
+   "ledger": 5078783
+  },
+  {
+   "hash_prefix": "591c6a",
+   "ledger": 5074623
+  },
+  {
+   "hash_prefix": "a7e5c8",
+   "ledger": 5070463
+  },
+  {
+   "hash_prefix": "c1965d",
+   "ledger": 5066303
+  },
+  {
+   "hash_prefix": "c7241b",
+   "ledger": 5062143
+  },
+  {
+   "hash_prefix": "aa57ed",
+   "ledger": 5057983
+  },
+  {
+   "hash_prefix": "2320e8",
+   "ledger": 5053823
+  },
+  {
+   "hash_prefix": "635f6c",
+   "ledger": 5049663
+  },
+  {
+   "hash_prefix": "ed67eb",
+   "ledger": 5045503
+  },
+  {
+   "hash_prefix": "e619a7",
+   "ledger": 5041343
+  },
+  {
+   "hash_prefix": "c13858",
+   "ledger": 5037183
+  },
+  {
+   "hash_prefix": "aff141",
+   "ledger": 5033023
+  },
+  {
+   "hash_prefix": "0ddbbb",
+   "ledger": 5028863
+  }
+ ],
+ "command": [
+  "verify-checkpoints",
+  "--from-ledger",
+  "5027711"
+ ],
+ "config_sha256": "eb516b07d543a9b6c85c0e2a1abcbfc34e2dfb4337ce485c97b152dbe7806984",
+ "exit_code": 0,
+ "externalized_seen": [
+  {
+   "agree": 3,
+   "disagree": 0,
+   "ledger": 5095420
+  },
+  {
+   "agree": 3,
+   "disagree": 0,
+   "ledger": 5095421
+  },
+  {
+   "agree": 3,
+   "disagree": 0,
+   "ledger": 5095422
+  }
+ ],
+ "finished_at": "2026-10-08T23:05:22Z",
+ "from_ledger": 5027711,
+ "kind": "stellar_core_verify_checkpoints_run",
+ "log_sha256": "6146bcb549d64ae970faa4ad6c4c22e99ccdcb3bda32553941d8abef29b0c98b",
+ "started_at": "2026-10-08T23:00:28Z",
+ "stellar_core": {
+  "image": "stellar/stellar-core@sha256:4fae6c47fea671e4883b0ed3c58fa1cdbd97f51c9196a7256b8fba80fd55f0e2",
+  "version": "stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649)"
+ },
+ "top_checkpoint": {
+  "hash": "d7326cac3c8a9166268d9ddd4f8a84776883ba307df5b62a60fe46250ce94e8a",
+  "ledger": 5095423
+ },
+ "validators": [
+  {
+   "home_domain": "testnet.stellar.org",
+   "name": "sdftest1",
+   "public_key": "GDKXE2OZMJIPOSLNA6N6F2BVCI3O777I2OOC4BV7VOYUEHYX7RTRYA7Y"
+  },
+  {
+   "home_domain": "testnet.stellar.org",
+   "name": "sdftest2",
+   "public_key": "GCUCJTIYXSOXKBSNFGNFWW5MUQ54HKRPGJUTQFJ5RQXZXNOLNXYDHRAP"
+  },
+  {
+   "home_domain": "testnet.stellar.org",
+   "name": "sdftest3",
+   "public_key": "GC2V2EFSXN6SQTWVYA5EPJPBWWIMSD2XQNKUOHGEKB535AQE2I6IXV2Z"
+  }
+ ]
+}

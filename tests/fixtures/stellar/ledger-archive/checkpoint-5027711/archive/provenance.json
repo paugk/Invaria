@@ -1,0 +1,34 @@
+{
+ "checkpoint": 5027711,
+ "archive": "https://history.stellar.org/prd/core-testnet/core_testnet_001",
+ "files": [
+  {
+   "kind": "history",
+   "url": "https://history.stellar.org/prd/core-testnet/core_testnet_001/history/00/4c/b7/history-004cb77f.json",
+   "sha256": "6cfb629ac0093201e11f08c3a8ba502ccbd0b63f2b94d78842e6e3092392f447",
+   "size": 5975,
+   "fetched_at": "2026-10-08T22:01:56Z"
+  },
+  {
+   "kind": "ledger",
+   "url": "https://history.stellar.org/prd/core-testnet/core_testnet_001/ledger/00/4c/b7/ledger-004cb77f.xdr.gz",
+   "sha256": "b273c538be7b9a23236c418abb1c2a1de466008f848a295078a4b618056e52f7",
+   "size": 14391,
+   "fetched_at": "2026-10-08T22:01:56Z"
+  },
+  {
+   "kind": "transactions",
+   "url": "https://history.stellar.org/prd/core-testnet/core_testnet_001/transactions/00/4c/b7/transactions-004cb77f.xdr.gz",
+   "sha256": "ca222f20de70a530db68a430c3e86afd1a8043e6cea4527cd90425d9c3b34d4f",
+   "size": 335246,
+   "fetched_at": "2026-10-08T22:01:56Z"
+  },
+  {
+   "kind": "results",
+   "url": "https://history.stellar.org/prd/core-testnet/core_testnet_001/results/00/4c/b7/results-004cb77f.xdr.gz",
+   "sha256": "a82f20723c49ae537c27b575b4db347cb9ea4706a194f2e414d740fd68b099a9",
+   "size": 48101,
+   "fetched_at": "2026-10-08T22:01:56Z"
+  }
+ ]
+}

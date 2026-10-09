@@ -26,6 +26,7 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Golden verifier corpus: 22 cases covering every verifier status | `tests/fixtures/bundles/corpus/` | Public keys and signatures only; no private key |
 | Read-only Stellar adapter (Horizon + RPC) | `src/invaria/stellar/` | Payments and SAC movements; path payments, DEX fills, clawbacks, typed counterparties, muxed accounts and memos recorded explicitly (see CAPABILITIES.md) |
 | Recorded real Stellar testnet samples | `tests/fixtures/stellar/` | Third-party USDC samples and Invaria's own DEMOA issuance, replayed offline |
+| Ledger verification from history archives: anchored inclusion, review of a kept replay, bounded completeness of Classic payments | `src/invaria/stellar/ledger_proof.py`, `src/invaria/stellar/ledger_completeness.py`, `tests/fixtures/stellar/ledger-archive/` | Implemented, tested offline on one testnet checkpoint; needs the pinned Stellar CLI. No effect on the engines (see [LEDGER_VERIFICATION.md](LEDGER_VERIFICATION.md)) |
 | Demo subscription evaluated with real testnet evidence | `src/invaria/vertical_testnet.py`, `tests/fixtures/corpus/subscription-testnet-1.6.0/` (current profile) | 4 scenarios; on-chain evidence replayed through the adapter |
 | Append-only PostgreSQL persistence (optional `db` extra) | `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
 | Read-only consultative MCP server (optional `mcp` extra) | `src/invaria/query/`, `src/invaria/mcp_server.py` | Implemented; stdio only; tests need a real PostgreSQL (opt-in) |
@@ -132,6 +133,14 @@ The adapter replays the recorded responses; nothing is fetched.
 | TN-LINKED-FAILED | only the failed transaction | UNKNOWN: a failed transaction has no effect |
 
 Earlier demo corpora (`subscription-testnet`, `-1.1.0`, `-1.2.0`) admit an older payment mapping, so a new evaluation with today's adapter output refuses them (exit code 1); `-1.3.0` to `-1.5.0` are earlier profiles that still give 4/4. The demo profile accepts `provider_claimed` coverage for the on-chain source. Horizon and RPC are operated by the same provider, so this is a declared project decision, not independent verification. Institutional sources still require `internally_checked`. This is not a real fund.
+
+### Ledger verification (offline review of testnet history)
+`invaria stellar ledger-verify` checks the demo DEMOA transactions against a Stellar testnet history checkpoint (ledgers 5027648 to 5027711), without Horizon or RPC. The checkpoint's headers, transaction sets and result sets must hash and chain to an anchor: the checkpoint ledger's hash, recorded from a `stellar-core verify-checkpoints` run that observed the SDF testnet validators. It reports three separate results:
+- **Inclusion** of each Classic operation, with its technical result. A failed transaction is included, but never a transfer.
+- **Replay review.** A kept replay of the checkpoint is checked file by file against its record before decoding. Its events and trustline changes are then contrasted with the observations. Those events are derived from the replay: no header commits them.
+- **Bounded completeness** of Classic `payment` operations of one asset and account in a declared ledger interval, comparing the anchored history with the provider's recorded capture and the adapter's records. It is not completeness of all movements.
+
+It needs Stellar CLI 28.1.0 to decode XDR, and its tests fail rather than skip when `INVARIA_REQUIRE_STELLAR_CLI=1` and the CLI is missing. It changes no certificate, profile or coverage level: the engines keep `provider_claimed`. Step-by-step commands, expected results and trust limits, including a simulated omission that leaves the fixtures untouched: [LEDGER_VERIFICATION.md](LEDGER_VERIFICATION.md).
 
 ### Persistence (PostgreSQL, optional)
 `invaria.persistence` stores observations, coverage certificates, identity links, profiles, closed snapshots and evaluations append-only. Install it with the `db` extra (`psycopg` 3).

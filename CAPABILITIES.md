@@ -12,11 +12,12 @@ What this branch can and cannot conclude, and where its evidence stops. Everythi
 | Redemption evaluator | Price, position, cash, 48-hour deadline, register debit and burn; cancellation and reactivation | Implemented, tested | Synthetic profile only. Single synthetic transfer-agent journal; no business calendar |
 | Engine versions | Current, retired (replay only) and blocked engines; a new evaluation always uses the current engine | Implemented, tested | See [Historical replay](#historical-replay) |
 | Evidence bundles | R1 and R2 replay, detached Ed25519 signatures, hardened offline verifier | Implemented, tested | R2 covers CSV evidence only; no R3; directory format only |
-| Stellar adapter (read-only) | Horizon payments and RPC SAC events with network, asset and SAC identity checks; recording and offline replay | Implemented for the cases below | Never signs, funds or submits. Coverage is `provider_claimed` (no independent ledger verification) |
+| Stellar adapter (read-only) | Horizon payments and RPC SAC events with network, asset and SAC identity checks; recording and offline replay | Implemented for the cases below | Never signs, funds or submits. The coverage the engines use is `provider_claimed`; ledger verification (below) does not change it |
 | Path payments, DEX fills, clawbacks | Recorded as `chain_effect`, never as delivery or retirement. Classic/SAC correspondence is checked; anything unresolved is quarantined | Implemented | A `chain_effect` never proves compliance. It only makes UNKNOWN what resolving it could change |
 | Typed counterparties | Accounts, contracts, claimable balances and liquidity pools, by StrKey (G/C/B/L) | Implemented | Contracts cannot be approved as investor addresses (no `IdentityLink` for contracts) |
 | Muxed accounts and memos | Muxed ids kept exactly as u64 text; memos kept exactly | Implemented | Decoding a muxed address never attributes it; only an explicit `IdentityLink` to that exact address does, under a profile that declares it. A memo never links anything |
 | Mapping provenance | A new evaluation refuses evidence produced by a mapping its profile does not admit, and states the mappings of its evidence | Implemented | Older demo corpora are refused with today's adapter output |
+| Ledger verification (history archives) | Anchored inclusion of Classic operations in a testnet checkpoint; offline review of a kept replay and contrast of its events; bounded completeness of Classic `payment` operations in a declared ledger interval. Guide: [LEDGER_VERIFICATION.md](LEDGER_VERIFICATION.md) | Implemented, tested offline on one testnet checkpoint | Relative to an anchor from the SDF testnet validators. Replay events are derived, not committed by any header. Completeness covers `payment` operations only. No effect on the engines, which keep `provider_claimed` |
 | Persistence (PostgreSQL, optional) | Append-only store, closed snapshots, revision epochs, compare-and-swap publication, outbox | Implemented, tested on PostgreSQL 17.11 | Tests are opt-in. A migrator without superuser must run the documented provisioning step first |
 | Logical backup and restore (optional) | `pg_dump`/`pg_restore` inside a pinned container; restores only to a new database and re-verifies every evaluation with its exact engine | Implemented, tested | Covers a logical backup of a local environment only: no PITR, high availability or managed service |
 | Consultative MCP server (optional) | Seven read-only tools over stdio, scoped by an operator access profile | Implemented | stdio only; no network transport or tokens |
@@ -29,6 +30,7 @@ This limit concerns one control: `no_settlement_after_cancellation` of the synth
 
 - **Current profile (`fund-redemption-synthetic@1.7.0`).** A chain certificate counts only if it declares its scope coherently with what its route and role can observe. No Horizon or SAC route that the adapter reads, for a holder or for the issuer, sees a third party's claim of a claimable balance. With these certificates the on-chain absence of settlement is therefore **never** shown: the control stays UNKNOWN (`INSUFFICIENT_COVERAGE`), and that is never evidence of compliance. A certificate from a route that does observe those claims would be needed; none exists here. Proven settlement despite a cancellation is still a BREAK.
 - **Earlier profiles (1.3.0 to 1.6.0).** They keep their original rules. A certificate without a declared chain scope can still show that absence under 1.3.0 to 1.5.0; 1.6.0 requires a declared scope, without the coherence check.
+- **Ledger verification** ([below](#ledger-verification)) does not change this: its completeness report covers Classic `payment` operations only, not retirements, settlements or claims.
 
 ### Completeness of what was observed
 Observing a delivery or a burn needs no complete coverage. **Claiming that the observed set is complete does.**
@@ -54,8 +56,22 @@ Observing a delivery or a burn needs no complete coverage. **Claiming that the o
 - **Reproducing a recorded conclusion does not validate it under the current rules, and does not update it.** Conclusions recorded under earlier profiles or engines keep their rules and limits.
 - Blocked engines (`invaria-redemption-engine@0.1.0` to `0.3.0`) are never replayed and never substituted.
 
+### Ledger verification
+- **Scope.** Three separate results for the demo DEMOA issuance on testnet:
+  - anchored inclusion of Classic operations in checkpoint 5027711 (ledgers 5027648 to 5027711);
+  - an offline review of a kept replay of that checkpoint;
+  - a completeness report of Classic `payment` operations of one asset and one account, as source or destination, in ledgers 5027650 to 5027672 (both included).
+- **Anchor.** Every result is relative to the anchor of the checkpoint ledger. It was recorded from a `stellar-core verify-checkpoints` run that observed the three SDF testnet validators. A verification that reads that record imports the anchor; it observes no consensus itself. On testnet the same operator runs the validators, the archives and Horizon.
+- **Inclusion is not completeness.** Including a failed transaction never shows a transfer.
+- **Replay provenance.** Events and balance changes come from a replay of the anchored ledgers. No ledger header commits them.
+  - The kept files are checked against the run's record before decoding.
+  - Only an expected sha256 of that record, obtained through a trusted channel, makes them more than internally coherent. Even then it shows correspondence with the record, not that the run happened.
+  - The buckets are not kept, so the full replay cannot be repeated offline.
+- **Bounded completeness.** The absence it shows concerns those `payment` operations only. It does not cover the account's other movements of the asset (path payments, DEX fills, SAC, claimable balances, clawback), its balance, or other ledgers. A provider omission is declared only when the capture is shown complete for the interval and its filters include the operation.
+- **No effect on evaluations.** No certificate, profile, coverage level or financial result changes. The engines keep `provider_claimed`, and the current profiles' completeness rules and the absence-of-settlement limit above stay as stated.
+
 ### Other limits
-- **Coverage trust.** On-chain coverage is `provider_claimed`: Horizon and RPC are run by the same provider, and no ledger checkpoint is verified independently. The check that a certificate is coherent with its route is a check of the certificate, not of the ledger.
+- **Coverage trust.** The on-chain coverage the engines use is `provider_claimed`: Horizon and RPC are run by the same provider. The ledger verification above checks one checkpoint against an anchor, but no certificate or profile uses it. The check that a certificate is coherent with its route is a check of the certificate, not of the ledger.
 - **Approved addresses.** Investor addresses can only be Stellar accounts (G) or muxed accounts (M). Contracts cannot be approved.
 - **Not supported:** fees, partial fills, multiple payments, FX, omnibus accounts, custom Soroban tokens, mainnet, R3 source proofs and compressed bundles.
 

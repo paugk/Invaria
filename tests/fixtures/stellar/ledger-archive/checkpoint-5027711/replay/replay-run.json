@@ -1,0 +1,111 @@
+{
+ "anchor": {
+  "anchors_sha256": "8edc42b9292d43d67c2b5ceff916cae59875e28313e951bb9a8af2b848e7a68e",
+  "record_sha256": "36726964766f64c2e160fca5bd255f539923f8ad51ccbe7f6cb5a700817b32d8",
+  "trusted_checkpoint": [
+   5027711,
+   "f2bd048a37c6477794f79739f319a2a8328fb9bd136f2f2d4930288eb7e91379"
+  ]
+ },
+ "command": [
+  "catchup",
+  "5027711/64",
+  "--trusted-checkpoint-hashes",
+  "anchors.json"
+ ],
+ "config_sha256": "46ce089b92d25dd44187fc559073b84df6aa9336d9ee0b40c9083b5ff8264e02",
+ "consumption": {
+  "downloaded_bytes": 1464627281,
+  "downloads": 47,
+  "elapsed_seconds": 75,
+  "exit_code": 0,
+  "failed_downloads": 0,
+  "free_bytes_at_start": 231277309952,
+  "oom_killed": false,
+  "peak_cpu_sample_percent": 402.06,
+  "peak_disk_bytes": 9156898211,
+  "peak_memory_mib": 3024.896,
+  "refused_downloads": 0,
+  "stop_reason": "none"
+ },
+ "fetch_script_sha256": "9e1277e64d7226a83fe5fe987c8c7ef4e9326bb82151573bc31110cc920b0bfc",
+ "finished_at": "2026-10-08T23:54:36Z",
+ "initial_state": {
+  "bucket_hashes": [
+   "019ef28c35e8da4ea33e60dc05bcfffdd1a9a29d303a203a7ce955ae3862aa63",
+   "06357b7a0a30e5048b7d2cf69ddf6810cd32129c48dfc24adce93cd50a49efbb",
+   "0b2ceccb53e491bf779131b9151ac6d1e68fae245309840c9b059ecbbe1a53c7",
+   "0ddd58576d071b862484576785c3c881d8d97d4f3a4bf618696a9868ca299115",
+   "118fc58f4f47d943cc41c010e7f7f465ac2b1fb340dd3d5be63f278c70fd5a9b",
+   "147286b15c499db3ae754c95d235f3a4a8635953e6b7782208368c0ff5885013",
+   "18ad6b360d72a30db32cbc13b89367a5740c66822569418496f80479d08f8d5e",
+   "1cf65bf5522a640b035e561b36fba8cd081963b2ffa4092f48c330a230af6ac0",
+   "2a9f70bc90992827aabd5278c3cb7fc3085a1358f4e9e2113e2fb02900dcf878",
+   "2f5dcd3b2ff03e0bb09787f3602c823ae543fac620a6ff643f86de9a05e17778",
+   "3b4226867ecb2012649499c2eb2e9abba9153c31d85269cf8c5a59a0baff9a24",
+   "42ddd2bd848e6decb32056aeb75e5516832462db89ed05ffb9596efbb320d8ee",
+   "49857da875f28d1f5c42ac835469f3e2e5d13c6f9599917857d69ad41c44dc4b",
+   "4d8b5f1bd5512a4b5a66fc8aa6376bf07b3f576a334f931bc4723ada2f7c53a6",
+   "4e08062229343b08a7bfe6a5597f16dcda456775862f9908064a361fbd296a44",
+   "4ec7ac2e536adffc376032c78ec2be43466b697c3bb995cfd89a7ce7c571bc1b",
+   "560afd3105e49be580dffb0231ef65c192d37a5245233e11e53880c6d6538964",
+   "58b214df1ddcfb28f6985dd1e1bf891173211195f187a61e2c6c99216063ec06",
+   "6b5d4ed4abed1a0b27ddd43bff4899861d885d524869acc2be822429ed921714",
+   "84228902cac3ccfd8b07c0adb237a220964b093cab434a27a44430b2edb95459",
+   "8584f49975e7f37a76822cf3f932acf129059bc6650a5d4dfcdceec3ecfe4652",
+   "92863b5919f35a36067ec18ea2bbd58433e8a4c605c7834d977670fd87b898ce",
+   "92ab17de715b64995bd7d3d7518f154e2242bed4e0cf48b229c2909ca1c0816c",
+   "93ab1d1783c3a11024e3a4beb6542311dc4c2bb5140d8b3d6e5bfcb6fdf44818",
+   "9e278025c4ab2d1ad11c6853d6acc9aeceb714482ee1a95cc4cab6614ed2a160",
+   "c9f78613f632ff6535d2686d062d9473d48931bde16cc977d7ea0711795ca8a5",
+   "d53d55740b1e6b2938fdd136dd89221279fc87f80d8cc6a358a1e4df533f37bb",
+   "d80ceb853594338534862796ed5f88b3b8a0f3c23001e3ee67b03d4a6bcaf506",
+   "d821de5599e2261a385ef04911c9800ee66ab90f5e4596e53576ee9fdfa26f73",
+   "dc4437f6e2a3722695b199763bd43d297e648f6c8afc02e85be256725af7b3ff",
+   "de5e625dd1e25a2e05f073522004c644a3340461ddf8ddc67fa50011598b34ba",
+   "e8b2bf120379ccc061c2edb5168de32c47b53d022baa2b5e3be6ecfa08f696c4",
+   "ee794c949df9ef3b0ad0e33f4765009e4919a9bd47e38aed4b85c145ef87c557",
+   "f3c75de4cb54356d1b5dc5962af97dbfbce4021fb26304303764c07f9f908d0d",
+   "f62abe2dd7f71afe9994b3e3d78e9a8c31016159651778824467e6cf95dd0434",
+   "fd2bc2f77834cf640b3f66bb553a6bbc83f7d8e8fee386ba0f8ee65d83bba5ff"
+  ],
+  "buckets_retained": false,
+  "buckets_verified_by_core": 36,
+  "checkpoint": 5027647,
+  "history_state": "history-004cb73f.json",
+  "history_state_sha256": "4d11e9860be5e550934eede69ef7ea777adf702b462cb151319b8e3033018aa1"
+ },
+ "kind": "stellar_core_catchup_replay",
+ "limits": {
+  "cpus": 4,
+  "disk_bytes": 20000000000,
+  "download_file_bytes": 500000000,
+  "download_total_bytes": 2500000000,
+  "memory": "8g, no swap beyond it (--memory-swap 8g)",
+  "min_free_bytes": 40000000000,
+  "seconds": 5400
+ },
+ "log": {
+  "filter": "kept_log: lines with DEBUG, Joining or [Overlay removed; IPv4 addresses replaced by <address> (the only one was the local HTTP listener 127.0.0.1)",
+  "kept": "catchup.log",
+  "kept_sha256": "4386614cbf36a0da25e0412278dc93abd9fb8960056d153c7961ceb27607a6c9",
+  "raw_sha256": "12466302934250e0b89802426343295c8ad6f45c46090f058fe7aded3fac2348"
+ },
+ "meta": {
+  "kept": "meta.xdr.gz",
+  "kept_sha256": "7ab51dac5e39bb646e5b7e9e06c8e80f93a6c92fac544c7ee70217e1a524d514",
+  "raw_bytes": 7661052,
+  "raw_sha256": "74def4d5c4b04f3cf834613b16f65f16e97ae2f7136cdc8eea44eef10bac2cc0"
+ },
+ "not_retained": "bucket files, database and indexes were deleted after the run: the full replay cannot be repeated offline from these artifacts; the meta stream, its hashes and the bucket references are kept",
+ "replayed_ledgers": [
+  5027648,
+  5027711
+ ],
+ "started_at": "2026-10-08T23:53:21Z",
+ "stellar_core": {
+  "image": "stellar/stellar-core@sha256:4fae6c47fea671e4883b0ed3c58fa1cdbd97f51c9196a7256b8fba80fd55f0e2",
+  "version": "stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649)"
+ },
+ "trust": "the meta is not committed by any ledger header: it is derived from a verified replay with this build and configuration"
+}

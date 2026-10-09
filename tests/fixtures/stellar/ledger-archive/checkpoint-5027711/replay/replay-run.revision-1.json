@@ -1,0 +1,16 @@
+{
+ "added_after_run": {
+  "download.log": "9f5c881e455f5a0d1e7155ff2383431f350c02480fb52a834d05d34c8022d3fe",
+  "resources.log": "cb4fe74e85e60f88f86d56c2b77cb1010e0df0bdc07e674bd20efa025cd1cafd"
+ },
+ "hash_note": "these sha256 were computed on 2026-10-09, not during the run: the runner wrote both files but hashed neither. On 2026-10-09 their bytes were compared with the runner's working copies (work/download.log and resources.log in the run directory) and are identical; that comparison is all this revision attests",
+ "hashes_contemporaneous": false,
+ "kind": "stellar_core_catchup_replay_record_revision",
+ "reason": "replay-run.json does not declare download.log and resources.log, which are kept with the run's artifacts; a verifier that rejects undeclared files needs them declared somewhere",
+ "record_note": "replay-run.json itself was assembled from the run's facts after the run ended (finished_at 2026-10-08T23:54:36Z; file written 2026-10-08T23:58Z); its sha256 above was first computed on 2026-10-09",
+ "revised_at": "2026-10-09",
+ "revises": {
+  "file": "replay-run.json",
+  "sha256": "b7459be8c89d05d360e990cdf81bec4c7a5c7930deca6aa8f8d55c48deb9cdc2"
+ }
+}

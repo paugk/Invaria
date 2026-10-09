@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 
 from invaria.contracts.base import parse_contract
 from invaria.contracts.chain import ChainTarget, ExecutionLinkSet
+from invaria.contracts.observation import TokenMovementPayload
 from invaria.stellar.adapter import (
     RunResult,
     ingest_horizon_payments,
@@ -15,8 +17,35 @@ from invaria.stellar.adapter import (
     resolve_sac_contract,
 )
 from invaria.stellar.http import HttpClient, RecordingClient, ReplayClient, UrllibClient
+from invaria.stellar.ledger_completeness import (
+    compare,
+    enumerate_payments,
+    read_capture,
+)
+from invaria.stellar.ledger_completeness import (
+    completeness_section as completeness_report,
+)
+from invaria.stellar.ledger_proof import (
+    Anchor,
+    StellarCli,
+    anchor_from_run,
+    bounded_get,
+    check_event,
+    check_observation,
+    checkpoint_of,
+    fetch_checkpoint,
+    manual_anchor,
+    observe_anchors,
+    overall_result,
+    replay_report,
+    report,
+    verify_checkpoint,
+    verify_replay,
+)
 from invaria.stellar.sources import Endpoints, Horizon, Rpc, verify_network
 from invaria.stellar.store import IngestStore
+
+TESTNET_ARCHIVE = "https://history.stellar.org/prd/core-testnet/core_testnet_001"
 
 
 def add_parser(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -42,6 +71,77 @@ def add_parser(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None
             p.add_argument("--sac-page-limit", type=int, default=200, help="RPC page size")
             p.add_argument("--max-pages", type=int, default=50)
             p.add_argument("--recorded-at", help="ISO UTC time to stamp (default: now)")
+    fetch = actions.add_parser(
+        "ledger-fetch", help="download one history archive checkpoint (bounded; bytes kept)"
+    )
+    fetch.add_argument("--archive", default=TESTNET_ARCHIVE, help="history archive base URL")
+    fetch.add_argument("--ledger", type=int, required=True, help="a ledger of the checkpoint")
+    fetch.add_argument("--out", type=Path, required=True, help="new directory for the files")
+    fetch.add_argument("--timeout", type=int, default=60, help="seconds per file")
+    fetch.add_argument("--max-bytes", type=int, default=64 * 1024 * 1024, help="bytes per file")
+    observe = actions.add_parser(
+        "ledger-anchor",
+        help="run stellar-core verify-checkpoints (consensus observed, headers only) and record it",
+    )
+    observe.add_argument("--config", type=Path, required=True, help="stellar-core config")
+    observe.add_argument("--from-ledger", type=int, required=True)
+    observe.add_argument("--out", type=Path, required=True, help="new directory for the run")
+    observe.add_argument("--timeout", type=int, default=900, help="seconds for the run")
+    verify = actions.add_parser(
+        "ledger-verify",
+        help="anchored inclusion of Classic payments in a checkpoint (no completeness)",
+    )
+    verify.add_argument("--archive-dir", type=Path, required=True)
+    verify.add_argument("--ledger", type=int, required=True, help="a ledger of the checkpoint")
+    verify.add_argument(
+        "--network", default="stellar:testnet", choices=["stellar:testnet", "stellar:pubnet"]
+    )
+    anchor = verify.add_mutually_exclusive_group(required=True)
+    anchor.add_argument(
+        "--anchor-run",
+        type=Path,
+        help="anchor-run.json of a recorded verify-checkpoints run (imported with provenance)",
+    )
+    anchor.add_argument(
+        "--observe-anchor",
+        type=Path,
+        metavar="CONFIG",
+        help="run stellar-core verify-checkpoints now with this config (observed run)",
+    )
+    anchor.add_argument("--anchor-hash", help="manually supplied hash of the checkpoint ledger")
+    verify.add_argument("--anchor-note", help="free note for a manual anchor (reported as such)")
+    verify.add_argument("--anchor-dir", type=Path, help="new directory for --observe-anchor")
+    verify.add_argument("--target", type=Path, required=True, help="ChainTarget JSON")
+    verify.add_argument("--store", type=Path, required=True, help="ingest store to contrast")
+    verify.add_argument("--out", type=Path, help="write the JSON report here")
+    verify.add_argument(
+        "--replay-dir",
+        type=Path,
+        help="kept artifacts of a catchup replay of this checkpoint (replay-run.json and files)",
+    )
+    verify.add_argument(
+        "--expect-replay-record-sha256",
+        help="sha256 of replay-run.json obtained through a channel you trust; it shows "
+        "correspondence with that record, not that the run happened; without it the "
+        "artifacts are only checked against their own record (supplier_declared)",
+    )
+    verify.add_argument(
+        "--completeness-ledgers",
+        nargs=2,
+        type=int,
+        metavar=("START", "END"),
+        help="report completeness of the target's Classic payments in these ledgers (both "
+        "included), against --horizon-recording",
+    )
+    verify.add_argument(
+        "--horizon-recording",
+        type=Path,
+        help="recorded Horizon exchanges of the account's payments (the provider's capture)",
+    )
+    verify.add_argument(
+        "--expect-replay-revision-sha256",
+        help="sha256 of replay-run.revision-1.json obtained through a channel you trust",
+    )
 
 
 def _client(args: argparse.Namespace) -> HttpClient:
@@ -79,6 +179,12 @@ def _print_run(result: RunResult) -> None:
 
 
 def run(args: argparse.Namespace) -> int:
+    if args.stellar_command == "ledger-fetch":
+        return _ledger_fetch(args)
+    if args.stellar_command == "ledger-anchor":
+        return _ledger_anchor(args)
+    if args.stellar_command == "ledger-verify":
+        return _ledger_verify(args)
     endpoints = Endpoints.resolve(args.horizon, args.rpc)
     client = _client(args)
     horizon, rpc = Horizon(endpoints.horizon_url, client), Rpc(endpoints.rpc_url, client)
@@ -144,3 +250,122 @@ def run(args: argparse.Namespace) -> int:
         f"{len(store.coverage())} coverage certificates"
     )
     return 0 if complete else 1
+
+
+def _ledger_fetch(args: argparse.Namespace) -> int:
+    checkpoint = checkpoint_of(args.ledger)
+    fetched = fetch_checkpoint(
+        args.archive, checkpoint, args.out, get=bounded_get(args.timeout, args.max_bytes)
+    )
+    for item in fetched:
+        print(f"{item.kind} {item.size} bytes sha256 {item.sha256} {item.url}")
+    print(f"checkpoint {checkpoint} kept in {args.out} (provenance.json); nothing verified yet")
+    return 0
+
+
+def _ledger_anchor(args: argparse.Namespace) -> int:
+    record = observe_anchors(args.out, args.config, args.from_ledger, timeout_seconds=args.timeout)
+    print(f"verify-checkpoints run recorded in {record}")
+    return 0
+
+
+def _ledger_verify(args: argparse.Namespace) -> int:
+    checkpoint = checkpoint_of(args.ledger)
+    anchor: Anchor | None
+    anchor_problems: list[str] = []
+    if args.anchor_hash is not None:
+        anchor = manual_anchor(checkpoint, args.anchor_hash.lower(), args.anchor_note)
+    elif args.observe_anchor is not None:
+        if args.anchor_dir is None:
+            raise ValueError("--observe-anchor needs --anchor-dir")
+        record = observe_anchors(args.anchor_dir, args.observe_anchor, checkpoint)
+        anchor, anchor_problems = anchor_from_run(record, checkpoint, observed_here=True)
+    else:
+        anchor, anchor_problems = anchor_from_run(args.anchor_run, checkpoint)
+    for problem in anchor_problems:
+        print(f"  anchor problem: {problem}")
+    cli = StellarCli()
+    evidence = verify_checkpoint(args.archive_dir, checkpoint, args.network, anchor, cli)
+    target = parse_contract(ChainTarget, args.target.read_text("utf-8"))
+    observations = IngestStore(args.store).observations()
+    checks = [check_observation(evidence, o, target) for o in observations]
+    replay_section = None
+    events = []
+    artifacts = replay = None
+    if args.replay_dir is not None:
+        expected = args.expect_replay_record_sha256
+        revision = args.expect_replay_revision_sha256
+        artifacts, replay = verify_replay(
+            evidence,
+            args.replay_dir,
+            cli,
+            expected_record_sha256=None if expected is None else expected.lower(),
+            expected_revision_sha256=None if revision is None else revision.lower(),
+        )
+        events = [
+            check_event(replay, o, target)
+            for o in observations
+            if isinstance(o.payload, TokenMovementPayload)
+        ]
+        replay_section = replay_report(evidence, artifacts, replay, events)
+    elif args.expect_replay_record_sha256 or args.expect_replay_revision_sha256:
+        raise ValueError("--expect-replay-*-sha256 needs --replay-dir")
+    completeness_section = None
+    completeness_status = None
+    if args.completeness_ledgers is not None:
+        if args.horizon_recording is None:
+            raise ValueError("--completeness-ledgers needs --horizon-recording")
+        start, end = args.completeness_ledgers
+        found = compare(
+            enumerate_payments(evidence, target, start, end),
+            read_capture(args.horizon_recording, target.account, start, end),
+            observations,
+            target,
+            start,
+            end,
+        )
+        completeness_status = found.status
+        completeness_section = completeness_report(found, evidence, target, start, end)
+    elif args.horizon_recording is not None:
+        raise ValueError("--horizon-recording needs --completeness-ledgers")
+    overall = overall_result(evidence, checks, artifacts, replay, events, completeness_status)
+    out = report(evidence, checks, [cli.version], replay_section, overall, completeness_section)
+    text = json.dumps(out, indent=1, sort_keys=True) + "\n"
+    if args.out is not None:
+        args.out.write_text(text, "utf-8")
+    mode = "none" if anchor is None else anchor.mode
+    print(f"evidence {evidence.status} (checkpoint {checkpoint}, anchor mode {mode})")
+    for problem in evidence.problems:
+        print(f"  problem: {problem}")
+    for check in checks:
+        print(
+            f"  {check.status} {check.observation_id}: inclusion {check.inclusion}, "
+            f"result {check.technical_result}, movement {check.movement}: {check.detail}"
+        )
+    print("coverage: inclusion only; completeness of the account's movements NOT established")
+    if replay_section is not None:
+        integrity = replay_section["meta_integrity"]
+        execution = replay_section["core_execution"]
+        correspondence = replay_section["correspondence"]
+        print(
+            f"replay: artifacts {integrity['status']} ({execution['provenance']}; execution "
+            f"not observed by this process), correspondence {correspondence['status']}"
+        )
+        for problem in integrity["problems"] + correspondence["problems"]:
+            print(f"  replay problem: {problem}")
+        for event in events:
+            print(f"  {event.status} {event.observation_id}: {event.detail}")
+        print("events: derived from the replay, not committed by any ledger header")
+    if completeness_section is not None:
+        print(
+            f"classic payment completeness {completeness_section['status']} in ledgers "
+            f"{completeness_section['scope']['ledgers']} (payment operations only, not all "
+            "movements)"
+        )
+        for difference in completeness_section["differences"]:
+            print(f"  {difference['kind']} {difference['key']}: {difference['detail']}")
+    print(f"overall {overall['status']}")
+    for key in ("contradictions", "not_established", "unauthenticated"):
+        for item in overall[key]:
+            print(f"  {key.replace('_', ' ')}: {item}")
+    return int(overall["exit_code"])

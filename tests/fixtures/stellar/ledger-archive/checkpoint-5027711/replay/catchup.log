@@ -1,0 +1,486 @@
+Warning: running non-release version stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649) of stellar-core
+2026-10-08T23:53:22.050 [default INFO] Config from /work/replay.cfg
+2026-10-08T23:53:22.050 [default INFO] Generated QUORUM_SET: {
+   "t" : 2,
+   "v" : [ "sdftest2", "sdftest3", "sdftest1" ]
+}
+
+2026-10-08T23:53:22.050 [default INFO] Assigning calculated value of 1 to FAILURE_SAFETY
+2026-10-08T23:53:22.051 GC7QY [Database INFO] Connecting to: sqlite3:///work/stellar.db
+2026-10-08T23:53:22.054 GC7QY [Ledger INFO] Streaming metadata to '/work/meta.xdr'
+2026-10-08T23:53:22.054 GC7QY [SCP INFO] LocalNode::LocalNode@GC7QY qSet: 59d361
+2026-10-08T23:53:22.058 GC7QY [Invariant INFO] Enabled invariant 'EventsAreConsistentWithEntryDiffs'
+2026-10-08T23:53:22.058 GC7QY [default INFO] Listening on <address> for HTTP requests
+2026-10-08T23:53:22.059 GC7QY [Database INFO] DB schema is in current version
+2026-10-08T23:53:22.059 GC7QY [Bucket INFO] BucketListDB enabled: pageSizeExponent: 14 indexCutOff: 20MB, persist indexes: true
+2026-10-08T23:53:22.059 GC7QY [default INFO] Connection effective settings:
+2026-10-08T23:53:22.059 GC7QY [default INFO] TARGET_PEER_CONNECTIONS: 8
+2026-10-08T23:53:22.059 GC7QY [default INFO] MAX_ADDITIONAL_PEER_CONNECTIONS: 64
+2026-10-08T23:53:22.059 GC7QY [default INFO] MAX_PENDING_CONNECTIONS: 500
+2026-10-08T23:53:22.059 GC7QY [default INFO] MAX_OUTBOUND_PENDING_CONNECTIONS: 56
+2026-10-08T23:53:22.059 GC7QY [default INFO] MAX_INBOUND_PENDING_CONNECTIONS: 444
+2026-10-08T23:53:22.059 GC7QY [default INFO] BACKGROUND_OVERLAY_PROCESSING=true
+2026-10-08T23:53:22.059 GC7QY [default INFO] PARALLEL_LEDGER_APPLY=true
+2026-10-08T23:53:22.060 GC7QY [default INFO] Found trusted hash f2bd04 for ledger 5027711
+2026-10-08T23:53:22.060 GC7QY [History WARNING] Unsafe command: use --trusted-checkpoint-hashes or --trusted-hash to ensure catchup integrity. If you want to run untrusted catchup, use --force-untrusted-catchup.
+2026-10-08T23:53:22.060 GC7QY [Ledger INFO] Starting up application
+2026-10-08T23:53:22.060 GC7QY [Ledger INFO] Loaded LCL header from database: [seq=1, hash=63d98f]
+2026-10-08T23:53:22.060 GC7QY [default INFO] Establishing 4-entry connection pool to: sqlite3:///work/stellar.db
+2026-10-08T23:53:22.061 GC7QY [Ledger INFO] Assumed bucket-state for LCL: [seq=1, hash=63d98f] (0.000 sec)
+2026-10-08T23:53:22.061 GC7QY [default INFO] Launching 1 loading and 5 compiling background threads
+2026-10-08T23:53:22.061 GC7QY [default INFO] Compiled 0 contracts (0 bytes of Wasm) in 0ms real time, 0ms CPU time
+2026-10-08T23:53:22.062 GC7QY [Perf INFO] Populating in-memory Soroban state from LCL for ledger [seq=1, hash=63d98f]
+2026-10-08T23:53:22.062 GC7QY [Perf INFO] Populated in-memory Soroban state in 0.000 sec
+2026-10-08T23:53:22.062 GC7QY [Perf INFO] Startup state load took 0.002 sec (full=true)
+2026-10-08T23:53:22.062 GC7QY [Herder INFO] Loaded 0 banned account(s) from database
+2026-10-08T23:53:22.062 GC7QY [Ledger INFO] Changing state LM_BOOTING_STATE -> LM_CATCHING_UP_STATE
+2026-10-08T23:53:22.062 GC7QY [History INFO] Downloading history archive state: .well-known/stellar-history.json
+2026-10-08T23:53:22.062 GC7QY [History INFO] Starting catchup with configuration:
+  lastClosedLedger: 1
+  toLedger: 5027711
+  count: 64
+2026-10-08T23:53:22.062 GC7QY [History INFO] Catching up to ledger 5027711: Downloading state file history/00/4c/b7/history-004cb77f.json for ledger 5027711
+2026-10-08T23:53:22.062 GC7QY [History INFO] Downloading history archive state: history/00/4c/b7/history-004cb77f.json
+2026-10-08T23:53:22.062 GC7QY [History INFO] Selected archive sdftest2 to download history-004cb77f.json
+2026-10-08T23:53:22.813 GC7QY [History INFO] Catching up to ledger 5027711: Downloading state file history/00/4c/b7/history-004cb73f.json for ledger 5027647
+2026-10-08T23:53:22.813 GC7QY [History INFO] Downloading history archive state: history/00/4c/b7/history-004cb73f.json
+2026-10-08T23:53:22.813 GC7QY [History INFO] Selected archive sdftest1 to download history-004cb73f.json
+2026-10-08T23:53:22.924 GC7QY [History INFO] Catching up to ledger 5027711: downloading ledger files 1/2 (50%)
+2026-10-08T23:53:22.924 GC7QY [History INFO] Catching up to ledger 5027711: downloading ledger files 2/2 (100%)
+2026-10-08T23:53:22.924 GC7QY [History INFO] Selected archive sdftest2 to download ledger-004cb73f.xdr.gz
+2026-10-08T23:53:22.924 GC7QY [History INFO] Selected archive sdftest1 to download ledger-004cb77f.xdr.gz
+2026-10-08T23:53:23.150 GC7QY [History INFO] Downloading history archive state: .well-known/stellar-history.json
+2026-10-08T23:53:23.676 GC7QY [History INFO] Catching up to ledger 5027711: Succeeded: batch-download-ledger-004cb73f-004cb7bf : 2/2 children completed
+2026-10-08T23:53:23.676 GC7QY [History INFO] Verifying ledgers [5027647,5027712)
+2026-10-08T23:53:23.676 GC7QY [History INFO] Verifying ledger [seq=5027711, hash=f2bd04] against SCP hash
+2026-10-08T23:53:23.676 GC7QY [History INFO] Catching up to ledger 5027711: verifying checkpoint 1/2 (50%)
+2026-10-08T23:53:23.676 GC7QY [History INFO] History chain [5027647,5027711] verified
+2026-10-08T23:53:23.676 GC7QY [History INFO] Catching up to ledger 5027711: Succeeded: verify-ledger-chain
+2026-10-08T23:53:23.683 GC7QY [History INFO] Catching up to ledger 5027711: Ready to run: herder-state-consistency-work
+2026-10-08T23:53:23.683 GC7QY [History INFO] Herder state is set! tracking=5027711, closeTime=1791162142
+2026-10-08T23:53:23.683 GC7QY [History INFO] Catching up to ledger 5027711: Succeeded: herder-state-consistency-work
+2026-10-08T23:53:23.684 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 0/36 (0%)
+2026-10-08T23:53:23.684 GC7QY [History INFO] Selected archive sdftest1 to download bucket-2a9f70bc90992827aabd5278c3cb7fc3085a1358f4e9e2113e2fb02900dcf878.xdr.gz
+2026-10-08T23:53:23.685 GC7QY [History INFO] Selected archive sdftest1 to download bucket-f62abe2dd7f71afe9994b3e3d78e9a8c31016159651778824467e6cf95dd0434.xdr.gz
+2026-10-08T23:53:23.685 GC7QY [History INFO] Selected archive sdftest2 to download bucket-118fc58f4f47d943cc41c010e7f7f465ac2b1fb340dd3d5be63f278c70fd5a9b.xdr.gz
+2026-10-08T23:53:23.685 GC7QY [History INFO] Selected archive sdftest3 to download bucket-560afd3105e49be580dffb0231ef65c192d37a5245233e11e53880c6d6538964.xdr.gz
+2026-10-08T23:53:23.686 GC7QY [History INFO] Selected archive sdftest2 to download bucket-d53d55740b1e6b2938fdd136dd89221279fc87f80d8cc6a358a1e4df533f37bb.xdr.gz
+2026-10-08T23:53:23.686 GC7QY [History INFO] Selected archive sdftest1 to download bucket-f3c75de4cb54356d1b5dc5962af97dbfbce4021fb26304303764c07f9f908d0d.xdr.gz
+2026-10-08T23:53:23.686 GC7QY [History INFO] Selected archive sdftest1 to download bucket-dc4437f6e2a3722695b199763bd43d297e648f6c8afc02e85be256725af7b3ff.xdr.gz
+2026-10-08T23:53:23.690 GC7QY [History INFO] Selected archive sdftest3 to download bucket-4d8b5f1bd5512a4b5a66fc8aa6376bf07b3f576a334f931bc4723ada2f7c53a6.xdr.gz
+2026-10-08T23:53:23.691 GC7QY [History INFO] Selected archive sdftest2 to download bucket-8584f49975e7f37a76822cf3f932acf129059bc6650a5d4dfcdceec3ecfe4652.xdr.gz
+2026-10-08T23:53:23.693 GC7QY [History INFO] Selected archive sdftest1 to download bucket-4ec7ac2e536adffc376032c78ec2be43466b697c3bb995cfd89a7ce7c571bc1b.xdr.gz
+2026-10-08T23:53:23.693 GC7QY [History INFO] Selected archive sdftest1 to download bucket-fd2bc2f77834cf640b3f66bb553a6bbc83f7d8e8fee386ba0f8ee65d83bba5ff.xdr.gz
+2026-10-08T23:53:23.693 GC7QY [History INFO] Selected archive sdftest1 to download bucket-06357b7a0a30e5048b7d2cf69ddf6810cd32129c48dfc24adce93cd50a49efbb.xdr.gz
+2026-10-08T23:53:23.693 GC7QY [History INFO] Selected archive sdftest1 to download bucket-e8b2bf120379ccc061c2edb5168de32c47b53d022baa2b5e3be6ecfa08f696c4.xdr.gz
+2026-10-08T23:53:23.694 GC7QY [History INFO] Selected archive sdftest2 to download bucket-ee794c949df9ef3b0ad0e33f4765009e4919a9bd47e38aed4b85c145ef87c557.xdr.gz
+2026-10-08T23:53:23.695 GC7QY [History INFO] Selected archive sdftest2 to download bucket-9e278025c4ab2d1ad11c6853d6acc9aeceb714482ee1a95cc4cab6614ed2a160.xdr.gz
+2026-10-08T23:53:23.696 GC7QY [History INFO] Selected archive sdftest2 to download bucket-84228902cac3ccfd8b07c0adb237a220964b093cab434a27a44430b2edb95459.xdr.gz
+2026-10-08T23:53:23.975 GC7QY [History INFO] Verifying and indexing bucket 06357b7a0a30e5048b7d2cf69ddf6810cd32129c48dfc24adce93cd50a49efbb
+2026-10-08T23:53:23.986 GC7QY [History INFO] Verifying and indexing bucket e8b2bf120379ccc061c2edb5168de32c47b53d022baa2b5e3be6ecfa08f696c4
+2026-10-08T23:53:23.995 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 1/36 (2%)
+2026-10-08T23:53:23.995 GC7QY [History INFO] Selected archive sdftest3 to download bucket-4e08062229343b08a7bfe6a5597f16dcda456775862f9908064a361fbd296a44.xdr.gz
+2026-10-08T23:53:24.051 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 2/36 (5%)
+2026-10-08T23:53:24.051 GC7QY [History INFO] Selected archive sdftest1 to download bucket-019ef28c35e8da4ea33e60dc05bcfffdd1a9a29d303a203a7ce955ae3862aa63.xdr.gz
+2026-10-08T23:53:24.220 GC7QY [History INFO] Downloading history archive state: .well-known/stellar-history.json
+2026-10-08T23:53:24.245 GC7QY [History INFO] Verifying and indexing bucket 4ec7ac2e536adffc376032c78ec2be43466b697c3bb995cfd89a7ce7c571bc1b
+2026-10-08T23:53:24.304 GC7QY [History INFO] Verifying and indexing bucket 019ef28c35e8da4ea33e60dc05bcfffdd1a9a29d303a203a7ce955ae3862aa63
+2026-10-08T23:53:24.307 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 3/36 (8%)
+2026-10-08T23:53:24.307 GC7QY [History INFO] Selected archive sdftest3 to download bucket-18ad6b360d72a30db32cbc13b89367a5740c66822569418496f80479d08f8d5e.xdr.gz
+2026-10-08T23:53:24.368 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 4/36 (11%)
+2026-10-08T23:53:24.368 GC7QY [History INFO] Selected archive sdftest3 to download bucket-2f5dcd3b2ff03e0bb09787f3602c823ae543fac620a6ff643f86de9a05e17778.xdr.gz
+2026-10-08T23:53:24.760 GC7QY [History INFO] Verifying and indexing bucket fd2bc2f77834cf640b3f66bb553a6bbc83f7d8e8fee386ba0f8ee65d83bba5ff
+2026-10-08T23:53:24.762 GC7QY [History INFO] Verifying and indexing bucket 9e278025c4ab2d1ad11c6853d6acc9aeceb714482ee1a95cc4cab6614ed2a160
+2026-10-08T23:53:24.768 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 5/36 (13%)
+2026-10-08T23:53:24.768 GC7QY [History INFO] Selected archive sdftest2 to download bucket-92ab17de715b64995bd7d3d7518f154e2242bed4e0cf48b229c2909ca1c0816c.xdr.gz
+2026-10-08T23:53:24.836 GC7QY [History INFO] Verifying and indexing bucket ee794c949df9ef3b0ad0e33f4765009e4919a9bd47e38aed4b85c145ef87c557
+2026-10-08T23:53:24.846 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 6/36 (16%)
+2026-10-08T23:53:24.846 GC7QY [History INFO] Selected archive sdftest1 to download bucket-c9f78613f632ff6535d2686d062d9473d48931bde16cc977d7ea0711795ca8a5.xdr.gz
+2026-10-08T23:53:24.870 GC7QY [History INFO] Verifying and indexing bucket dc4437f6e2a3722695b199763bd43d297e648f6c8afc02e85be256725af7b3ff
+2026-10-08T23:53:24.911 GC7QY [History INFO] Verifying and indexing bucket 4e08062229343b08a7bfe6a5597f16dcda456775862f9908064a361fbd296a44
+2026-10-08T23:53:24.915 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 7/36 (19%)
+2026-10-08T23:53:24.915 GC7QY [History INFO] Selected archive sdftest1 to download bucket-3b4226867ecb2012649499c2eb2e9abba9153c31d85269cf8c5a59a0baff9a24.xdr.gz
+2026-10-08T23:53:24.978 GC7QY [History INFO] Verifying and indexing bucket 84228902cac3ccfd8b07c0adb237a220964b093cab434a27a44430b2edb95459
+2026-10-08T23:53:24.984 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 8/36 (22%)
+2026-10-08T23:53:24.984 GC7QY [History INFO] Selected archive sdftest3 to download bucket-147286b15c499db3ae754c95d235f3a4a8635953e6b7782208368c0ff5885013.xdr.gz
+2026-10-08T23:53:25.139 GC7QY [History INFO] Verifying and indexing bucket 18ad6b360d72a30db32cbc13b89367a5740c66822569418496f80479d08f8d5e
+2026-10-08T23:53:25.143 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 9/36 (25%)
+2026-10-08T23:53:25.143 GC7QY [History INFO] Selected archive sdftest3 to download bucket-d821de5599e2261a385ef04911c9800ee66ab90f5e4596e53576ee9fdfa26f73.xdr.gz
+2026-10-08T23:53:25.174 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 10/36 (27%)
+2026-10-08T23:53:25.174 GC7QY [History INFO] Selected archive sdftest1 to download bucket-d80ceb853594338534862796ed5f88b3b8a0f3c23001e3ee67b03d4a6bcaf506.xdr.gz
+2026-10-08T23:53:25.314 GC7QY [History INFO] Archive information: [name: sdftest1, server: stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649), currentLedger: 5095999]
+2026-10-08T23:53:25.314 GC7QY [History INFO] Archive information: [name: sdftest2, server: stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649), currentLedger: 5095999]
+2026-10-08T23:53:25.314 GC7QY [History INFO] Archive information: [name: sdftest3, server: stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649), currentLedger: 5095999]
+2026-10-08T23:53:25.398 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 11/36 (30%)
+2026-10-08T23:53:25.398 GC7QY [History INFO] Selected archive sdftest1 to download bucket-93ab1d1783c3a11024e3a4beb6542311dc4c2bb5140d8b3d6e5bfcb6fdf44818.xdr.gz
+2026-10-08T23:53:25.614 GC7QY [History INFO] Verifying and indexing bucket 2f5dcd3b2ff03e0bb09787f3602c823ae543fac620a6ff643f86de9a05e17778
+2026-10-08T23:53:25.619 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 12/36 (33%)
+2026-10-08T23:53:25.619 GC7QY [History INFO] Selected archive sdftest2 to download bucket-49857da875f28d1f5c42ac835469f3e2e5d13c6f9599917857d69ad41c44dc4b.xdr.gz
+2026-10-08T23:53:25.745 GC7QY [History INFO] Verifying and indexing bucket 8584f49975e7f37a76822cf3f932acf129059bc6650a5d4dfcdceec3ecfe4652
+2026-10-08T23:53:25.972 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 13/36 (36%)
+2026-10-08T23:53:25.973 GC7QY [History INFO] Selected archive sdftest2 to download bucket-0b2ceccb53e491bf779131b9151ac6d1e68fae245309840c9b059ecbbe1a53c7.xdr.gz
+2026-10-08T23:53:26.439 GC7QY [History INFO] Verifying and indexing bucket f3c75de4cb54356d1b5dc5962af97dbfbce4021fb26304303764c07f9f908d0d
+2026-10-08T23:53:26.624 GC7QY [History INFO] Verifying and indexing bucket 92ab17de715b64995bd7d3d7518f154e2242bed4e0cf48b229c2909ca1c0816c
+2026-10-08T23:53:26.626 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 14/36 (38%)
+2026-10-08T23:53:26.626 GC7QY [History INFO] Selected archive sdftest1 to download bucket-0ddd58576d071b862484576785c3c881d8d97d4f3a4bf618696a9868ca299115.xdr.gz
+2026-10-08T23:53:27.003 GC7QY [History INFO] Verifying and indexing bucket 0ddd58576d071b862484576785c3c881d8d97d4f3a4bf618696a9868ca299115
+2026-10-08T23:53:27.051 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 15/36 (41%)
+2026-10-08T23:53:27.051 GC7QY [History INFO] Selected archive sdftest1 to download bucket-6b5d4ed4abed1a0b27ddd43bff4899861d885d524869acc2be822429ed921714.xdr.gz
+2026-10-08T23:53:27.084 GC7QY [History INFO] Verifying and indexing bucket d80ceb853594338534862796ed5f88b3b8a0f3c23001e3ee67b03d4a6bcaf506
+2026-10-08T23:53:27.362 GC7QY [History INFO] Verifying and indexing bucket 4d8b5f1bd5512a4b5a66fc8aa6376bf07b3f576a334f931bc4723ada2f7c53a6
+2026-10-08T23:53:27.430 GC7QY [History INFO] Verifying and indexing bucket 49857da875f28d1f5c42ac835469f3e2e5d13c6f9599917857d69ad41c44dc4b
+2026-10-08T23:53:27.512 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 16/36 (44%)
+2026-10-08T23:53:27.512 GC7QY [History INFO] Selected archive sdftest1 to download bucket-de5e625dd1e25a2e05f073522004c644a3340461ddf8ddc67fa50011598b34ba.xdr.gz
+2026-10-08T23:53:27.586 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 17/36 (47%)
+2026-10-08T23:53:27.586 GC7QY [History INFO] Selected archive sdftest2 to download bucket-42ddd2bd848e6decb32056aeb75e5516832462db89ed05ffb9596efbb320d8ee.xdr.gz
+2026-10-08T23:53:27.592 GC7QY [History INFO] Verifying and indexing bucket 6b5d4ed4abed1a0b27ddd43bff4899861d885d524869acc2be822429ed921714
+2026-10-08T23:53:27.698 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 18/36 (50%)
+2026-10-08T23:53:27.698 GC7QY [History INFO] Selected archive sdftest1 to download bucket-58b214df1ddcfb28f6985dd1e1bf891173211195f187a61e2c6c99216063ec06.xdr.gz
+2026-10-08T23:53:27.704 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 19/36 (52%)
+2026-10-08T23:53:27.704 GC7QY [History INFO] Selected archive sdftest3 to download bucket-92863b5919f35a36067ec18ea2bbd58433e8a4c605c7834d977670fd87b898ce.xdr.gz
+2026-10-08T23:53:27.705 GC7QY [History INFO] Verifying and indexing bucket 0b2ceccb53e491bf779131b9151ac6d1e68fae245309840c9b059ecbbe1a53c7
+2026-10-08T23:53:27.768 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 20/36 (55%)
+2026-10-08T23:53:27.768 GC7QY [History INFO] Selected archive sdftest1 to download bucket-1cf65bf5522a640b035e561b36fba8cd081963b2ffa4092f48c330a230af6ac0.xdr.gz
+2026-10-08T23:53:27.928 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 21/36 (58%)
+2026-10-08T23:53:27.981 GC7QY [History INFO] Verifying and indexing bucket 1cf65bf5522a640b035e561b36fba8cd081963b2ffa4092f48c330a230af6ac0
+2026-10-08T23:53:27.984 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 22/36 (61%)
+2026-10-08T23:53:28.170 GC7QY [History INFO] Verifying and indexing bucket 58b214df1ddcfb28f6985dd1e1bf891173211195f187a61e2c6c99216063ec06
+2026-10-08T23:53:28.196 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 23/36 (63%)
+2026-10-08T23:53:28.196 GC7QY [History INFO] Verifying and indexing bucket 93ab1d1783c3a11024e3a4beb6542311dc4c2bb5140d8b3d6e5bfcb6fdf44818
+2026-10-08T23:53:28.411 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 24/36 (66%)
+2026-10-08T23:53:28.555 GC7QY [History INFO] Verifying and indexing bucket 92863b5919f35a36067ec18ea2bbd58433e8a4c605c7834d977670fd87b898ce
+2026-10-08T23:53:28.557 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 25/36 (69%)
+2026-10-08T23:53:28.620 GC7QY [History INFO] Verifying and indexing bucket de5e625dd1e25a2e05f073522004c644a3340461ddf8ddc67fa50011598b34ba
+2026-10-08T23:53:28.645 GC7QY [History INFO] Verifying and indexing bucket 42ddd2bd848e6decb32056aeb75e5516832462db89ed05ffb9596efbb320d8ee
+2026-10-08T23:53:28.647 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 26/36 (72%)
+2026-10-08T23:53:28.799 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 27/36 (75%)
+2026-10-08T23:53:31.488 GC7QY [History INFO] Verifying and indexing bucket d821de5599e2261a385ef04911c9800ee66ab90f5e4596e53576ee9fdfa26f73
+2026-10-08T23:53:32.469 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 28/36 (77%)
+2026-10-08T23:53:35.201 GC7QY [History INFO] Verifying and indexing bucket d53d55740b1e6b2938fdd136dd89221279fc87f80d8cc6a358a1e4df533f37bb
+2026-10-08T23:53:36.756 GC7QY [History INFO] Verifying and indexing bucket 560afd3105e49be580dffb0231ef65c192d37a5245233e11e53880c6d6538964
+2026-10-08T23:53:36.822 GC7QY [History INFO] Verifying and indexing bucket 147286b15c499db3ae754c95d235f3a4a8635953e6b7782208368c0ff5885013
+2026-10-08T23:53:38.479 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 29/36 (80%)
+2026-10-08T23:53:38.608 GC7QY [History INFO] Verifying and indexing bucket 3b4226867ecb2012649499c2eb2e9abba9153c31d85269cf8c5a59a0baff9a24
+2026-10-08T23:53:39.400 GC7QY [History INFO] Verifying and indexing bucket 118fc58f4f47d943cc41c010e7f7f465ac2b1fb340dd3d5be63f278c70fd5a9b
+2026-10-08T23:53:41.020 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 30/36 (83%)
+2026-10-08T23:53:41.695 GC7QY [History INFO] Verifying and indexing bucket f62abe2dd7f71afe9994b3e3d78e9a8c31016159651778824467e6cf95dd0434
+2026-10-08T23:53:41.715 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 31/36 (86%)
+2026-10-08T23:53:43.312 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 32/36 (88%)
+2026-10-08T23:53:46.093 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 33/36 (91%)
+2026-10-08T23:53:48.562 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 34/36 (94%)
+2026-10-08T23:53:51.572 GC7QY [History INFO] Verifying and indexing bucket 2a9f70bc90992827aabd5278c3cb7fc3085a1358f4e9e2113e2fb02900dcf878
+2026-10-08T23:53:51.672 GC7QY [History INFO] Verifying and indexing bucket c9f78613f632ff6535d2686d062d9473d48931bde16cc977d7ea0711795ca8a5
+2026-10-08T23:54:01.632 GC7QY [History INFO] Catching up to ledger 5027711: downloading and verifying buckets: 35/36 (97%)
+2026-10-08T23:54:03.539 GC7QY [History INFO] Catching up to ledger 5027711: Succeeded: download-verify-buckets : 36/36 children completed
+2026-10-08T23:54:03.546 GC7QY [History INFO] Catching up to ledger 5027711: Succeeded: verify-has
+2026-10-08T23:54:03.546 GC7QY [History INFO] Applying buckets
+2026-10-08T23:54:03.546 GC7QY [History INFO] ApplyBuckets estimated 24946670 ledger entries
+2026-10-08T23:54:03.546 GC7QY [History INFO] Catching up to ledger 5027711: Running: apply-buckets : 0/1 children completed
+2026-10-08T23:54:03.546 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 0%. Currently on level 0
+2026-10-08T23:54:03.546 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 0%. Currently on level 1
+2026-10-08T23:54:03.546 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 0%. Currently on level 2
+2026-10-08T23:54:03.546 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 0%. Currently on level 3
+2026-10-08T23:54:03.551 GC7QY [Bucket INFO] Apply-rates for 1-entry bucket 3.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 0, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:0
+2026-10-08T23:54:03.551 GC7QY [Bucket INFO] Entry-counts for 1-entry bucket 3.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 1, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.551 GC7QY [Bucket INFO] Bucket-apply: 1 entries in 459.02KB/2.23GB in 1/21 files (0%)
+2026-10-08T23:54:03.551 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 0%. Currently on level 4
+2026-10-08T23:54:03.555 GC7QY [Bucket INFO] Apply-rates for 7-entry bucket 4.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 1684, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:1684
+2026-10-08T23:54:03.555 GC7QY [Bucket INFO] Entry-counts for 7-entry bucket 4.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 7, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.555 GC7QY [Bucket INFO] Bucket-apply: 8 entries in 2.97MB/2.23GB in 2/21 files (0%)
+2026-10-08T23:54:03.560 GC7QY [Bucket INFO] Apply-rates for 2-entry bucket 4.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 400, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:400
+2026-10-08T23:54:03.560 GC7QY [Bucket INFO] Entry-counts for 2-entry bucket 4.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 2, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.560 GC7QY [Bucket INFO] Bucket-apply: 10 entries in 4.10MB/2.23GB in 3/21 files (0%)
+2026-10-08T23:54:03.560 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 0%. Currently on level 5
+2026-10-08T23:54:03.565 GC7QY [Bucket INFO] Apply-rates for 40-entry bucket 5.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 8771, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:8771
+2026-10-08T23:54:03.565 GC7QY [Bucket INFO] Entry-counts for 40-entry bucket 5.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 40, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.565 GC7QY [Bucket INFO] Bucket-apply: 50 entries in 20.25MB/2.23GB in 4/21 files (0%)
+2026-10-08T23:54:03.570 GC7QY [Bucket INFO] Apply-rates for 138-entry bucket 5.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 25437, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:25437
+2026-10-08T23:54:03.570 GC7QY [Bucket INFO] Entry-counts for 138-entry bucket 5.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 138, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.570 GC7QY [Bucket INFO] Bucket-apply: 188 entries in 26.01MB/2.23GB in 5/21 files (1%)
+2026-10-08T23:54:03.570 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 1%. Currently on level 5
+2026-10-08T23:54:03.570 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 1%. Currently on level 6
+2026-10-08T23:54:03.575 GC7QY [Bucket INFO] Apply-rates for 52-entry bucket 6.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 10757, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:10757
+2026-10-08T23:54:03.575 GC7QY [Bucket INFO] Entry-counts for 52-entry bucket 6.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 52, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.575 GC7QY [Bucket INFO] Bucket-apply: 240 entries in 37.16MB/2.23GB in 6/21 files (1%)
+2026-10-08T23:54:03.581 GC7QY [Bucket INFO] Apply-rates for 101-entry bucket 6.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 16295, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:16295
+2026-10-08T23:54:03.581 GC7QY [Bucket INFO] Entry-counts for 101-entry bucket 6.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 101, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.581 GC7QY [Bucket INFO] Bucket-apply: 341 entries in 52.27MB/2.23GB in 7/21 files (2%)
+2026-10-08T23:54:03.581 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 2%. Currently on level 6
+2026-10-08T23:54:03.581 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 2%. Currently on level 7
+2026-10-08T23:54:03.587 GC7QY [Bucket INFO] Apply-rates for 150-entry bucket 7.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 26785, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:26785
+2026-10-08T23:54:03.587 GC7QY [Bucket INFO] Entry-counts for 150-entry bucket 7.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 150, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.587 GC7QY [Bucket INFO] Bucket-apply: 491 entries in 84.43MB/2.23GB in 8/21 files (3%)
+2026-10-08T23:54:03.587 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 3%. Currently on level 7
+2026-10-08T23:54:03.595 GC7QY [Bucket INFO] Apply-rates for 446-entry bucket 7.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 55715, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:55715
+2026-10-08T23:54:03.595 GC7QY [Bucket INFO] Entry-counts for 446-entry bucket 7.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 446, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.595 GC7QY [Bucket INFO] Bucket-apply: 937 entries in 154.54MB/2.23GB in 9/21 files (6%)
+2026-10-08T23:54:03.595 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 6%. Currently on level 7
+2026-10-08T23:54:03.595 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 6%. Currently on level 8
+2026-10-08T23:54:03.615 GC7QY [Bucket INFO] Apply-rates for 1807-entry bucket 8.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 89896, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:89896
+2026-10-08T23:54:03.615 GC7QY [Bucket INFO] Entry-counts for 1807-entry bucket 8.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 1807, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.615 GC7QY [Bucket INFO] Bucket-apply: 2744 entries in 320.33MB/2.23GB in 10/21 files (14%)
+2026-10-08T23:54:03.615 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 14%. Currently on level 8
+2026-10-08T23:54:03.626 GC7QY [Bucket INFO] Apply-rates for 609-entry bucket 8.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 54820, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:54820
+2026-10-08T23:54:03.626 GC7QY [Bucket INFO] Entry-counts for 609-entry bucket 8.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 609, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.626 GC7QY [Bucket INFO] Bucket-apply: 3353 entries in 547.23MB/2.23GB in 11/21 files (23%)
+2026-10-08T23:54:03.626 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 23%. Currently on level 8
+2026-10-08T23:54:03.626 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 23%. Currently on level 9
+2026-10-08T23:54:03.665 GC7QY [Bucket INFO] Bucket-apply: 7449 entries in 594.90MB/2.23GB in 11/21 files (26%)
+2026-10-08T23:54:03.665 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 26%. Currently on level 9
+2026-10-08T23:54:03.673 GC7QY [Bucket INFO] Apply-rates for 4337-entry bucket 9.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 92931, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:92931
+2026-10-08T23:54:03.673 GC7QY [Bucket INFO] Entry-counts for 4337-entry bucket 9.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 4337, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.673 GC7QY [Bucket INFO] Bucket-apply: 7690 entries in 895.81MB/2.23GB in 12/21 files (39%)
+2026-10-08T23:54:03.673 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 39%. Currently on level 9
+2026-10-08T23:54:03.713 GC7QY [Bucket INFO] Bucket-apply: 11786 entries in 951.11MB/2.23GB in 12/21 files (41%)
+2026-10-08T23:54:03.713 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 41%. Currently on level 9
+2026-10-08T23:54:03.748 GC7QY [Bucket INFO] Apply-rates for 7284-entry bucket 9.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 96881, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:96881
+2026-10-08T23:54:03.748 GC7QY [Bucket INFO] Entry-counts for 7284-entry bucket 9.snap ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 7284, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:03.748 GC7QY [Bucket INFO] Bucket-apply: 14974 entries in 1.29GB/2.23GB in 13/21 files (57%)
+2026-10-08T23:54:03.748 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 57%. Currently on level 9
+2026-10-08T23:54:03.748 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 57%. Currently on level 10
+2026-10-08T23:54:03.787 GC7QY [Bucket INFO] Bucket-apply: 19070 entries in 1.70GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:03.787 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 76%. Currently on level 10
+2026-10-08T23:54:03.868 GC7QY [Bucket INFO] Bucket-apply: 27262 entries in 1.70GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:03.956 GC7QY [Bucket INFO] Bucket-apply: 35454 entries in 1.70GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:04.048 GC7QY [Bucket INFO] Bucket-apply: 43646 entries in 1.70GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:04.137 GC7QY [Bucket INFO] Bucket-apply: 47742 entries in 1.70GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:04.237 GC7QY [Bucket INFO] Bucket-apply: 55934 entries in 1.70GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:04.338 GC7QY [Bucket INFO] Bucket-apply: 64126 entries in 1.71GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:04.391 GC7QY [Bucket INFO] Bucket-apply: 68222 entries in 1.71GB/2.23GB in 13/21 files (76%)
+2026-10-08T23:54:04.480 GC7QY [Bucket INFO] Apply-rates for 57258-entry bucket 10.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 78204, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0 T:78204
+2026-10-08T23:54:04.480 GC7QY [Bucket INFO] Entry-counts for 57258-entry bucket 10.curr ACCOUNT up: 0, del: 0 TRUSTLINE up: 0, del: 0 OFFER up: 57258, del: 0 DATA up: 0, del: 0 CLAIMABLE_BALANCE up: 0, del: 0 LIQUIDITY_POOL up: 0, del: 0 CONTRACT_DATA up: 0, del: 0 CONTRACT_CODE up: 0, del: 0 CONFIG_SETTING up: 0, del: 0 TTL up: 0, del: 0
+2026-10-08T23:54:04.480 GC7QY [Bucket INFO] Bucket-apply: 72232 entries in 2.23GB/2.23GB in 14/21 files (99%)
+2026-10-08T23:54:04.480 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 99%. Currently on level 10
+2026-10-08T23:54:04.480 GC7QY [History INFO] ApplyBuckets : done, assuming state
+2026-10-08T23:54:04.480 GC7QY [History INFO] Catching up to ledger 5027711: Applying buckets 99%. Currently on level 11
+2026-10-08T23:54:04.511 GC7QY [default INFO] Launching 1 loading and 5 compiling background threads
+2026-10-08T23:54:08.071 GC7QY [default INFO] Compiled 5408 contracts (161605470 bytes of Wasm) in 3560ms real time, 16711ms CPU time
+2026-10-08T23:54:27.421 GC7QY [History INFO] Catching up to ledger 5027711: Succeeded: download-verify-apply-buckets
+2026-10-08T23:54:27.422 GC7QY [History INFO] Downloading ledger checkpoint ledger-0000003f.xdr.gz from archive sdftest1
+2026-10-08T23:54:27.422 GC7QY [History INFO] Downloading, unzipping and applying transactions for checkpoint 5027711
+2026-10-08T23:54:27.423 GC7QY [History INFO] Catching up to ledger 5027711: Download & apply checkpoints: num checkpoints left to apply:1 (0% done)
+2026-10-08T23:54:27.423 GC7QY [History INFO] Selected archive sdftest3 to download transactions-004cb77f.xdr.gz
+2026-10-08T23:54:28.172 GC7QY [History INFO] Local ledger header 1 matches archive sdftest1
+2026-10-08T23:54:28.172 GC7QY [History INFO] Downloading ledger checkpoint ledger-0000003f.xdr.gz from archive sdftest2
+2026-10-08T23:54:28.662 GC7QY [Tx INFO] applying ledger 5027648 (classic phase: 1 component(s): [{discounted txs:4, ops:25, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:6, ops:7, base_fee:100}])
+2026-10-08T23:54:28.815 GC7QY [Ledger INFO] Ledger close complete: 5027648
+2026-10-08T23:54:28.816 GC7QY [Tx INFO] applying ledger 5027649 (classic phase: 1 component(s): [{discounted txs:4, ops:25, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:28.914 GC7QY [Ledger INFO] Ledger close complete: 5027649
+2026-10-08T23:54:28.915 GC7QY [Tx INFO] applying ledger 5027650 (classic phase: 1 component(s): [{discounted txs:3, ops:3, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:6, ops:6, base_fee:100}])
+2026-10-08T23:54:29.024 GC7QY [Ledger INFO] Ledger close complete: 5027650
+2026-10-08T23:54:29.024 GC7QY [Tx INFO] applying ledger 5027651 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:29.103 GC7QY [Ledger INFO] Ledger close complete: 5027651
+2026-10-08T23:54:29.104 GC7QY [Tx INFO] applying ledger 5027652 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:6, ops:6, base_fee:100}])
+2026-10-08T23:54:29.175 GC7QY [Ledger INFO] Ledger close complete: 5027652
+2026-10-08T23:54:29.176 GC7QY [Tx INFO] applying ledger 5027653 (classic phase: 1 component(s): [{discounted txs:2, ops:3, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:10, base_fee:100}])
+2026-10-08T23:54:29.265 GC7QY [Ledger INFO] Ledger close complete: 5027653
+2026-10-08T23:54:29.267 GC7QY [Tx INFO] applying ledger 5027654 (classic phase: 1 component(s): [{discounted txs:2, ops:23, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:11, ops:12, base_fee:100}])
+2026-10-08T23:54:29.360 GC7QY [Ledger INFO] Ledger close complete: 5027654
+2026-10-08T23:54:29.360 GC7QY [Tx INFO] applying ledger 5027655 (classic phase: 1 component(s): [{discounted txs:2, ops:23, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:10, base_fee:100}])
+2026-10-08T23:54:29.464 GC7QY [Ledger INFO] Ledger close complete: 5027655
+2026-10-08T23:54:29.465 GC7QY [Tx INFO] applying ledger 5027656 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:29.577 GC7QY [Ledger INFO] Ledger close complete: 5027656
+2026-10-08T23:54:29.578 GC7QY [Tx INFO] applying ledger 5027657 (classic phase: 0 component(s): [], soroban phase: 1 component(s): [{discounted txs:15, ops:15, base_fee:100}])
+2026-10-08T23:54:29.678 GC7QY [Ledger INFO] Ledger close complete: 5027657
+2026-10-08T23:54:29.678 GC7QY [History INFO] Local ledger header 1 matches archive sdftest2
+2026-10-08T23:54:29.678 GC7QY [Tx INFO] applying ledger 5027658 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:7, ops:7, base_fee:100}])
+2026-10-08T23:54:29.758 GC7QY [Ledger INFO] Ledger close complete: 5027658
+2026-10-08T23:54:29.759 GC7QY [History INFO] Downloading ledger checkpoint ledger-0000003f.xdr.gz from archive sdftest3
+2026-10-08T23:54:29.760 GC7QY [Tx INFO] applying ledger 5027659 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:11, ops:12, base_fee:100}])
+2026-10-08T23:54:29.837 GC7QY [Ledger INFO] Ledger close complete: 5027659
+2026-10-08T23:54:29.837 GC7QY [Tx INFO] applying ledger 5027660 (classic phase: 1 component(s): [{discounted txs:3, ops:24, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:29.869 GC7QY [Ledger INFO] Ledger close complete: 5027660
+2026-10-08T23:54:29.870 GC7QY [Tx INFO] applying ledger 5027661 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:29.902 GC7QY [Ledger INFO] Ledger close complete: 5027661
+2026-10-08T23:54:29.902 GC7QY [Tx INFO] applying ledger 5027662 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:6, ops:6, base_fee:100}])
+2026-10-08T23:54:29.965 GC7QY [Ledger INFO] Ledger close complete: 5027662
+2026-10-08T23:54:29.966 GC7QY [Tx INFO] applying ledger 5027663 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:9, ops:9, base_fee:100}])
+2026-10-08T23:54:30.064 GC7QY [Ledger INFO] Ledger close complete: 5027663
+2026-10-08T23:54:30.064 GC7QY [Tx INFO] applying ledger 5027664 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:30.183 GC7QY [Ledger INFO] Ledger close complete: 5027664
+2026-10-08T23:54:30.184 GC7QY [Tx INFO] applying ledger 5027665 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:3, ops:3, base_fee:100}])
+2026-10-08T23:54:30.285 GC7QY [Ledger INFO] Ledger close complete: 5027665
+2026-10-08T23:54:30.285 GC7QY [Tx INFO] applying ledger 5027666 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:11, ops:12, base_fee:100}])
+2026-10-08T23:54:30.383 GC7QY [Ledger INFO] Ledger close complete: 5027666
+2026-10-08T23:54:30.383 GC7QY [Tx INFO] applying ledger 5027667 (classic phase: 1 component(s): [{discounted txs:1, ops:22, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:30.420 GC7QY [Ledger INFO] Ledger close complete: 5027667
+2026-10-08T23:54:30.420 GC7QY [Tx INFO] applying ledger 5027668 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:30.541 GC7QY [Ledger INFO] Ledger close complete: 5027668
+2026-10-08T23:54:30.541 GC7QY [Tx INFO] applying ledger 5027669 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:30.639 GC7QY [Ledger INFO] Ledger close complete: 5027669
+2026-10-08T23:54:30.640 GC7QY [Tx INFO] applying ledger 5027670 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:11, ops:11, base_fee:100}])
+2026-10-08T23:54:30.741 GC7QY [Ledger INFO] Ledger close complete: 5027670
+2026-10-08T23:54:30.741 GC7QY [Tx INFO] applying ledger 5027671 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:12, ops:13, base_fee:100}])
+2026-10-08T23:54:30.832 GC7QY [Ledger INFO] Ledger close complete: 5027671
+2026-10-08T23:54:30.833 GC7QY [Tx INFO] applying ledger 5027672 (classic phase: 1 component(s): [{discounted txs:4, ops:25, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:30.925 GC7QY [Ledger INFO] Ledger close complete: 5027672
+2026-10-08T23:54:30.926 GC7QY [Tx INFO] applying ledger 5027673 (classic phase: 0 component(s): [], soroban phase: 1 component(s): [{discounted txs:9, ops:9, base_fee:100}])
+2026-10-08T23:54:31.030 GC7QY [Ledger INFO] Ledger close complete: 5027673
+2026-10-08T23:54:31.030 GC7QY [Tx INFO] applying ledger 5027674 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:11, ops:11, base_fee:100}])
+2026-10-08T23:54:31.129 GC7QY [Ledger INFO] Ledger close complete: 5027674
+2026-10-08T23:54:31.130 GC7QY [Tx INFO] applying ledger 5027675 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:31.323 GC7QY [Ledger INFO] Ledger close complete: 5027675
+2026-10-08T23:54:31.323 GC7QY [History INFO] Local ledger header 1 matches archive sdftest3
+2026-10-08T23:54:31.323 GC7QY [Tx INFO] applying ledger 5027676 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:31.482 GC7QY [Ledger INFO] Ledger close complete: 5027676
+2026-10-08T23:54:31.483 GC7QY [Tx INFO] applying ledger 5027677 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:15, ops:16, base_fee:100}])
+2026-10-08T23:54:31.622 GC7QY [Ledger INFO] Ledger close complete: 5027677
+2026-10-08T23:54:31.623 GC7QY [Tx INFO] applying ledger 5027678 (classic phase: 1 component(s): [{discounted txs:4, ops:26, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:16, ops:17, base_fee:100}])
+2026-10-08T23:54:31.720 GC7QY [Ledger INFO] Ledger close complete: 5027678
+2026-10-08T23:54:31.720 GC7QY [Tx INFO] applying ledger 5027679 (classic phase: 0 component(s): [], soroban phase: 1 component(s): [{discounted txs:11, ops:11, base_fee:100}])
+2026-10-08T23:54:31.838 GC7QY [Ledger INFO] Ledger close complete: 5027679
+2026-10-08T23:54:31.839 GC7QY [Tx INFO] applying ledger 5027680 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:14, ops:14, base_fee:100}])
+2026-10-08T23:54:32.008 GC7QY [Ledger INFO] Ledger close complete: 5027680
+2026-10-08T23:54:32.009 GC7QY [Tx INFO] applying ledger 5027681 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:7, ops:7, base_fee:100}])
+2026-10-08T23:54:32.109 GC7QY [Ledger INFO] Ledger close complete: 5027681
+2026-10-08T23:54:32.109 GC7QY [Tx INFO] applying ledger 5027682 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:5, ops:5, base_fee:100}])
+2026-10-08T23:54:32.197 GC7QY [Ledger INFO] Ledger close complete: 5027682
+2026-10-08T23:54:32.197 GC7QY [Tx INFO] applying ledger 5027683 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:9, base_fee:100}])
+2026-10-08T23:54:32.276 GC7QY [Ledger INFO] Ledger close complete: 5027683
+2026-10-08T23:54:32.277 GC7QY [Tx INFO] applying ledger 5027684 (classic phase: 1 component(s): [{discounted txs:7, ops:29, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:12, ops:12, base_fee:100}])
+2026-10-08T23:54:32.369 GC7QY [Ledger INFO] Ledger close complete: 5027684
+2026-10-08T23:54:32.370 GC7QY [Tx INFO] applying ledger 5027685 (classic phase: 1 component(s): [{discounted txs:4, ops:4, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:10, base_fee:100}])
+2026-10-08T23:54:32.465 GC7QY [Ledger INFO] Ledger close complete: 5027685
+2026-10-08T23:54:32.465 GC7QY [Tx INFO] applying ledger 5027686 (classic phase: 1 component(s): [{discounted txs:6, ops:8, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:32.574 GC7QY [Ledger INFO] Ledger close complete: 5027686
+2026-10-08T23:54:32.575 GC7QY [Tx INFO] applying ledger 5027687 (classic phase: 1 component(s): [{discounted txs:6, ops:6, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:16, ops:16, base_fee:100}])
+2026-10-08T23:54:32.678 GC7QY [Ledger INFO] Ledger close complete: 5027687
+2026-10-08T23:54:32.679 GC7QY [Tx INFO] applying ledger 5027688 (classic phase: 1 component(s): [{discounted txs:5, ops:5, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:12, ops:12, base_fee:100}])
+2026-10-08T23:54:32.764 GC7QY [Ledger INFO] Ledger close complete: 5027688
+2026-10-08T23:54:32.765 GC7QY [Tx INFO] applying ledger 5027689 (classic phase: 1 component(s): [{discounted txs:6, ops:6, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:18, ops:19, base_fee:100}])
+2026-10-08T23:54:32.867 GC7QY [Ledger INFO] Ledger close complete: 5027689
+2026-10-08T23:54:32.868 GC7QY [Tx INFO] applying ledger 5027690 (classic phase: 1 component(s): [{discounted txs:7, ops:28, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:16, ops:16, base_fee:100}])
+2026-10-08T23:54:32.956 GC7QY [Ledger INFO] Ledger close complete: 5027690
+2026-10-08T23:54:32.957 GC7QY [Tx INFO] applying ledger 5027691 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:7, ops:7, base_fee:100}])
+2026-10-08T23:54:33.057 GC7QY [Ledger INFO] Ledger close complete: 5027691
+2026-10-08T23:54:33.057 GC7QY [Tx INFO] applying ledger 5027692 (classic phase: 1 component(s): [{discounted txs:3, ops:3, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:9, ops:9, base_fee:100}])
+2026-10-08T23:54:33.174 GC7QY [Ledger INFO] Ledger close complete: 5027692
+2026-10-08T23:54:33.175 GC7QY [Tx INFO] applying ledger 5027693 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:10, base_fee:100}])
+2026-10-08T23:54:33.248 GC7QY [Ledger INFO] Ledger close complete: 5027693
+2026-10-08T23:54:33.249 GC7QY [Tx INFO] applying ledger 5027694 (classic phase: 1 component(s): [{discounted txs:4, ops:4, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:10, base_fee:100}])
+2026-10-08T23:54:33.314 GC7QY [Ledger INFO] Ledger close complete: 5027694
+2026-10-08T23:54:33.315 GC7QY [Tx INFO] applying ledger 5027695 (classic phase: 1 component(s): [{discounted txs:3, ops:3, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:15, base_fee:100}])
+2026-10-08T23:54:33.430 GC7QY [Ledger INFO] Ledger close complete: 5027695
+2026-10-08T23:54:33.431 GC7QY [Tx INFO] applying ledger 5027696 (classic phase: 1 component(s): [{discounted txs:5, ops:26, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:11, ops:11, base_fee:100}])
+2026-10-08T23:54:33.552 GC7QY [Ledger INFO] Ledger close complete: 5027696
+2026-10-08T23:54:33.553 GC7QY [Tx INFO] applying ledger 5027697 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:33.621 GC7QY [Ledger INFO] Ledger close complete: 5027697
+2026-10-08T23:54:33.622 GC7QY [Tx INFO] applying ledger 5027698 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:9, ops:9, base_fee:100}])
+2026-10-08T23:54:33.689 GC7QY [Ledger INFO] Ledger close complete: 5027698
+2026-10-08T23:54:33.689 GC7QY [Tx INFO] applying ledger 5027699 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:7, ops:7, base_fee:100}])
+2026-10-08T23:54:33.761 GC7QY [Ledger INFO] Ledger close complete: 5027699
+2026-10-08T23:54:33.762 GC7QY [Tx INFO] applying ledger 5027700 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:10, base_fee:100}])
+2026-10-08T23:54:33.822 GC7QY [Ledger INFO] Ledger close complete: 5027700
+2026-10-08T23:54:33.823 GC7QY [Tx INFO] applying ledger 5027701 (classic phase: 1 component(s): [{discounted txs:3, ops:3, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:11, base_fee:100}])
+2026-10-08T23:54:33.881 GC7QY [Ledger INFO] Ledger close complete: 5027701
+2026-10-08T23:54:33.881 GC7QY [Tx INFO] applying ledger 5027702 (classic phase: 1 component(s): [{discounted txs:5, ops:26, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:9, ops:9, base_fee:100}])
+2026-10-08T23:54:33.983 GC7QY [Ledger INFO] Ledger close complete: 5027702
+2026-10-08T23:54:33.984 GC7QY [Tx INFO] applying ledger 5027703 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:17, ops:17, base_fee:100}])
+2026-10-08T23:54:34.088 GC7QY [Ledger INFO] Ledger close complete: 5027703
+2026-10-08T23:54:34.088 GC7QY [Tx INFO] applying ledger 5027704 (classic phase: 0 component(s): [], soroban phase: 1 component(s): [{discounted txs:6, ops:6, base_fee:100}])
+2026-10-08T23:54:34.117 GC7QY [Ledger INFO] Ledger close complete: 5027704
+2026-10-08T23:54:34.118 GC7QY [Tx INFO] applying ledger 5027705 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:8, ops:8, base_fee:100}])
+2026-10-08T23:54:34.157 GC7QY [Ledger INFO] Ledger close complete: 5027705
+2026-10-08T23:54:34.158 GC7QY [Tx INFO] applying ledger 5027706 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:7, ops:7, base_fee:100}])
+2026-10-08T23:54:34.192 GC7QY [Ledger INFO] Ledger close complete: 5027706
+2026-10-08T23:54:34.193 GC7QY [Tx INFO] applying ledger 5027707 (classic phase: 1 component(s): [{discounted txs:4, ops:5, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:14, base_fee:100}])
+2026-10-08T23:54:34.235 GC7QY [Ledger INFO] Ledger close complete: 5027707
+2026-10-08T23:54:34.235 GC7QY [Tx INFO] applying ledger 5027708 (classic phase: 1 component(s): [{discounted txs:5, ops:26, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:9, ops:9, base_fee:100}])
+2026-10-08T23:54:34.280 GC7QY [Ledger INFO] Ledger close complete: 5027708
+2026-10-08T23:54:34.281 GC7QY [Tx INFO] applying ledger 5027709 (classic phase: 1 component(s): [{discounted txs:4, ops:4, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:9, ops:9, base_fee:100}])
+2026-10-08T23:54:34.310 GC7QY [Ledger INFO] Ledger close complete: 5027709
+2026-10-08T23:54:34.311 GC7QY [Tx INFO] applying ledger 5027710 (classic phase: 1 component(s): [{discounted txs:2, ops:2, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:13, ops:13, base_fee:100}])
+2026-10-08T23:54:34.345 GC7QY [Ledger INFO] Ledger close complete: 5027710
+2026-10-08T23:54:34.346 GC7QY [Tx INFO] applying ledger 5027711 (classic phase: 1 component(s): [{discounted txs:1, ops:1, base_fee:100}], soroban phase: 1 component(s): [{discounted txs:10, ops:10, base_fee:100}])
+2026-10-08T23:54:34.389 GC7QY [Ledger INFO] Ledger close complete: 5027711
+2026-10-08T23:54:34.390 GC7QY [History INFO] Catching up to ledger 5027711: Download & apply checkpoints: num checkpoints left to apply:0 (100% done)
+2026-10-08T23:54:34.390 GC7QY [History INFO] Catching up to ledger 5027711: Succeeded: catchup-seq
+2026-10-08T23:54:34.390 GC7QY [History INFO] Catchup finished
+2026-10-08T23:54:34.390 GC7QY [default INFO] *
+2026-10-08T23:54:34.390 GC7QY [default INFO] * Catchup finished.
+2026-10-08T23:54:34.390 GC7QY [default INFO] *
+2026-10-08T23:54:34.392 GC7QY [default INFO] *
+2026-10-08T23:54:34.392 GC7QY [default INFO] * Catchup info:
+2026-10-08T23:54:34.392 GC7QY [default INFO] *
+2026-10-08T23:54:34.392 GC7QY [default INFO] Application destructing
+{
+   "info" : {
+      "build" : "stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649)",
+      "ledger" : {
+         "age" : 341532,
+         "baseFee" : 100,
+         "baseReserve" : 5000000,
+         "bucketlist" : [
+            {
+               "curr" : "0b358ad4a6560f4652e05c7533b218f651ac073a1515979c40473cab98d104ac",
+               "snap" : "c349d185b956ca8cd272f59ea78175d40ad5d431d69df1cdef720ed46d46bafd"
+            },
+            {
+               "curr" : "0b100eb25a2f68f77d57c8c13656d84fa6006963cab07ce012dde28353e4620c",
+               "snap" : "32ae2ada6f4913572dbf8bcc8020d1ea5bf3742056073c359ca0f7b72666293a"
+            },
+            {
+               "curr" : "7f88851afbbd18798bd863ebbecf0677d8de246e4327c640c7de56800a1ea3ca",
+               "snap" : "fad748c1ae34308a5320483989b3a89a5a9441475b905209a45a8965b076a958"
+            },
+            {
+               "curr" : "210f9eb521a335cad5e2e510af1fb547ee47ea1e75fe2b2c31eead8c2dc9b8ac",
+               "snap" : "ee794c949df9ef3b0ad0e33f4765009e4919a9bd47e38aed4b85c145ef87c557"
+            },
+            {
+               "curr" : "e8b2bf120379ccc061c2edb5168de32c47b53d022baa2b5e3be6ecfa08f696c4",
+               "snap" : "06357b7a0a30e5048b7d2cf69ddf6810cd32129c48dfc24adce93cd50a49efbb"
+            },
+            {
+               "curr" : "fd2bc2f77834cf640b3f66bb553a6bbc83f7d8e8fee386ba0f8ee65d83bba5ff",
+               "snap" : "4ec7ac2e536adffc376032c78ec2be43466b697c3bb995cfd89a7ce7c571bc1b"
+            },
+            {
+               "curr" : "8584f49975e7f37a76822cf3f932acf129059bc6650a5d4dfcdceec3ecfe4652",
+               "snap" : "4d8b5f1bd5512a4b5a66fc8aa6376bf07b3f576a334f931bc4723ada2f7c53a6"
+            },
+            {
+               "curr" : "dc4437f6e2a3722695b199763bd43d297e648f6c8afc02e85be256725af7b3ff",
+               "snap" : "f3c75de4cb54356d1b5dc5962af97dbfbce4021fb26304303764c07f9f908d0d"
+            },
+            {
+               "curr" : "d53d55740b1e6b2938fdd136dd89221279fc87f80d8cc6a358a1e4df533f37bb",
+               "snap" : "560afd3105e49be580dffb0231ef65c192d37a5245233e11e53880c6d6538964"
+            },
+            {
+               "curr" : "118fc58f4f47d943cc41c010e7f7f465ac2b1fb340dd3d5be63f278c70fd5a9b",
+               "snap" : "f62abe2dd7f71afe9994b3e3d78e9a8c31016159651778824467e6cf95dd0434"
+            },
+            {
+               "curr" : "2a9f70bc90992827aabd5278c3cb7fc3085a1358f4e9e2113e2fb02900dcf878",
+               "snap" : "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+         ],
+         "closeTime" : 1791162142,
+         "hash" : "f2bd048a37c6477794f79739f319a2a8328fb9bd136f2f2d4930288eb7e91379",
+         "maxSorobanTxSetSize" : 2000,
+         "maxTxSetSize" : 200,
+         "num" : 5027711,
+         "version" : 29
+      },
+      "network" : "Test SDF Network ; September 2015",
+      "peers" : {
+         "authenticated_count" : 0,
+         "pending_count" : 0
+      },
+      "protocol_version" : 29,
+      "quorum" : {
+         "maybe_dead_nodes" : [],
+         "node" : "GC7QY",
+         "qset" : {
+            "cost" : 0,
+            "lag_ms" : null
+         }
+      },
+      "startedOn" : "2026-10-08T23:53:22Z",
+      "status" : [ "Catching up to ledger 5027711: Succeeded: catchup-seq" ]
+   }
+}
+
+2026-10-08T23:54:34.413 GC7QY [default INFO] Joined all 12 threads
+2026-10-08T23:54:34.413 GC7QY [default INFO] Application destroyed
