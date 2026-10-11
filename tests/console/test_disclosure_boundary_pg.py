@@ -369,7 +369,6 @@ def test_kept_links_always_lead_to_an_available_page(w: World) -> None:
         "operations and evidence": [OPS, EVI],
         "summary and operations": [SUM, OPS],
     }
-    identity_links = {f"/evidence/{k}" for k in w.corpus.identity_links}
     for label, policies in partial.items():
         app = w.app(profile(policies))
         pages = [
@@ -385,9 +384,31 @@ def test_kept_links_always_lead_to_an_available_page(w: World) -> None:
                 if link.startswith("/static/"):
                     continue
                 target = call(app, link.replace("&amp;", "&"))
-                if target[0] == 404 and link in identity_links:
-                    continue  # pre-existing: /evidence serves no identity link
                 assert target[0] == 200, (label, page, link, target[0])
+
+
+def test_identity_links_of_an_epoch_are_text_not_links_to_evidence(w: World) -> None:
+    """The timeline named identity links (`link-…`) as /evidence/{id}, a page that
+    only serves observations and coverage certificates, so the link gave 404."""
+    full = call(w.app(profile([OPS, EVI])), f"/operations/{OP}")[2].decode("utf-8")
+    links = [k for k in w.corpus.identity_links if k in full]
+    assert links  # the operation's epochs do name identity links
+    for policies in ([OPS, EVI], [OPS]):
+        app = w.app(profile(policies))
+        status, _, body = call(app, f"/operations/{OP}")
+        page = body.decode("utf-8")
+        assert status == 200
+        for link_id in links:
+            assert f'href="/evidence/{link_id}"' not in page
+            assert f"<code>{link_id}</code>" in page  # authorized identifier, kept as text
+        epochs = [s.split("</ul>", 1)[0] for s in page.split('class="tl-evidence"')[1:]]
+        in_timeline = [h for e in epochs for h in hrefs(e.encode()) if h.startswith("/evidence/")]
+        evidence = [h for h in hrefs(body) if h.startswith("/evidence/")]
+        if EVI in policies:
+            assert in_timeline  # observations and certificates of an epoch keep their links ...
+            assert all(call(app, h)[0] == 200 for h in evidence)
+        else:
+            assert evidence == []  # ... only when the profile can open them
 
 
 def test_an_authorized_identifier_stays_as_text_when_its_page_is_unavailable(w: World) -> None:

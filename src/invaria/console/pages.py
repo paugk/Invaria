@@ -154,6 +154,15 @@ def evidence_list(ids: list[str]) -> Safe:
     return el("ul", [el("li", evidence_link(i)) for i in ids], class_="inline")
 
 
+def record_list(ids: list[str], evidence: frozenset[str]) -> Safe:
+    """Identifiers of mixed records (an epoch also names identity links, which have no
+    page): only those this page has established as evidence are linked."""
+    if not ids:
+        return join("none")
+    items = [el("li", evidence_link(i) if i in evidence else el("code", i)) for i in ids]
+    return el("ul", items, class_="inline")
+
+
 def table(caption: str, head: list[str], rows: list[list[object]], **attrs: str) -> Safe:
     return el(
         "table",
@@ -445,7 +454,7 @@ def operations_page(view: OperationsView) -> bytes:
     return page("Operations", body, nav="operations")
 
 
-def timeline_list(view: TimelineView) -> Safe:
+def timeline_list(view: TimelineView, evidence: frozenset[str] = frozenset()) -> Safe:
     items = []
     for entry in view.entries:
         if entry.kind == "evidence":
@@ -458,7 +467,7 @@ def timeline_list(view: TimelineView) -> Safe:
                         " · ",
                         el("strong", f"Epoch {entry.epoch}: {CAUSE_TEXT[entry.cause]}"),
                     ),
-                    evidence_list(entry.evidence_ids) if entry.evidence_ids else None,
+                    record_list(entry.evidence_ids, evidence) if entry.evidence_ids else None,
                     class_="tl-evidence",
                 )
             )
@@ -512,6 +521,14 @@ def timeline_list(view: TimelineView) -> Safe:
         if view.truncated
         else None,
     )
+
+
+def known_evidence(trace: TraceView) -> frozenset[str]:
+    """Identifiers the trace itself presents as observations or coverage certificates."""
+    ids = {i for leg in trace.legs for i in leg.observation_ids}
+    if trace.current:
+        ids.update(c.coverage_id for c in trace.current.coverage)
+    return frozenset(ids)
 
 
 def operation_page(trace: TraceView, timeline: TimelineView) -> bytes:
@@ -596,7 +613,7 @@ def operation_page(trace: TraceView, timeline: TimelineView) -> bytes:
         )
         if trace.current
         else None,
-        timeline_list(timeline),
+        timeline_list(timeline, known_evidence(trace)),
         compare_form,
         known_form,
         section(
