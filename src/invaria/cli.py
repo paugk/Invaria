@@ -10,7 +10,7 @@ import sys
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from invaria.bundle import build_bundle, verify_bundle
 from invaria.bundle.signing import TrustPolicy, load_private_key, sign_bundle
@@ -21,7 +21,13 @@ from invaria.engine.common import provenance_problem
 from invaria.engine.evaluate import Evaluation, evaluate, replay
 from invaria.engine.explain import explain, explain_change, export_evaluation
 from invaria.query.diagnostics import diagnose
-from invaria.query.models import ControlDiagnosisView, OperationObligationsView
+from invaria.query.models import (
+    CasesView,
+    ControlDiagnosisView,
+    IntegrityReport,
+    OperationObligationsView,
+    ReproductionView,
+)
 from invaria.query.obligations import project_obligations
 from invaria.stellar import cli as stellar_cli
 from invaria.stellar.http import ChainUnavailable
@@ -31,6 +37,7 @@ from invaria.vertical_testnet import run_testnet_vertical
 
 if TYPE_CHECKING:
     from invaria.persistence.backup import PgTools
+    from invaria.query.service import QueryService
 
 
 def _evaluate(corpus: Corpus, scenario_id: str) -> Evaluation:
@@ -370,6 +377,16 @@ def cmd_demo_testnet(corpus: Path, stellar: Path, mappings: Path) -> int:
     return 1 if failures else 0
 
 
+def _disclosure_warnings(access: Any) -> None:
+    """Tell the operator (stderr, never the client) which outputs this access profile will
+    have refused for lack of a disclosure policy. It grants nothing; it prints
+    scope and policy names only, never the profile."""
+    from invaria.query import disclosure
+
+    for note in disclosure.startup_warnings(list(access.scopes), access.disclosure_policies):
+        print(f"warning: {note}", file=sys.stderr)
+
+
 def cmd_mcp_serve(access_profile: Path, audit_log: Path | None) -> int:
     """Serve the read-only consultative tools over stdio (needs the `mcp` and `db` extras)."""
     import psycopg
@@ -383,28 +400,342 @@ def cmd_mcp_serve(access_profile: Path, audit_log: Path | None) -> int:
     if not dsn:
         raise ValueError("set INVARIA_DATABASE_URL (kept outside the repository)")
     access = parse_contract(AccessProfile, access_profile.read_text("utf-8"))
+    _disclosure_warnings(access)
     store = PgStore(psycopg.connect(dsn), role=READER_ROLE)
     service = QueryService(store, access, AuditLog(audit_log) if audit_log else None)
     build_server(service).run("stdio")
     return 0
 
 
-def cmd_console_serve(access_profile: Path, port: int, audit_log: Path | None) -> int:
+def cmd_console_serve(
+    access_profile: Path,
+    port: int,
+    audit_log: Path | None,
+    events_max_examined: int = 5000,
+    events_max_bytes: int = 2 * 1024 * 1024,
+) -> int:
     """Serve the read-only evidence console on 127.0.0.1 (needs the `db` extra)."""
     import psycopg
 
     from invaria.console.server import serve
     from invaria.persistence.store import READER_ROLE, PgStore
     from invaria.query.models import AccessProfile
-    from invaria.query.service import AuditLog, QueryService
+    from invaria.query.service import AuditLog, EventFeedLimits, QueryService
 
     dsn = os.environ.get("INVARIA_DATABASE_URL")
     if not dsn:
         raise ValueError("set INVARIA_DATABASE_URL (kept outside the repository)")
     access = parse_contract(AccessProfile, access_profile.read_text("utf-8"))
+    _disclosure_warnings(access)
     store = PgStore(psycopg.connect(dsn), role=READER_ROLE)
-    serve(QueryService(store, access, AuditLog(audit_log) if audit_log else None), port)
+    if not 100 <= events_max_examined <= 100_000:
+        raise ValueError("--events-max-examined must be 100..100000")
+    limits = EventFeedLimits(max_examined=events_max_examined)
+    if not limits.min_max_bytes <= events_max_bytes <= limits.hard_max_bytes:
+        raise ValueError(
+            f"--events-max-bytes must be {limits.min_max_bytes}..{limits.hard_max_bytes}"
+        )
+    limits = EventFeedLimits(max_examined=events_max_examined, default_max_bytes=events_max_bytes)
+    audit = AuditLog(audit_log) if audit_log else None
+    serve(QueryService(store, access, audit, event_limits=limits), port)
     return 0
+
+
+def _reader_service(access_profile: Path, *, writer: bool = False) -> QueryService:
+    """Read-only role by default; ``writer`` (registering a report) uses the
+    application role, which can only SELECT and INSERT."""
+    import psycopg
+
+    from invaria.persistence.store import APP_ROLE, READER_ROLE, PgStore
+    from invaria.query.models import AccessProfile
+    from invaria.query.service import QueryService
+
+    dsn = os.environ.get("INVARIA_DATABASE_URL")
+    if not dsn:
+        raise ValueError("set INVARIA_DATABASE_URL (kept outside the repository)")
+    access = parse_contract(AccessProfile, access_profile.read_text("utf-8"))
+    role = APP_ROLE if writer else READER_ROLE
+    return QueryService(PgStore(psycopg.connect(dsn), role=role), access)
+
+
+def _metric_text(m: Any) -> str:
+    if m.kind == "count":
+        return f"{m.metric_id}: {m.numerator} ({m.numerator_definition})"
+    value = (
+        f"{m.value_percent} %"
+        if m.value_percent is not None
+        else f"undefined ({m.undefined_reason})"
+    )
+    text = (
+        f"{m.metric_id}: {m.numerator}/{m.denominator} = {value} "
+        f"[{m.numerator_definition} / {m.denominator_definition}]"
+    )
+    if m.unknown_excluded is not None:
+        text += f"; UNKNOWN left out of this denominator: {m.unknown_excluded}"
+    return text
+
+
+def _age_text(seconds: int | None, label: str, reason: str | None = None) -> str:
+    if seconds is None:
+        return f"{label} undetermined" + (f" ({reason})" if reason else "")
+    return (
+        f"{label} {seconds // 86400} d {seconds % 86400 // 3600} h before the evidence horizon "
+        "(knowledge time, not time open)"
+    )
+
+
+def integrity_report_lines(report: IntegrityReport) -> list[str]:
+    d, b, x = report.distribution, report.blockers, report.discrepancies
+    lines = [
+        f"integrity report {report.report_sha256[:12]} ({report.definition}, "
+        f"{report.selection_policy})",
+        f"scope: tenant {report.scope.tenant_id}, population {report.scope.population}",
+        f"evidence horizon {report.as_of.isoformat()}: admits snapshots with known_at up to it "
+        "(knowledge time; --as-of is an alias)",
+        "publication state: the present one, read at "
+        + (
+            report.store_read.read_at.isoformat()
+            if report.store_read.read_at
+            else "an unrecorded time"
+        )
+        + " (store clock); not reconstructed at the horizon; no economic-time filter",
+        f"filters: profiles {report.profile_filter or 'all'}; exclusions: "
+        + (", ".join(f"{e.reason} {e.operations}" for e in report.exclusions) or "none"),
+        "",
+        f"A. distribution: {d.included} included, {d.admitted} admitted "
+        f"(MATCH {d.match_count}, BREAK {d.break_count}, UNKNOWN {d.unknown_count}); "
+        f"technical error {d.technical_error}",
+        "   statuses: " + ", ".join(f"{k} {v}" for k, v in d.statuses.items() if v),
+        f"   stored evaluations {d.stored_evaluations}, not selected {d.evaluations_not_selected}",
+    ]
+    lines += [f"   {_metric_text(m)}" for m in d.metrics if not m.metric_id.startswith("A.status:")]
+    lines.append("   segments:")
+    lines += [
+        f"     {s.profile_ref} / {s.engine_ref} ({s.engine_status}): {s.admitted} admitted, "
+        f"MATCH {s.match_count}, BREAK {s.break_count}, UNKNOWN {s.unknown_count}"
+        for s in report.segments
+    ] or ["     none"]
+    lines += [
+        "",
+        f"B. discrepancies: {x.operations_with_discrepancy} operations, "
+        f"{x.control_discrepancies} control incidents",
+    ]
+    lines += [f"   {_metric_text(m)}" for m in x.metrics]
+    for g in x.groups:
+        codes = ", ".join(f"{r.reason_code} {r.incidents}" for r in g.reason_codes)
+        lines.append(
+            f"   {g.profile_ref} {g.control_id}: {g.operations} operations, {g.incidents} "
+            f"incidents ({codes}); {_age_text(g.oldest_age_seconds, 'oldest FAIL run')}  "
+            f"[cases {g.cases_key}]"
+        )
+    state = "complete" if b.complete else f"INCOMPLETE ({len(b.not_processed)} not processed)"
+    lines += [
+        "",
+        f"C. blocks ({state}; {b.replayed} replays, max {b.max_replays}): "
+        f"{b.operations_with_block} operations, {b.blocked_requirements} blocked requirements",
+    ]
+    lines += [f"   {_metric_text(m)}" for m in b.metrics]
+    lines += [
+        f"   {g.category}: {g.operations} operations, {g.requirements} requirements  "
+        f"[cases {g.cases_key}]"
+        for g in b.groups
+    ]
+    lines += ["", "limitations:"] + [f"  - {n}" for n in report.limitations]
+    return lines
+
+
+def cases_lines(view: CasesView) -> list[str]:
+    lines = [
+        f"cases {view.cases_key}: {view.total_operations} operations; showing "
+        f"{view.offset + 1 if view.cases else 0}-{view.offset + len(view.cases)}"
+    ]
+    for c in view.cases:
+        sel = c.selected
+        where = (
+            f"evaluation {sel.evaluation_id} (snapshot {sel.snapshot_id}, epoch "
+            f"{sel.published_epoch}, known_at {sel.known_at.isoformat()}, {sel.engine_ref})"
+            if sel
+            else "no selected evaluation"
+        )
+        lines.append(f"{c.operation_ref} [{c.status}] {c.result or '-'}: {where}")
+        lines.append(f"  criterion: {c.criterion}")
+        for r in c.reasons:
+            parts: list[str] = [r.kind]
+            parts += [
+                v
+                for v in (r.control_id, r.requirement_id, r.status, r.reason_code, r.category)
+                if v
+            ]
+            if r.age is not None:
+                a = r.age
+                parts.append(
+                    f"FAIL run of {a.publications_in_run} publication(s) from snapshot known_at "
+                    f"{a.origin_known_at.isoformat()}: "
+                    + _age_text(a.age_seconds, "age", a.age_undetermined_reason)
+                    + f", stopped by {a.run_stopped_by}"
+                    + (
+                        f" (unpublished epochs {a.unpublished_epochs_before_run})"
+                        if a.unpublished_epochs_before_run
+                        else ""
+                    )
+                )
+            if r.required_from_source:
+                parts.append(f"requires evidence from {r.required_from_source}")
+            refs = "; ".join(
+                f"{name} {', '.join(ids)}"
+                for name, ids in (("evidence", r.evidence_refs), ("coverage", r.coverage_ids))
+                if ids
+            )
+            lines.append("  - " + " ".join(parts) + (f" [{refs}]" if refs else ""))
+        lines.append(
+            "  follow up: "
+            + "; ".join(
+                f"{f.query}({', '.join(f'{k}={v}' for k, v in f.args.items())})"
+                for f in c.follow_up
+            )
+        )
+    return lines
+
+
+def cmd_analytics(args: argparse.Namespace) -> int:
+    """Operational integrity analytics over the store, read-only."""
+    from invaria.query.service import QueryError
+
+    register = args.analytics_command == "report" and args.register
+    service = _reader_service(args.access_profile, writer=register)
+    try:
+        if args.analytics_command == "report":
+            registration = None
+            if register:
+                report, registration = service.register_integrity_report(
+                    args.evidence_horizon, args.profile, args.max_replays, args.max_report_bytes
+                )
+            else:
+                report = service.integrity_report(
+                    args.evidence_horizon, args.profile, args.max_replays
+                )
+            if args.out:
+                if args.out.exists():
+                    raise FileExistsError(f"{args.out} exists; reports are never overwritten")
+                args.out.write_text(
+                    json.dumps(report.model_dump(mode="json"), indent=2) + "\n", "utf-8"
+                )
+            if args.json:
+                print(json.dumps(report.model_dump(mode="json"), indent=2))
+            else:
+                print("\n".join(integrity_report_lines(report)))
+                if args.out:
+                    print(
+                        f"\nreport written to {args.out}; report_sha256 {report.report_sha256} "
+                        "checks internal consistency only: it does not authenticate the report"
+                    )
+            if registration is not None:
+                state = "registered" if registration.created else "already registered"
+                print(
+                    f"{state}: {registration.report_id} at {registration.registered_at.isoformat()}"
+                    f" (store clock; {registration.document_bytes} bytes). A stable reference "
+                    "under trust in this service and store, not a signature",
+                    file=sys.stderr if args.json else sys.stdout,
+                )
+            return 0
+        report = parse_contract(IntegrityReport, args.report.read_text("utf-8"))
+        if args.analytics_command == "cases":
+            view = service.integrity_cases(report, args.key, args.offset, args.limit)
+            print(
+                json.dumps(view.model_dump(mode="json"), indent=2)
+                if args.json
+                else "\n".join(cases_lines(view))
+            )
+            return 0
+        result: ReproductionView = service.reproduce_integrity_report(report)
+        if args.json:
+            print(json.dumps(result.model_dump(mode="json"), indent=2))
+        else:
+            print(
+                f"{result.status}: report {result.report_sha256[:12]}, "
+                f"{result.checked_evaluations} evaluations and {result.checked_publications} "
+                "publications checked"
+            )
+            for d in result.differences:
+                print(f"  - {d}")
+            for n in result.limitations:
+                print(f"  note: {n}")
+        return 0 if result.status == "REPRODUCED" else 1
+    except QueryError as error:
+        print(f"error: {error.code}: {error.message}", file=sys.stderr)
+        return 2
+
+
+def cmd_disclosure(args: argparse.Namespace) -> int:
+    """Issue or revoke a disclosed view of a registered report. Application role:
+    it writes one issuance or revocation row, never a domain event."""
+    from invaria.query.service import QueryError
+
+    service = _reader_service(args.access_profile, writer=True)
+    try:
+        if args.disclosure_command == "issue":
+            issued = service.issue_disclosure(args.report, args.recipient, args.policy)
+            if args.json:
+                print(json.dumps(issued.model_dump(mode="json"), indent=2))
+                return 0
+            print(
+                f"issued {issued.view_id} to {issued.recipient_principal} under "
+                f"{issued.policy_ref} for {issued.report_id} at {issued.issued_at.isoformat()} "
+                "(store clock)"
+            )
+            print("the recipient will read exactly:")
+            print(json.dumps(issued.preview.model_dump(mode="json"), indent=2))
+            for note in issued.limitations:
+                print(f"  note: {note}")
+            return 0
+        revoked = service.revoke_disclosure(args.view)
+        if args.json:
+            print(json.dumps(revoked.model_dump(mode="json"), indent=2))
+            return 0
+        state = "revoked" if revoked.revoked_now else "already revoked"
+        print(f"{state}: {revoked.view_id} at {revoked.revoked_at.isoformat()} (store clock)")
+        for note in revoked.limitations:
+            print(f"  note: {note}")
+        return 0
+    except QueryError as error:
+        print(f"error: {error.code}: {error.message}", file=sys.stderr)
+        return 2
+
+
+def cmd_events(args: argparse.Namespace) -> int:
+    """Derive domain events from the outbox: local, one-shot, resumable."""
+    import psycopg
+
+    from invaria.domain_events import Limits
+    from invaria.persistence.events import derive
+    from invaria.persistence.store import APP_ROLE, PgStore
+
+    dsn = os.environ.get("INVARIA_DATABASE_URL")
+    if not dsn:
+        raise ValueError("set INVARIA_DATABASE_URL (kept outside the repository)")
+    limits = Limits(
+        max_replays_per_run=args.max_replays,
+        max_unknown_controls=args.max_unknown_controls,
+        statement_timeout_ms=args.statement_timeout_ms,
+        lock_timeout_ms=args.lock_timeout_ms,
+    )
+    with psycopg.connect(dsn) as conn:
+        result = derive(PgStore(conn, role=APP_ROLE), limit=args.limit, limits=limits)
+    if args.json:
+        print(json.dumps(result.as_dict(), indent=2))
+    else:
+        print(
+            f"derived {result.derived}, not public {result.not_public}, already derived "
+            f"{result.already_derived}, errors {len(result.errors)}, pending {result.pending} "
+            f"(replays {result.replays}, per-event limits reached {result.limited})"
+        )
+        for error in result.errors:
+            print(f"  error: {error}")
+        if result.paused:
+            print("paused: the replay budget of this run is spent")
+        if result.pending:
+            print("run again to continue; derived sources are never derived twice")
+    return 1 if result.errors else 0
 
 
 def _admin_dsn() -> str:
@@ -557,6 +888,100 @@ def build_parser() -> argparse.ArgumentParser:
     cserve.add_argument("--access-profile", type=Path, required=True)
     cserve.add_argument("--port", type=int, default=8765, help="0 picks a free port")
     cserve.add_argument("--audit-log", type=Path, help="append-only JSONL access log")
+    cserve.add_argument(
+        "--events-max-examined",
+        type=int,
+        default=5000,
+        help="feed rows examined per /v1/events request (100..100000)",
+    )
+    cserve.add_argument(
+        "--events-max-bytes",
+        type=int,
+        default=2 * 1024 * 1024,
+        help="default response budget of /v1/events items (4 KiB..4 MiB)",
+    )
+    an = sub.add_parser(
+        "analytics",
+        help="operational integrity analytics (read-only, except report --register; "
+        "INVARIA_DATABASE_URL)",
+    )
+    an_sub = an.add_subparsers(dest="analytics_command", required=True)
+    rep = an_sub.add_parser("report", help="distribution, discrepancies and blocks with references")
+    rep.add_argument(
+        "--evidence-horizon",
+        "--as-of",
+        dest="evidence_horizon",
+        required=True,
+        help="evidence horizon applied to snapshot known_at, explicit UTC time (...Z); "
+        "--as-of is an alias. Publication state is always the present one",
+    )
+    rep.add_argument("--profile", action="append", help="profile_ref filter (repeatable)")
+    rep.add_argument("--max-replays", type=int, default=100, help="work limit for the blocks")
+    rep.add_argument("--out", type=Path, help="write the report JSON (never overwritten)")
+    rep.add_argument("--json", action="store_true", help="print the report contract as JSON")
+    rep.add_argument(
+        "--register",
+        action="store_true",
+        help="store the computed report in the registry (scope reports:register; application "
+        "role). Never takes a file or a hash",
+    )
+    rep.add_argument(
+        "--max-report-bytes",
+        type=int,
+        default=4 * 1024 * 1024,
+        help="registration limit for the document size (default 4 MiB, at most 64 MiB)",
+    )
+    cas = an_sub.add_parser("cases", help="the operations behind a figure of a saved report")
+    cas.add_argument("--report", type=Path, required=True)
+    cas.add_argument("--key", required=True, help="cases_key of a figure, e.g. result:UNKNOWN")
+    cas.add_argument("--offset", type=int, default=0)
+    cas.add_argument("--limit", type=int)
+    cas.add_argument("--json", action="store_true")
+    rp = an_sub.add_parser("reproduce", help="recompute a saved report from its references")
+    rp.add_argument("--report", type=Path, required=True)
+    rp.add_argument("--json", action="store_true")
+    for cmd in (rep, cas, rp):
+        cmd.add_argument("--access-profile", type=Path, required=True)
+    ds = sub.add_parser(
+        "disclosure",
+        help="issue or revoke a disclosed view of a registered report ("
+        "INVARIA_DATABASE_URL, application role)",
+    )
+    ds_sub = ds.add_subparsers(dest="disclosure_command", required=True)
+    di = ds_sub.add_parser(
+        "issue", help="bind a registered report to a recipient principal under a policy"
+    )
+    di.add_argument("--report", required=True, help="ir-<sha256> of a registered report")
+    di.add_argument("--recipient", required=True, help="principal_id of the recipient")
+    di.add_argument(
+        "--policy", required=True, help="issuable policy, e.g. aggregate-outcome-counts@1"
+    )
+    dr = ds_sub.add_parser("revoke", help="revoke an issued view (later reads give 404)")
+    dr.add_argument("--view", required=True, help="dv-<32 hex>")
+    for cmd in (di, dr):
+        cmd.add_argument("--access-profile", type=Path, required=True)
+        cmd.add_argument("--json", action="store_true")
+    ev = sub.add_parser("events", help="domain events; INVARIA_DATABASE_URL")
+    ev_sub = ev.add_subparsers(dest="events_command", required=True)
+    dv = ev_sub.add_parser(
+        "derive", help="derive pending outbox rows into domain events (resumable, local only)"
+    )
+    dv.add_argument("--limit", type=int, default=100, help="outbox rows per run (1..10000)")
+    dv.add_argument("--max-replays", type=int, default=200, help="diagnostic replays per run")
+    dv.add_argument(
+        "--max-unknown-controls",
+        type=int,
+        default=50,
+        help="above this many UNKNOWN controls, blocks are not compared",
+    )
+    dv.add_argument("--statement-timeout-ms", type=int, default=5000, help="per diagnostic load")
+    dv.add_argument(
+        "--lock-timeout-ms",
+        type=int,
+        default=1000,
+        help="lock wait per diagnostic load; exceeding it is transient (retried), 0 disables",
+    )
+    dv.add_argument("--json", action="store_true")
     db = sub.add_parser("db", help="logical backup, restore and restore verification")
     db_sub = db.add_subparsers(dest="db_command", required=True)
     backup = db_sub.add_parser("backup", help="pg_dump from one exported snapshot")
@@ -608,8 +1033,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             return cmd_mcp_serve(args.access_profile, args.audit_log)
         if args.command == "db":
             return cmd_db(args)
+        if args.command == "analytics":
+            return cmd_analytics(args)
+        if args.command == "events":
+            return cmd_events(args)
+        if args.command == "disclosure":
+            return cmd_disclosure(args)
         if args.command == "console":
-            return cmd_console_serve(args.access_profile, args.port, args.audit_log)
+            return cmd_console_serve(
+                args.access_profile,
+                args.port,
+                args.audit_log,
+                args.events_max_examined,
+                args.events_max_bytes,
+            )
         if args.command == "sign":
             return cmd_sign(args.bundle, args.key_file, args.key_id, args.signed_at)
         corpus = load_corpus(args.corpus)

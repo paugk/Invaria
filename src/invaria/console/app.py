@@ -21,7 +21,7 @@ from urllib.parse import parse_qs
 
 from pydantic import BaseModel
 
-from invaria.console import pages
+from invaria.console import analytics_pages, disclosure_pages, html, pages
 from invaria.query.service import QueryError
 
 if TYPE_CHECKING:
@@ -53,7 +53,20 @@ STATUS = {
     "MISDIRECTED_REQUEST": 421,
     "SOURCE_UNAVAILABLE": 503,
     "INTERNAL_ERROR": 500,
+    # Registered integrity reports.
+    "REPORT_INCONSISTENT_WITH_STORE": 409,  # a pinned reference is missing: nothing served
+    "INTEGRITY_ERROR": 500,  # the stored document fails its checks (corruption)
+    "UNSUPPORTED_REPORT_VERSION": 501,  # a format this code cannot read (not corruption)
+    # Event feed.
+    "CURSOR_RESET": 409,  # the cursor's feed generation is not this one (restored history)
+    "CURSOR_BEYOND_FEED": 409,  # same generation, position ahead of the head
+    "UNSUPPORTED_EVENT_VERSION": 501,
+    "EVENT_EXCEEDS_MAX_BYTES": 422,  # recoverable: retry with a larger max_bytes
+    # Controlled disclosure: no policy of the access profile covers this output.
+    "DISCLOSURE_POLICY_UNAVAILABLE": 403,
 }
+_MAX_BYTES = re.compile(r"[1-9][0-9]{0,8}")
+_LIMIT = re.compile(r"[1-9][0-9]{0,3}")
 
 
 class HttpError(Exception):
@@ -94,6 +107,10 @@ class ConsoleApp:
         self.session_value = self.session.hexdigest().encode("utf-8")
         self.allowed_hosts = frozenset(allowed_hosts)
         self.cookie_name = cookie_name
+        # Navigation and internal links follow what this access profile can obtain;
+        # the profile is fixed for the process, so this is computed once.
+        self.nav_items, self.home = pages.nav_for(service.allows)
+        self.link_filter = pages.link_filter(service.allows)
 
     # ----------------------------------------------------------------- WSGI
 
@@ -101,6 +118,7 @@ class ConsoleApp:
         path = environ.get("PATH_INFO") or "/"
         api = path == "/v1" or path.startswith("/v1/")
         request_id = uuid.uuid4().hex[:16]
+        links = html.LINK_FILTER.set(self.link_filter)
         try:
             response = self._handle(environ, path, api)
         except (HttpError, QueryError) as error:
@@ -108,6 +126,8 @@ class ConsoleApp:
         except Exception as error:  # never leak a traceback or skip the security headers
             environ["wsgi.errors"].write(f"console: internal error {type(error).__name__}\n")
             response = self._error("INTERNAL_ERROR", "internal error", api, request_id, error)
+        finally:
+            html.LINK_FILTER.reset(links)
         headers = [
             ("Content-Type", response.content_type),
             ("Content-Length", str(len(response.body))),
@@ -126,22 +146,24 @@ class ConsoleApp:
     ) -> Response:
         status = STATUS.get(code, 500)
         retryable = bool(getattr(error, "retryable", False))
+        details = getattr(error, "details", None)
         extra = [("Allow", "GET, HEAD")] if code == "METHOD_NOT_ALLOWED" else []
         if api:
-            body = json.dumps(
-                {
-                    "error": {
-                        "code": code,
-                        "message": message,
-                        "retryable": retryable,
-                        "request_id": request_id,
-                    }
-                },
-                sort_keys=True,
-            ).encode("utf-8")
+            payload: dict[str, Any] = {
+                "code": code,
+                "message": message,
+                "retryable": retryable,
+                "request_id": request_id,
+            }
+            if details:
+                payload["details"] = details
+            body = json.dumps({"error": payload}, sort_keys=True).encode("utf-8")
             return Response(status, "application/json; charset=utf-8", body, extra)
         return Response(
-            status, "text/html; charset=utf-8", pages.error_page(status, code, message), extra
+            status,
+            "text/html; charset=utf-8",
+            pages.error_page(status, code, message, self.nav_items, self.home),
+            extra,
         )
 
     # -------------------------------------------------------------- plumbing
@@ -189,6 +211,23 @@ class ConsoleApp:
         return value
 
     @staticmethod
+    def _optional(query: dict[str, str], name: str) -> str | None:
+        if name not in query:
+            return None
+        if not query[name]:
+            raise HttpError("VALIDATION_ERROR", f"query parameter {name!r} is empty")
+        return query[name]
+
+    @classmethod
+    def _limit(cls, query: dict[str, str]) -> int | None:
+        value = cls._optional(query, "limit")
+        if value is None:
+            return None
+        if not _LIMIT.fullmatch(value):
+            raise HttpError("VALIDATION_ERROR", "limit must be a positive integer")
+        return int(value)
+
+    @staticmethod
     def _same(presented: str | None, expected: bytes) -> bool:
         return presented is not None and hmac.compare_digest(presented.encode("utf-8"), expected)
 
@@ -207,7 +246,7 @@ class ConsoleApp:
             303,
             "text/plain; charset=utf-8",
             b"Signed in.\n",
-            [("Location", "/"), ("Set-Cookie", cookie)],
+            [("Location", self.home), ("Set-Cookie", cookie)],
         )
 
     def _authenticate(self, environ: dict[str, Any]) -> None:
@@ -271,6 +310,45 @@ class ConsoleApp:
             case ["evidence", evidence_id]:
                 self._params(q)
                 return self._json(svc.get_evidence(evidence_id))
+            case ["events"]:
+                self._params(q, "start", "cursor", "types", "limit", "max_bytes")
+                max_bytes = self._optional(q, "max_bytes")
+                if max_bytes is not None and not _MAX_BYTES.fullmatch(max_bytes):
+                    raise HttpError("VALIDATION_ERROR", "max_bytes must be a positive integer")
+                return self._json(
+                    svc.list_events(
+                        self._optional(q, "start"),
+                        self._optional(q, "cursor"),
+                        self._optional(q, "types"),
+                        self._limit(q),
+                        None if max_bytes is None else int(max_bytes),
+                    )
+                )
+            case ["integrity-reports"]:
+                self._params(q, "cursor", "limit")
+                return self._json(
+                    svc.list_integrity_reports(self._optional(q, "cursor"), self._limit(q))
+                )
+            case ["integrity-reports", report_id]:
+                self._params(q)
+                return self._json(svc.get_integrity_report_summary(report_id))
+            case ["integrity-reports", report_id, "cases"]:
+                self._params(q, "key", "cursor", "limit")
+                return self._json(
+                    svc.registered_integrity_cases(
+                        report_id,
+                        self._required(q, "key"),
+                        self._optional(q, "cursor"),
+                        self._limit(q),
+                    )
+                )
+            # Controlled disclosure: views issued to this principal only.
+            case ["disclosures"]:
+                self._params(q)
+                return self._json(svc.list_disclosures())
+            case ["disclosures", view_id]:
+                self._params(q)
+                return self._json(svc.get_disclosure(view_id))
         raise HttpError("NOT_FOUND", "no such resource")
 
     def _html(self, s: list[str], q: dict[str, str]) -> Response:
@@ -312,4 +390,64 @@ class ConsoleApp:
             case ["evidence", evidence_id]:
                 self._params(q)
                 return self._page(pages.evidence_page(svc.get_evidence(evidence_id)))
+            # Analytics: the same use cases as /v1, presented; nothing computed here.
+            case ["reports"]:
+                self._params(q, "cursor")
+                return self._page(
+                    analytics_pages.reports_page(
+                        svc.list_integrity_reports(self._optional(q, "cursor"))
+                    )
+                )
+            case ["reports", report_id]:
+                self._params(q)
+                return self._page(
+                    analytics_pages.summary_page(svc.get_integrity_report_summary(report_id))
+                )
+            case ["reports", report_id, "cases"]:
+                self._params(q, "key", "cursor")
+                key = self._required(q, "key")
+                cases = svc.registered_integrity_cases(report_id, key, self._optional(q, "cursor"))
+                summary = svc.get_integrity_report_summary(report_id)
+                return self._page(analytics_pages.cases_page(summary, cases, key))
+            case ["events"]:
+                return self._events_page(q)
+            case ["disclosures"]:
+                self._params(q)
+                return self._page(
+                    disclosure_pages.list_page(svc.list_disclosures(), self.nav_items, self.home)
+                )
+            case ["disclosures", view_id]:
+                self._params(q)
+                return self._page(
+                    disclosure_pages.view_page(
+                        svc.get_disclosure(view_id), self.nav_items, self.home
+                    )
+                )
         raise HttpError("NOT_FOUND", "no such page")
+
+    def _events_page(self, q: dict[str, str]) -> Response:
+        boxes = {name: value for name, value, _ in analytics_pages.EVENT_TYPES}
+        self._params(q, "start", "cursor", "types", "limit", *boxes)
+        start, cursor = self._optional(q, "start"), self._optional(q, "cursor")
+        if start is None and cursor is None:
+            if q:
+                raise HttpError("VALIDATION_ERROR", "choose where to start: start or cursor")
+            return self._page(analytics_pages.events_intro_page())
+        types = self._optional(q, "types")
+        chosen = [boxes[name] for name in boxes if name in q]
+        if chosen:
+            if types is not None:
+                raise HttpError("VALIDATION_ERROR", "use either types or the type boxes")
+            types = ",".join(chosen)
+        try:
+            view = self.service.list_events(start, cursor, types, self._limit(q))
+        except QueryError as error:
+            if error.code in ("CURSOR_RESET", "CURSOR_BEYOND_FEED"):
+                return Response(
+                    409,
+                    "text/html; charset=utf-8",
+                    analytics_pages.cursor_problem_page(error.code, error.message, types),
+                    [],
+                )
+            raise
+        return self._page(analytics_pages.events_page(view))

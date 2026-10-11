@@ -751,6 +751,13 @@ def access(**overrides: Any) -> AccessProfile:
         "tenant_id": TENANT,
         "scopes": ["operations:read"],
         "max_items": 50,
+        # Explicit full disclosure policies: no implicit policy exists.
+        "disclosure_policies": [
+            "full-operations@1",
+            "full-evidence@1",
+            "full-report-index@1",
+            "full-report-summary@1",
+        ],
         **overrides,
     }
     return AccessProfile.model_validate(fields)

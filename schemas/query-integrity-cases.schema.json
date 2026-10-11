@@ -1,0 +1,597 @@
+{
+  "$defs": {
+    "AgeView": {
+      "additionalProperties": false,
+      "description": "Knowledge-time distance from the snapshot known_at of the run's first publication to\nthe report's evidence horizon. Not time since publication, not the age of the evidence,\nnot time open. ``published_run_start`` (definition 1.0.0) crossed unpublished epochs;\n``contiguous_fail_run_start`` (1.1.0) stops at them and at a change of engine.",
+      "properties": {
+        "age_reference": {
+          "anyOf": [
+            {
+              "const": "evidence_horizon",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age Reference"
+        },
+        "age_seconds": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Age Seconds"
+        },
+        "age_undetermined_reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age Undetermined Reason"
+        },
+        "basis": {
+          "enum": [
+            "published_run_start",
+            "contiguous_fail_run_start"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "epochs_without_publication_in_run": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Epochs Without Publication In Run",
+          "type": "array"
+        },
+        "origin_evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Origin Evaluation Id",
+          "type": "string"
+        },
+        "origin_known_at": {
+          "format": "date-time",
+          "title": "Origin Known At",
+          "type": "string"
+        },
+        "publications_in_run": {
+          "title": "Publications In Run",
+          "type": "integer"
+        },
+        "run_stopped_by": {
+          "enum": [
+            "earlier_publication_not_fail",
+            "profile_changed",
+            "engine_changed",
+            "unpublished_epoch_gap",
+            "earlier_publication_after_cut",
+            "no_earlier_publication"
+          ],
+          "title": "Run Stopped By",
+          "type": "string"
+        },
+        "unpublished_epochs_before_run": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unpublished Epochs Before Run"
+        }
+      },
+      "required": [
+        "basis",
+        "origin_evaluation_id",
+        "origin_known_at",
+        "age_seconds",
+        "publications_in_run",
+        "epochs_without_publication_in_run",
+        "run_stopped_by"
+      ],
+      "title": "AgeView",
+      "type": "object"
+    },
+    "CaseReason": {
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgeView"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "category": {
+          "anyOf": [
+            {
+              "enum": [
+                "missing_evidence",
+                "withdrawn_evidence",
+                "source_conflict",
+                "inconsistent_evidence",
+                "invalid_evidence",
+                "insufficient_coverage",
+                "quarantined_input",
+                "unattributed",
+                "unsupported_capability",
+                "not_yet_due",
+                "technical_error"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Category"
+        },
+        "control_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Control Id"
+        },
+        "coverage_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Coverage Ids",
+          "type": "array"
+        },
+        "delta": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence_refs": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "status",
+            "result",
+            "technical_error",
+            "discrepancy",
+            "block",
+            "not_evaluated",
+            "diagnosis_unavailable",
+            "reconstruction_mismatch",
+            "not_processed"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "EXACT_MATCH",
+                "CASH_AMOUNT_MISMATCH",
+                "UNITS_MISMATCH",
+                "ORDER_TERMS_INCONSISTENT",
+                "MISSING_EVIDENCE",
+                "INSUFFICIENT_COVERAGE",
+                "LOSS_OF_SUPPORT",
+                "SOURCE_CONFLICT",
+                "AMBIGUOUS_MATCH",
+                "QUARANTINED_INPUT",
+                "UNSUPPORTED_CAPABILITY",
+                "EVALUATION_ERROR",
+                "NOT_APPLICABLE_BY_PROFILE",
+                "PRICE_MISMATCH",
+                "UNITS_EXCEED_POSITION",
+                "PAYMENT_LATE",
+                "PAYMENT_MISSED",
+                "SETTLED_DESPITE_CANCELLATION",
+                "INEXACT_AMOUNT",
+                "PAYMENT_NOT_DUE",
+                "INVALID_CANCELLATION",
+                "EXTINGUISHED_BY_CANCELLATION",
+                "NO_CANCELLATION",
+                "DEADLINE_DATA_CONFLICT",
+                "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+                "AMBIGUOUS_SEQUENCE",
+                "POSITION_NOT_BEFORE_ACCEPTANCE",
+                "REACTIVATION_UNSUPPORTED",
+                "PAYMENT_TO_WRONG_ACCOUNT",
+                "INVALID_RETRACTION"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason Code"
+        },
+        "required_from_source": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Required From Source"
+        },
+        "requirement_id": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Requirement Id"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Status"
+        }
+      },
+      "required": [
+        "kind",
+        "control_id",
+        "requirement_id",
+        "status",
+        "reason_code",
+        "category",
+        "evidence_refs",
+        "coverage_ids",
+        "delta",
+        "age",
+        "required_from_source"
+      ],
+      "title": "CaseReason",
+      "type": "object"
+    },
+    "CaseView": {
+      "additionalProperties": false,
+      "properties": {
+        "criterion": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Criterion",
+          "type": "string"
+        },
+        "follow_up": {
+          "items": {
+            "$ref": "#/$defs/FollowUpView"
+          },
+          "title": "Follow Up",
+          "type": "array"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "$ref": "#/$defs/CaseReason"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "enum": [
+                "MATCH",
+                "BREAK",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Result"
+        },
+        "selected": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SelectedEvaluation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "admitted",
+            "published_after_cut",
+            "engine_not_admissible",
+            "engine_retired_requires_reevaluation",
+            "stale_publication",
+            "stored_not_published",
+            "registered_not_evaluated",
+            "unregistered"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_ref",
+        "status",
+        "result",
+        "selected",
+        "criterion",
+        "reasons",
+        "follow_up"
+      ],
+      "title": "CaseView",
+      "type": "object"
+    },
+    "FollowUpView": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Args",
+          "type": "object"
+        },
+        "query": {
+          "enum": [
+            "get_timeline",
+            "get_operation_obligations",
+            "diagnose_control",
+            "get_evidence"
+          ],
+          "title": "Query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query",
+        "args"
+      ],
+      "title": "FollowUpView",
+      "type": "object"
+    },
+    "Quantity": {
+      "additionalProperties": false,
+      "description": "``{\"atoms\": \"1000000000\", \"scale\": 7, \"unit\": \"FUND_SHARE\"}`` is 100 shares.",
+      "properties": {
+        "atoms": {
+          "maxLength": 79,
+          "pattern": "^(0|-?[1-9][0-9]*)$",
+          "title": "Atoms",
+          "type": "string"
+        },
+        "scale": {
+          "maximum": 38,
+          "minimum": 0,
+          "title": "Scale",
+          "type": "integer"
+        },
+        "unit": {
+          "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "atoms",
+        "scale",
+        "unit"
+      ],
+      "title": "Quantity",
+      "type": "object"
+    },
+    "SelectedEvaluation": {
+      "additionalProperties": false,
+      "description": "The publication the selection policy picked for an operation (admitted or not).",
+      "properties": {
+        "engine_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Engine Ref",
+          "type": "string"
+        },
+        "engine_status": {
+          "enum": [
+            "current",
+            "retired",
+            "blocked",
+            "unknown"
+          ],
+          "title": "Engine Status",
+          "type": "string"
+        },
+        "evaluation_clock": {
+          "format": "date-time",
+          "title": "Evaluation Clock",
+          "type": "string"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "evaluation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evaluation Sha256",
+          "type": "string"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "published_epoch": {
+          "title": "Published Epoch",
+          "type": "integer"
+        },
+        "result": {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evaluation_id",
+        "evaluation_sha256",
+        "snapshot_id",
+        "published_epoch",
+        "valid_at",
+        "known_at",
+        "evaluation_clock",
+        "result",
+        "profile_ref",
+        "engine_ref",
+        "engine_status"
+      ],
+      "title": "SelectedEvaluation",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-integrity-cases:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/CaseView"
+      },
+      "title": "Cases",
+      "type": "array"
+    },
+    "cases_key": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Cases Key",
+      "type": "string"
+    },
+    "limit": {
+      "title": "Limit",
+      "type": "integer"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "next_cursor": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Next Cursor"
+    },
+    "offset": {
+      "title": "Offset",
+      "type": "integer"
+    },
+    "report_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Report Sha256",
+      "type": "string"
+    },
+    "total_operations": {
+      "title": "Total Operations",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "report_sha256",
+    "cases_key",
+    "total_operations",
+    "offset",
+    "limit",
+    "cases",
+    "limitations"
+  ],
+  "title": "CasesView",
+  "type": "object"
+}

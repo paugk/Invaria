@@ -94,6 +94,7 @@ def handle_event(store: PgStore, event: OutboxEvent, clocks_for: ClocksFor) -> P
     skipped, since the newer epoch has its own event."""
     if event.event_type != "scope.invalidated":
         return None
+    assert event.operation_ref is not None and event.epoch is not None
     if store.scope_head(event.tenant_id, event.operation_ref).epoch > event.epoch:
         return None
     _, publication = reevaluate(store, event.tenant_id, event.operation_ref, clocks_for(event))

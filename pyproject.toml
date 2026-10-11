@@ -1,7 +1,7 @@
 [project]
 name = "invaria"
 version = "0.0.0"
-description = "Invaria core: canonical contracts, CSV ingestion, pure subscription and redemption evaluators with versioned engines, offline R1/R2 bundle replay with Ed25519 signatures, read-only Stellar testnet adapter, append-only PostgreSQL persistence with invalidation and logical backup, a read-only consultative MCP server and a local read-only evidence console."
+description = "Invaria core: canonical contracts, CSV ingestion, pure subscription and redemption evaluators with versioned engines, offline R1/R2 bundle replay with Ed25519 signatures, read-only Stellar testnet adapter, append-only PostgreSQL persistence with invalidation and logical backup, a read-only consultative MCP server, and a local read-only console with integrity analytics, registered reports, an event feed by cursor and controlled disclosure."
 requires-python = ">=3.13,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]

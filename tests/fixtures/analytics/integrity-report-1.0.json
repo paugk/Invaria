@@ -1,0 +1,688 @@
+{
+ "as_of": "2026-10-11T00:00:00Z",
+ "blockers": {
+  "blocked_requirements": 4,
+  "blocks": [
+   {
+    "category": "missing_evidence",
+    "control_id": "subscription.cash_vs_order",
+    "coverage_ids": [],
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "evidence_refs": [],
+    "fact_type": "cash_settled",
+    "operation_ref": "OP-K1",
+    "reason_code": "MISSING_EVIDENCE",
+    "required_from_source": "bank-synthetic",
+    "requirement_id": "fact:cash_settled"
+   },
+   {
+    "category": "missing_evidence",
+    "control_id": "subscription.ta_units_vs_order",
+    "coverage_ids": [],
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "evidence_refs": [],
+    "fact_type": "units_registered",
+    "operation_ref": "OP-K1",
+    "reason_code": "MISSING_EVIDENCE",
+    "required_from_source": "ta-synthetic",
+    "requirement_id": "fact:units_registered"
+   },
+   {
+    "category": "insufficient_coverage",
+    "control_id": "subscription.token_units_vs_order",
+    "coverage_ids": [
+     "cov-chain-k1"
+    ],
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "evidence_refs": [],
+    "fact_type": "token_movement",
+    "operation_ref": "OP-K1",
+    "reason_code": "INSUFFICIENT_COVERAGE",
+    "required_from_source": "stellar-testnet-frozen",
+    "requirement_id": "completeness"
+   },
+   {
+    "category": "insufficient_coverage",
+    "control_id": "redemption.burn_vs_request",
+    "coverage_ids": [
+     "cov-chain-s2"
+    ],
+    "evaluation_id": "eval-87e9830e76849a916827cde63d802166",
+    "evidence_refs": [
+     "obs-BN1",
+     "obs-RQ1"
+    ],
+    "fact_type": "token_movement",
+    "operation_ref": "OP-RUN",
+    "reason_code": "INSUFFICIENT_COVERAGE",
+    "required_from_source": "stellar-testnet-frozen",
+    "requirement_id": "completeness"
+   }
+  ],
+  "complete": true,
+  "diagnosis_unavailable": [
+   {
+    "control_id": "subscription.cash_vs_order",
+    "evaluation_id": "eval-ff7007c72aad785378e2710b2537d938",
+    "operation_ref": "OP-RETIRED",
+    "requirement_id": null
+   },
+   {
+    "control_id": "subscription.ta_units_vs_order",
+    "evaluation_id": "eval-ff7007c72aad785378e2710b2537d938",
+    "operation_ref": "OP-RETIRED",
+    "requirement_id": null
+   }
+  ],
+  "evaluations_requiring_diagnosis": 3,
+  "groups": [
+   {
+    "cases_key": "block:insufficient_coverage",
+    "category": "insufficient_coverage",
+    "operations": 2,
+    "requirements": 2
+   },
+   {
+    "cases_key": "block:missing_evidence",
+    "category": "missing_evidence",
+    "operations": 1,
+    "requirements": 2
+   }
+  ],
+  "max_replays": 100,
+  "metrics": [
+   {
+    "cases_key": "block:any",
+    "denominator": 3,
+    "denominator_definition": "admitted operations",
+    "description": "admitted operations with at least one block recorded by the engine (unique operations; an operation may be in several categories)",
+    "kind": "ratio",
+    "metric_id": "C.operations_with_block_share_of_admitted",
+    "numerator": 2,
+    "numerator_definition": "admitted operations with >= 1 engine-recorded block",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "66.67"
+   },
+   {
+    "cases_key": "block:any",
+    "denominator": null,
+    "denominator_definition": null,
+    "description": "engine-recorded blocks (one per UNKNOWN control diagnosed)",
+    "kind": "count",
+    "metric_id": "C.blocked_requirements",
+    "numerator": 4,
+    "numerator_definition": "blocks",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": null
+   },
+   {
+    "cases_key": "not_evaluated",
+    "denominator": null,
+    "denominator_definition": null,
+    "description": "requirements the engine did not reach; never counted as blocks",
+    "kind": "count",
+    "metric_id": "C.not_evaluated_requirements",
+    "numerator": 5,
+    "numerator_definition": "not evaluated requirements",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": null
+   },
+   {
+    "cases_key": "diagnosis_unavailable",
+    "denominator": null,
+    "denominator_definition": null,
+    "description": "UNKNOWN controls of engines without diagnosis (not replayed)",
+    "kind": "count",
+    "metric_id": "C.diagnosis_unavailable_controls",
+    "numerator": 2,
+    "numerator_definition": "controls",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": null
+   },
+   {
+    "cases_key": "reconstruction_mismatch",
+    "denominator": null,
+    "denominator_definition": null,
+    "description": "UNKNOWN controls whose replay does not reproduce the stored evaluation",
+    "kind": "count",
+    "metric_id": "C.reconstruction_mismatch_controls",
+    "numerator": 0,
+    "numerator_definition": "controls",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": null
+   }
+  ],
+  "not_evaluated": [
+   {
+    "control_id": "subscription.cash_vs_order",
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "operation_ref": "OP-K1",
+    "requirement_id": "operands"
+   },
+   {
+    "control_id": "subscription.cash_vs_order",
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "operation_ref": "OP-K1",
+    "requirement_id": "comparison"
+   },
+   {
+    "control_id": "subscription.ta_units_vs_order",
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "operation_ref": "OP-K1",
+    "requirement_id": "operands"
+   },
+   {
+    "control_id": "subscription.ta_units_vs_order",
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "operation_ref": "OP-K1",
+    "requirement_id": "comparison"
+   },
+   {
+    "control_id": "subscription.token_units_vs_order",
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "operation_ref": "OP-K1",
+    "requirement_id": "chain_effects"
+   }
+  ],
+  "not_processed": [],
+  "operations_with_block": 2,
+  "reconstruction_mismatch": [],
+  "replayed": 2
+ },
+ "definition": "integrity-analytics@1.0.0",
+ "diagnostic_engines": [
+  "invaria-engine@0.10.0",
+  "invaria-redemption-engine@0.11.0"
+ ],
+ "discrepancies": {
+  "control_discrepancies": 1,
+  "groups": [
+   {
+    "cases_key": "discrepancy:fund-redemption-synthetic@1.7.0/redemption.cash_vs_expected",
+    "control_id": "redemption.cash_vs_expected",
+    "incidents": 1,
+    "mandatory": true,
+    "oldest_age_seconds": 777600,
+    "operations": 1,
+    "profile_ref": "fund-redemption-synthetic@1.7.0",
+    "reason_codes": [
+     {
+      "incidents": 1,
+      "reason_code": "CASH_AMOUNT_MISMATCH"
+     }
+    ]
+   }
+  ],
+  "incidents": [
+   {
+    "age": {
+     "age_seconds": 777600,
+     "basis": "published_run_start",
+     "epochs_without_publication_in_run": [
+      3
+     ],
+     "origin_evaluation_id": "eval-3174bf60f3c793d95fd06fbd98fbadf1",
+     "origin_known_at": "2026-10-02T00:00:00Z",
+     "publications_in_run": 2,
+     "run_stopped_by": "earlier_publication_not_fail"
+    },
+    "control_id": "redemption.cash_vs_expected",
+    "evaluation_id": "eval-87e9830e76849a916827cde63d802166",
+    "mandatory": true,
+    "operation_ref": "OP-RUN",
+    "profile_ref": "fund-redemption-synthetic@1.7.0",
+    "reason_code": "CASH_AMOUNT_MISMATCH"
+   }
+  ],
+  "metrics": [
+   {
+    "cases_key": "discrepancy:any",
+    "denominator": 3,
+    "denominator_definition": "admitted operations",
+    "description": "admitted operations with at least one control FAIL (unique operations)",
+    "kind": "ratio",
+    "metric_id": "B.operations_with_discrepancy_share_of_admitted",
+    "numerator": 1,
+    "numerator_definition": "admitted operations with >= 1 FAIL",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "33.33"
+   },
+   {
+    "cases_key": "discrepancy:any",
+    "denominator": null,
+    "denominator_definition": null,
+    "description": "controls in FAIL across admitted conclusions (incidents, not operations)",
+    "kind": "count",
+    "metric_id": "B.control_discrepancies",
+    "numerator": 1,
+    "numerator_definition": "FAIL controls",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": null
+   }
+  ],
+  "operations_with_discrepancy": 1
+ },
+ "distribution": {
+  "admitted": 3,
+  "break_count": 1,
+  "evaluations_not_selected": 2,
+  "included": 4,
+  "match_count": 0,
+  "metrics": [
+   {
+    "cases_key": "included",
+    "denominator": null,
+    "denominator_definition": null,
+    "description": "operations in the population after filters",
+    "kind": "count",
+    "metric_id": "A.included",
+    "numerator": 4,
+    "numerator_definition": "included operations",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": null
+   },
+   {
+    "cases_key": "status:admitted",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "share of included operations with an admitted conclusion",
+    "kind": "ratio",
+    "metric_id": "A.admitted_share",
+    "numerator": 3,
+    "numerator_definition": "admitted operations",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "75.00"
+   },
+   {
+    "cases_key": "result:MATCH",
+    "denominator": 3,
+    "denominator_definition": "admitted operations",
+    "description": "MATCH among admitted operations",
+    "kind": "ratio",
+    "metric_id": "A.match_share_of_admitted",
+    "numerator": 0,
+    "numerator_definition": "admitted MATCH",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "result:BREAK",
+    "denominator": 3,
+    "denominator_definition": "admitted operations",
+    "description": "BREAK among admitted operations",
+    "kind": "ratio",
+    "metric_id": "A.break_share_of_admitted",
+    "numerator": 1,
+    "numerator_definition": "admitted BREAK",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "33.33"
+   },
+   {
+    "cases_key": "result:UNKNOWN",
+    "denominator": 3,
+    "denominator_definition": "admitted operations",
+    "description": "UNKNOWN among admitted operations",
+    "kind": "ratio",
+    "metric_id": "A.unknown_share_of_admitted",
+    "numerator": 2,
+    "numerator_definition": "admitted UNKNOWN",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "66.67"
+   },
+   {
+    "cases_key": "conclusive",
+    "denominator": 3,
+    "denominator_definition": "admitted operations",
+    "description": "MATCH or BREAK among admitted operations",
+    "kind": "ratio",
+    "metric_id": "A.conclusive_share_of_admitted",
+    "numerator": 1,
+    "numerator_definition": "admitted MATCH + BREAK",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "33.33"
+   },
+   {
+    "cases_key": "result:MATCH",
+    "denominator": 1,
+    "denominator_definition": "admitted MATCH + BREAK",
+    "description": "MATCH among conclusive operations; the UNKNOWN left out are shown beside it",
+    "kind": "ratio",
+    "metric_id": "A.match_share_of_conclusive",
+    "numerator": 0,
+    "numerator_definition": "admitted MATCH",
+    "undefined_reason": null,
+    "unknown_excluded": 2,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "result:MATCH",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "MATCH among all included operations",
+    "kind": "ratio",
+    "metric_id": "A.match_share_of_included",
+    "numerator": 0,
+    "numerator_definition": "admitted MATCH",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "technical_error",
+    "denominator": 3,
+    "denominator_definition": "admitted operations",
+    "description": "admitted conclusions with a control in EVALUATION_ERROR (technical state, reported apart from the financial result)",
+    "kind": "ratio",
+    "metric_id": "A.technical_error_share_of_admitted",
+    "numerator": 0,
+    "numerator_definition": "admitted with EVALUATION_ERROR",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "status:admitted",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "a current publication admitted to the aggregate",
+    "kind": "ratio",
+    "metric_id": "A.status:admitted",
+    "numerator": 3,
+    "numerator_definition": "operations admitted",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "75.00"
+   },
+   {
+    "cases_key": "status:published_after_cut",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "its current publication knows evidence recorded after as_of; not replaced by an earlier one",
+    "kind": "ratio",
+    "metric_id": "A.status:published_after_cut",
+    "numerator": 0,
+    "numerator_definition": "operations published_after_cut",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "status:engine_not_admissible",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "its current publication names a blocked or unknown engine",
+    "kind": "ratio",
+    "metric_id": "A.status:engine_not_admissible",
+    "numerator": 0,
+    "numerator_definition": "operations engine_not_admissible",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "status:stale_publication",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "its latest publication belongs to an earlier epoch: the scope was reopened since; the stored result is history, not a current conclusion",
+    "kind": "ratio",
+    "metric_id": "A.status:stale_publication",
+    "numerator": 0,
+    "numerator_definition": "operations stale_publication",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "status:stored_not_published",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "evaluations are stored but none was published",
+    "kind": "ratio",
+    "metric_id": "A.status:stored_not_published",
+    "numerator": 0,
+    "numerator_definition": "operations stored_not_published",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   },
+   {
+    "cases_key": "status:registered_not_evaluated",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "registered scope with no stored evaluation; no execution state is recorded, so it is not reported as pending",
+    "kind": "ratio",
+    "metric_id": "A.status:registered_not_evaluated",
+    "numerator": 1,
+    "numerator_definition": "operations registered_not_evaluated",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "25.00"
+   },
+   {
+    "cases_key": "status:unregistered",
+    "denominator": 4,
+    "denominator_definition": "included operations",
+    "description": "snapshots are stored but no scope is registered, so nothing publishes",
+    "kind": "ratio",
+    "metric_id": "A.status:unregistered",
+    "numerator": 0,
+    "numerator_definition": "operations unregistered",
+    "undefined_reason": null,
+    "unknown_excluded": null,
+    "value_percent": "0.00"
+   }
+  ],
+  "statuses": {
+   "admitted": 3,
+   "engine_not_admissible": 0,
+   "published_after_cut": 0,
+   "registered_not_evaluated": 1,
+   "stale_publication": 0,
+   "stored_not_published": 0,
+   "unregistered": 0
+  },
+  "stored_evaluations": 5,
+  "technical_error": 0,
+  "technical_error_operations": [],
+  "unknown_count": 2
+ },
+ "exclusions": [],
+ "limitations": [
+  "Answers come from stored, closed snapshots and evaluations; no source was queried.",
+  "Population: registered accessible operations (registered scopes or stored snapshots of this tenant). It is not all real activity: an operation never registered is not here.",
+  "Publications are recorded in store time, not knowledge time: this report describes the present publication state with as_of as the knowledge horizon; it does not reconstruct which conclusion was published at as_of.",
+  "UNKNOWN means not determined from the snapshot, never a breach or a missing payment; BREAK is a mandatory control failing under the profile, not an economic loss; MATCH is agreement under the controls applied, not a general guarantee.",
+  "Counts only: no amounts are summed, converted or called loss, exposure or blocked funds.",
+  "This JSON is a reproducible query report, not a verified financial bundle.",
+  "The admitted conclusions mix profile or engine versions (see segments): their controls may have different semantics, so the totals are a composition, not a comparable series.",
+  "Some admitted conclusions were recorded with a retired engine: their stored results stand, but no diagnosis is given for them (ADR-010).",
+  "Operations without a stored evaluation are counted as such; no execution state of the worker is recorded, so none is inferred."
+ ],
+ "max_replays": 100,
+ "members": [
+  {
+   "epochs_without_publication": [],
+   "latest_stored_evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+   "operation_ref": "OP-K1",
+   "profile_ref": "fund-subscription-synthetic@1.2.0",
+   "published_history": [
+    {
+     "epoch": 1,
+     "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+     "evaluation_sha256": "84c296a6ff6068f25136501e9d10912b4fbd9695779580d6d5098fae88eda3e1",
+     "known_at": "2026-10-01T00:00:00Z"
+    }
+   ],
+   "scope_epoch": 1,
+   "selected": {
+    "engine_ref": "invaria-engine@0.10.0",
+    "engine_status": "current",
+    "evaluation_clock": "2026-10-01T00:00:00Z",
+    "evaluation_id": "eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "evaluation_sha256": "84c296a6ff6068f25136501e9d10912b4fbd9695779580d6d5098fae88eda3e1",
+    "known_at": "2026-10-01T00:00:00Z",
+    "profile_ref": "fund-subscription-synthetic@1.2.0",
+    "published_epoch": 1,
+    "result": "UNKNOWN",
+    "snapshot_id": "snap-OP-K1-eval-c630545f96e9ec04cc5a1f40db0b41a1",
+    "valid_at": "2026-10-01T00:00:00Z"
+   },
+   "status": "admitted",
+   "status_detail": [],
+   "stored_evaluations": 1
+  },
+  {
+   "epochs_without_publication": [
+    1
+   ],
+   "latest_stored_evaluation_id": null,
+   "operation_ref": "OP-NEW",
+   "profile_ref": "fund-subscription-synthetic@1.2.0",
+   "published_history": [],
+   "scope_epoch": 1,
+   "selected": null,
+   "status": "registered_not_evaluated",
+   "status_detail": [],
+   "stored_evaluations": 0
+  },
+  {
+   "epochs_without_publication": [],
+   "latest_stored_evaluation_id": "eval-ff7007c72aad785378e2710b2537d938",
+   "operation_ref": "OP-RETIRED",
+   "profile_ref": "fund-subscription-synthetic@1.0.0",
+   "published_history": [
+    {
+     "epoch": 1,
+     "evaluation_id": "eval-ff7007c72aad785378e2710b2537d938",
+     "evaluation_sha256": "ef9e6a86d167e17afecd51dec474c0b3084b80f53a38974bd31f44c5a0b94a41",
+     "known_at": "2026-10-01T00:00:00Z"
+    }
+   ],
+   "scope_epoch": 1,
+   "selected": {
+    "engine_ref": "invaria-engine@0.9.0",
+    "engine_status": "retired",
+    "evaluation_clock": "2026-10-01T00:00:00Z",
+    "evaluation_id": "eval-ff7007c72aad785378e2710b2537d938",
+    "evaluation_sha256": "ef9e6a86d167e17afecd51dec474c0b3084b80f53a38974bd31f44c5a0b94a41",
+    "known_at": "2026-10-01T00:00:00Z",
+    "profile_ref": "fund-subscription-synthetic@1.0.0",
+    "published_epoch": 1,
+    "result": "UNKNOWN",
+    "snapshot_id": "snap-OP-RETIRED-eval-ff7007c72aad785378e2710b2537d938",
+    "valid_at": "2026-10-01T00:00:00Z"
+   },
+   "status": "admitted",
+   "status_detail": [],
+   "stored_evaluations": 1
+  },
+  {
+   "epochs_without_publication": [
+    3
+   ],
+   "latest_stored_evaluation_id": "eval-87e9830e76849a916827cde63d802166",
+   "operation_ref": "OP-RUN",
+   "profile_ref": "fund-redemption-synthetic@1.7.0",
+   "published_history": [
+    {
+     "epoch": 1,
+     "evaluation_id": "eval-93bd89d25fabc616b1d5ecf1cc69bfc7",
+     "evaluation_sha256": "23290d5dd5d82cc5c2e5f45f549fccfc9443852aa6df37267393741e50097126",
+     "known_at": "2026-10-01T00:00:00Z"
+    },
+    {
+     "epoch": 2,
+     "evaluation_id": "eval-3174bf60f3c793d95fd06fbd98fbadf1",
+     "evaluation_sha256": "4676623cd68fc6abd550d9a165af6eddee607765f024b0964b27d32b784de954",
+     "known_at": "2026-10-02T00:00:00Z"
+    },
+    {
+     "epoch": 4,
+     "evaluation_id": "eval-87e9830e76849a916827cde63d802166",
+     "evaluation_sha256": "54cc13f666f8b09f7f7bad691bc27bb5750ce48a8173ac8c94e25a8d092ff9ac",
+     "known_at": "2026-10-04T00:00:00Z"
+    }
+   ],
+   "scope_epoch": 4,
+   "selected": {
+    "engine_ref": "invaria-redemption-engine@0.11.0",
+    "engine_status": "current",
+    "evaluation_clock": "2026-10-04T00:00:00Z",
+    "evaluation_id": "eval-87e9830e76849a916827cde63d802166",
+    "evaluation_sha256": "54cc13f666f8b09f7f7bad691bc27bb5750ce48a8173ac8c94e25a8d092ff9ac",
+    "known_at": "2026-10-04T00:00:00Z",
+    "profile_ref": "fund-redemption-synthetic@1.7.0",
+    "published_epoch": 4,
+    "result": "BREAK",
+    "snapshot_id": "snap-OP-RUN-eval-87e9830e76849a916827cde63d802166",
+    "valid_at": "2026-10-04T00:00:00Z"
+   },
+   "status": "admitted",
+   "status_detail": [],
+   "stored_evaluations": 3
+  }
+ ],
+ "profile_filter": null,
+ "report_format": "invaria-integrity-report@1.0",
+ "report_sha256": "fbf3495d5076358108b1416d27f614df6544d98240b57b75baca97298a087d02",
+ "schema_version": "1.0",
+ "scope": {
+  "access_scopes": [
+   "operations:read"
+  ],
+  "isolation": "Every read is filtered by the access profile's tenant before counting; counts, members and details never include operations of another tenant. No new isolation model.",
+  "population": "registered_accessible_operations",
+  "principal_id": "analyst-1",
+  "tenant_id": "tenant-a"
+ },
+ "segments": [
+  {
+   "admitted": 1,
+   "break_count": 1,
+   "engine_ref": "invaria-redemption-engine@0.11.0",
+   "engine_status": "current",
+   "match_count": 0,
+   "profile_ref": "fund-redemption-synthetic@1.7.0",
+   "unknown_count": 0
+  },
+  {
+   "admitted": 1,
+   "break_count": 0,
+   "engine_ref": "invaria-engine@0.9.0",
+   "engine_status": "retired",
+   "match_count": 0,
+   "profile_ref": "fund-subscription-synthetic@1.0.0",
+   "unknown_count": 1
+  },
+  {
+   "admitted": 1,
+   "break_count": 0,
+   "engine_ref": "invaria-engine@0.10.0",
+   "engine_status": "current",
+   "match_count": 0,
+   "profile_ref": "fund-subscription-synthetic@1.2.0",
+   "unknown_count": 1
+  }
+ ],
+ "selection_description": "Per operation, the latest publication (highest epoch) of its registered scope (INV-007). It is admitted to the current aggregate only if its epoch is the scope's current epoch, its engine is current or retired (never blocked or unknown) and its snapshot known_at is not after as_of. Stale publications, unpublished evaluations and later unpublished re-evaluations are never counted as current conclusions, and no earlier evaluation is substituted for one that is not admitted.",
+ "selection_policy": "current-publication@1",
+ "store_read": {
+  "as_of_within_closed_cut": false,
+  "closed_knowledge_cut": null,
+  "isolation": "repeatable_read_read_only",
+  "read_at": "2026-10-01T00:00:00Z"
+ }
+}

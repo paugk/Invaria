@@ -7,9 +7,9 @@ Invaria is an operational-integrity and reproducible-evidence layer for tokenize
 
 Invaria keeps the evidence needed to explain that conclusion.
 
-**This branch contains the implemented building blocks, offline verticals for a synthetic fund subscription and a synthetic redemption, and a demo subscription evaluated with real Stellar testnet evidence.** It is not the MVP and not production-ready. The Stellar adapter covers a declared subset, and the local console is a read-only demo.
+**This branch contains the implemented building blocks, offline verticals for a synthetic fund subscription and a synthetic redemption, and a demo subscription evaluated with real Stellar testnet evidence.** It is not the MVP and not production-ready. The Stellar adapter covers a declared subset, and the local console is a read-only demo. On top of the stored evaluations, a local layer adds integrity analytics, a registry of reports, domain events read by cursor and controlled disclosure; it runs on one machine and is not an institutional service.
 
-**[CAPABILITIES.md](CAPABILITIES.md)** lists what each component can and cannot conclude, with its declared limits: absence of settlement, completeness of what was observed, `valid_at`, and historical replay.
+**[CAPABILITIES.md](CAPABILITIES.md)** lists what each component can and cannot conclude, with its declared limits: absence of settlement, completeness of what was observed, `valid_at`, and historical replay. **[CONSOLE_AND_API.md](CONSOLE_AND_API.md)** explains the local console, its REST API, analytics, the event feed by cursor, access profiles and disclosure policies, and what is still not covered.
 
 ## What is in this branch
 
@@ -34,6 +34,10 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Invalidation, revision epochs and transactional outbox | `src/invaria/engine/dependencies.py`, `src/invaria/persistence/` | Implemented; tests need a real PostgreSQL (opt-in) |
 | Logical backup and verified restore (optional `db` extra) | `src/invaria/persistence/backup.py` | Implemented; tests need PostgreSQL and the pinned container (opt-in) |
 | Local read-only evidence console: REST and HTML, no JavaScript | `src/invaria/console/` | Implemented; listens on 127.0.0.1 only; tests need PostgreSQL (opt-in) |
+| Integrity analytics: population, distribution with numerator and denominator, discrepancies, diagnosed blocks, pinned cases and reproduction | `src/invaria/query/analytics.py` | Implemented; CLI `invaria analytics` and query service; counts stored conclusions, never re-evaluates |
+| Registry of integrity reports and its local REST API (OpenAPI 3.1) | `src/invaria/query/registry.py`, `src/invaria/console/`, `docs/api/console-v1.openapi.json` | Implemented; append-only, `ir-<sha256>`; not a signature (see [CONSOLE_AND_API.md](CONSOLE_AND_API.md)) |
+| Domain events and the event feed by cursor | `src/invaria/contracts/events.py`, `src/invaria/domain_events.py`, `src/invaria/persistence/events.py`, `src/invaria/query/feed.py` | Implemented; local derivation and `GET /v1/events`; no webhooks or server-sent events |
+| Controlled disclosure: explicit policies for every interactive query, restricted revocable views of a report summary | `src/invaria/query/disclosure.py`, `src/invaria/console/disclosure_pages.py` | Implemented for interactive queries and event types; exports, bundles, logs and backups not covered yet |
 
 ### Contracts
 - **Exact quantities.** Integer atoms as a string, plus an explicit scale (0–38) and unit. Floats, exponents, NaN and duplicate JSON keys are rejected before validation.
@@ -194,8 +198,8 @@ When evidence an evaluation depends on changes, that evaluation stops being curr
 
 Every answer states its snapshot (`valid_at`, `known_at`), its currency (`current`, `stale`, `superseded` or `not_published`) and its coverage. Answers come only from stored snapshots and evaluations; no source is queried.
 
-- **Access profile.** A JSON file chosen by the operator, outside the repository, sets the principal, the tenant and the scopes (`operations:read`, `evidence:read`). Every call is authorised on the server.
-  - A missing scope gives `FORBIDDEN`.
+- **Access profile.** A JSON file chosen by the operator, outside the repository, sets the principal, the tenant, the scopes (`operations:read`, `evidence:read`) and the disclosure policies the principal may receive (`full-operations@1`, `full-evidence@1`). Every call is authorised on the server: scope first, then policy, before anything is read. There is no implicit policy; see [CONSOLE_AND_API.md](CONSOLE_AND_API.md).
+  - A missing scope gives `FORBIDDEN`; a missing policy gives `DISCLOSURE_POLICY_UNAVAILABLE`.
   - Another tenant's data gives `NOT_FOUND`, so its existence is not revealed.
   - The tenant never comes from the client.
 - **Read-only database role.** The server reads through `invaria_reader`, which has SELECT only (migration `0003`).
@@ -259,7 +263,9 @@ Runtime dependencies: `pydantic`, `cryptography` (Ed25519 only). Optional: `psyc
 
 - **Stellar:** independent verification of ledger checkpoints (on-chain coverage is `provider_claimed`); custom Soroban tokens; contracts as approved investor addresses; mainnet.
 - **Evidence bundles:** compressed archives, R3 (source proofs), R2 for on-chain evidence, third-party timestamping of signatures, and Windows-specific path rules.
-- **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; a network API or MCP transport with tokens; point-in-time recovery or high availability.
+- **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; a network API or MCP transport with tokens; institutional or remote authentication (OIDC, SSO); point-in-time recovery or high availability.
+- **Events and disclosure:** webhooks, server-sent events, signed events and event retention; disclosure policies for exports, bundles, logs and backups; restricted views of outputs other than a report summary; techniques against inference from small counts.
+- **Cryptographic privacy:** zero-knowledge proofs and fully homomorphic encryption are not implemented.
 - **Other operations:** fees, partial fills, multiple payments, FX, omnibus accounts; business calendars for deadlines.
 - **Other sources:** XLSX, SFTP, encodings other than UTF-8, locale-specific number formats.
 

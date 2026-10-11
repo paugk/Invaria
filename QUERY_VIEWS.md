@@ -7,7 +7,7 @@ Two read-only views explain a stored evaluation. Neither evaluates evidence agai
 | Requirement diagnosis of one control | `src/invaria/query/diagnostics.py`, `src/invaria/engine/trace.py` | `invaria diagnose CORPUS SCENARIO [--control ID] [--engine REF] [--json]` | `QueryService.diagnose_control` | `schemas/query-control-diagnosis.schema.json` |
 | Obligations of an operation | `src/invaria/query/obligations.py` | `invaria obligations CORPUS SCENARIO [--engine REF] [--json]` | `QueryService.get_operation_obligations(operation_ref, evaluation_id=None)` | `schemas/query-operation-obligations.schema.json` |
 
-They are not MCP tools, REST routes or console pages. `get_missing_evidence` is unchanged.
+They are not MCP tools, REST routes or console pages. `get_missing_evidence` is unchanged. Through the query service, both need `operations:read` and the disclosure policy `full-operations@1` in the access profile (see [CONSOLE_AND_API.md](CONSOLE_AND_API.md)); the offline CLI reads corpus files and uses no access profile.
 
 ## Requirement diagnosis
 

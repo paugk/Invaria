@@ -1,0 +1,1207 @@
+{
+  "$defs": {
+    "BlockKey": {
+      "additionalProperties": false,
+      "description": "An engine-recorded block of an UNKNOWN control (the decisive check of its diagnosis).",
+      "properties": {
+        "category": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Category"
+        },
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "requirement_id": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Requirement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "requirement_id",
+        "category"
+      ],
+      "title": "BlockKey",
+      "type": "object"
+    },
+    "BlocksChange": {
+      "additionalProperties": false,
+      "properties": {
+        "added": {
+          "items": {
+            "$ref": "#/$defs/BlockKey"
+          },
+          "title": "Added",
+          "type": "array"
+        },
+        "not_comparable": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NotComparable"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "removed": {
+          "items": {
+            "$ref": "#/$defs/BlockKey"
+          },
+          "title": "Removed",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "changed",
+            "unchanged",
+            "not_comparable",
+            "no_previous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "added",
+        "removed",
+        "not_comparable"
+      ],
+      "title": "BlocksChange",
+      "type": "object"
+    },
+    "ChangeView": {
+      "additionalProperties": false,
+      "description": "This publication against the previous publication of the same operation (the one\nof highest epoch below it). Stored documents only, except ``blocks`` (diagnosis replay).",
+      "properties": {
+        "basis": {
+          "enum": [
+            "previous_publication",
+            "no_previous",
+            "previous_unidentifiable"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "blocks": {
+          "$ref": "#/$defs/BlocksChange"
+        },
+        "cited_evidence": {
+          "$ref": "#/$defs/CitedEvidenceChange"
+        },
+        "controls": {
+          "$ref": "#/$defs/ControlsChange"
+        },
+        "result": {
+          "$ref": "#/$defs/ResultChange"
+        },
+        "technical_errors": {
+          "$ref": "#/$defs/TechnicalErrorsChange"
+        },
+        "versions": {
+          "$ref": "#/$defs/VersionsChange"
+        }
+      },
+      "required": [
+        "basis",
+        "result",
+        "controls",
+        "cited_evidence",
+        "technical_errors",
+        "blocks",
+        "versions"
+      ],
+      "title": "ChangeView",
+      "type": "object"
+    },
+    "CitedEvidenceChange": {
+      "additionalProperties": false,
+      "description": "Evidence references cited by controls (``evidence_refs``), counted, never listed.",
+      "properties": {
+        "added": {
+          "title": "Added",
+          "type": "integer"
+        },
+        "controls": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Controls",
+          "type": "array"
+        },
+        "not_comparable": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NotComparable"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "removed": {
+          "title": "Removed",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "changed",
+            "unchanged",
+            "not_comparable",
+            "no_previous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "added",
+        "removed",
+        "controls",
+        "not_comparable"
+      ],
+      "title": "CitedEvidenceChange",
+      "type": "object"
+    },
+    "ControlState": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "current": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Current"
+        },
+        "previous": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous"
+        }
+      },
+      "required": [
+        "control_id",
+        "previous",
+        "current"
+      ],
+      "title": "ControlState",
+      "type": "object"
+    },
+    "ControlsChange": {
+      "additionalProperties": false,
+      "properties": {
+        "changed": {
+          "items": {
+            "$ref": "#/$defs/ControlState"
+          },
+          "title": "Changed",
+          "type": "array"
+        },
+        "not_comparable": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NotComparable"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "changed",
+            "unchanged",
+            "not_comparable",
+            "no_previous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "changed",
+        "not_comparable"
+      ],
+      "title": "ControlsChange",
+      "type": "object"
+    },
+    "EvaluationPublishedData": {
+      "additionalProperties": false,
+      "description": "``result`` is the stored aggregate of the published evaluation (precedence of\n``aggregate()``): MATCH only if every mandatory control passed with coverage; BREAK if\na mandatory control failed; UNKNOWN otherwise, which is not non-payment and not a\nloss. It was current at its publication (compare-and-swap); it may be stale now.",
+      "properties": {
+        "change": {
+          "$ref": "#/$defs/ChangeView"
+        },
+        "epoch": {
+          "title": "Epoch",
+          "type": "integer"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "operation_state": {
+          "anyOf": [
+            {
+              "const": "cancelled",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation State"
+        },
+        "previous_publication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicationRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/SnapshotTimes"
+        },
+        "versions": {
+          "$ref": "#/$defs/Versions"
+        }
+      },
+      "required": [
+        "epoch",
+        "evaluation_id",
+        "result",
+        "operation_state",
+        "snapshot",
+        "versions",
+        "previous_publication",
+        "change"
+      ],
+      "title": "EvaluationPublishedData",
+      "type": "object"
+    },
+    "EvaluationPublishedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "items": {
+            "enum": [
+              "currency_lost",
+              "first_publication",
+              "result_changed",
+              "controls_changed",
+              "cited_evidence_changed",
+              "technical_errors_changed",
+              "blocks_changed",
+              "versions_changed",
+              "comparison_incomplete"
+            ],
+            "type": "string"
+          },
+          "title": "Categories",
+          "type": "array"
+        },
+        "data": {
+          "$ref": "#/$defs/EvaluationPublishedData"
+        },
+        "event_id": {
+          "pattern": "^ev-[a-f0-9]{64}$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/$defs/OperationSubject"
+        },
+        "type": {
+          "const": "operation.evaluation_published",
+          "title": "Type",
+          "type": "string"
+        },
+        "type_version": {
+          "const": 1,
+          "title": "Type Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "event_id",
+        "type",
+        "type_version",
+        "subject",
+        "provenance",
+        "categories",
+        "data",
+        "links"
+      ],
+      "title": "EvaluationPublishedEvent",
+      "type": "object"
+    },
+    "EvidenceCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage_certificates": {
+          "title": "Coverage Certificates",
+          "type": "integer"
+        },
+        "identity_links": {
+          "title": "Identity Links",
+          "type": "integer"
+        },
+        "observations": {
+          "title": "Observations",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "observations",
+        "coverage_certificates",
+        "identity_links"
+      ],
+      "title": "EvidenceCounts",
+      "type": "object"
+    },
+    "Link": {
+      "additionalProperties": false,
+      "properties": {
+        "href": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Href",
+          "type": "string"
+        },
+        "rel": {
+          "enum": [
+            "evaluation",
+            "previous_evaluation",
+            "prior_evaluation",
+            "timeline",
+            "report"
+          ],
+          "title": "Rel",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rel",
+        "href"
+      ],
+      "title": "Link",
+      "type": "object"
+    },
+    "NotComparable": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Detail"
+        },
+        "reason": {
+          "enum": [
+            "previous_unidentifiable",
+            "profile_changed",
+            "engine_blocked",
+            "engine_without_diagnosis",
+            "reconstruction_mismatch",
+            "diagnosis_unavailable",
+            "limit_reached",
+            "diagnosis_error"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "side": {
+          "anyOf": [
+            {
+              "enum": [
+                "previous",
+                "current",
+                "both"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Side"
+        }
+      },
+      "required": [
+        "reason",
+        "side",
+        "detail"
+      ],
+      "title": "NotComparable",
+      "type": "object"
+    },
+    "OperationSubject": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "operation",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "operation_ref"
+      ],
+      "title": "OperationSubject",
+      "type": "object"
+    },
+    "PriorPublication": {
+      "additionalProperties": false,
+      "description": "The latest publication when the epoch opened. ``current_until_reopening`` is true\nonly if it belonged to the epoch just closed (otherwise it was already stale).",
+      "properties": {
+        "current_until_reopening": {
+          "title": "Current Until Reopening",
+          "type": "boolean"
+        },
+        "epoch": {
+          "title": "Epoch",
+          "type": "integer"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "epoch",
+        "evaluation_id",
+        "current_until_reopening"
+      ],
+      "title": "PriorPublication",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Where the event comes from and when the fact was recorded.\n\n``fact_recorded_at`` is the store clock of the fact itself (epoch opened, publication\ncommitted, report registered), not the derivation time (record ``derived_at``) and not\nan economic time. ``source_payload``: ``pinned`` when the fact's transaction wrote the\nreferences this event names (current code); ``historical`` when the outbox row predates\npinned references and those references were read back from append-only history.",
+      "properties": {
+        "fact_recorded_at": {
+          "format": "date-time",
+          "title": "Fact Recorded At",
+          "type": "string"
+        },
+        "source": {
+          "const": "outbox",
+          "title": "Source",
+          "type": "string"
+        },
+        "source_payload": {
+          "enum": [
+            "pinned",
+            "historical"
+          ],
+          "title": "Source Payload",
+          "type": "string"
+        },
+        "source_type": {
+          "enum": [
+            "scope.invalidated",
+            "evaluation.published",
+            "integrity_report.registered"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "source_type",
+        "source_payload",
+        "fact_recorded_at"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "PublicationRef": {
+      "additionalProperties": false,
+      "properties": {
+        "epoch": {
+          "title": "Epoch",
+          "type": "integer"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "epoch",
+        "evaluation_id"
+      ],
+      "title": "PublicationRef",
+      "type": "object"
+    },
+    "ReportRegisteredData": {
+      "additionalProperties": false,
+      "properties": {
+        "definition": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Definition",
+          "type": "string"
+        },
+        "evidence_horizon": {
+          "format": "date-time",
+          "title": "Evidence Horizon",
+          "type": "string"
+        },
+        "report_format": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Report Format",
+          "type": "string"
+        },
+        "report_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Report Sha256",
+          "type": "string"
+        },
+        "selection_policy": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Selection Policy",
+          "type": "string"
+        },
+        "store_read_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Store Read At"
+        }
+      },
+      "required": [
+        "report_sha256",
+        "report_format",
+        "definition",
+        "selection_policy",
+        "evidence_horizon",
+        "store_read_at"
+      ],
+      "title": "ReportRegisteredData",
+      "type": "object"
+    },
+    "ReportRegisteredEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "items": {
+            "enum": [
+              "currency_lost",
+              "first_publication",
+              "result_changed",
+              "controls_changed",
+              "cited_evidence_changed",
+              "technical_errors_changed",
+              "blocks_changed",
+              "versions_changed",
+              "comparison_incomplete"
+            ],
+            "type": "string"
+          },
+          "title": "Categories",
+          "type": "array"
+        },
+        "data": {
+          "$ref": "#/$defs/ReportRegisteredData"
+        },
+        "event_id": {
+          "pattern": "^ev-[a-f0-9]{64}$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/$defs/ReportSubject"
+        },
+        "type": {
+          "const": "integrity_report.registered",
+          "title": "Type",
+          "type": "string"
+        },
+        "type_version": {
+          "const": 1,
+          "title": "Type Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "event_id",
+        "type",
+        "type_version",
+        "subject",
+        "provenance",
+        "categories",
+        "data",
+        "links"
+      ],
+      "title": "ReportRegisteredEvent",
+      "type": "object"
+    },
+    "ReportSubject": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "integrity_report",
+          "title": "Kind",
+          "type": "string"
+        },
+        "report_id": {
+          "pattern": "^ir-[a-f0-9]{64}$",
+          "title": "Report Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "report_id"
+      ],
+      "title": "ReportSubject",
+      "type": "object"
+    },
+    "ResultChange": {
+      "additionalProperties": false,
+      "properties": {
+        "current": {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "title": "Current",
+          "type": "string"
+        },
+        "not_comparable": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NotComparable"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "previous": {
+          "anyOf": [
+            {
+              "enum": [
+                "MATCH",
+                "BREAK",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous"
+        },
+        "status": {
+          "enum": [
+            "changed",
+            "unchanged",
+            "not_comparable",
+            "no_previous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "previous",
+        "current",
+        "not_comparable"
+      ],
+      "title": "ResultChange",
+      "type": "object"
+    },
+    "ScopeReopenedData": {
+      "additionalProperties": false,
+      "properties": {
+        "cause": {
+          "enum": [
+            "evidence_appended",
+            "profile_changed",
+            "explicit"
+          ],
+          "title": "Cause",
+          "type": "string"
+        },
+        "epoch": {
+          "title": "Epoch",
+          "type": "integer"
+        },
+        "evidence_counts": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceCounts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "knowledge_floor": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Knowledge Floor"
+        },
+        "previous_profile_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Profile Ref"
+        },
+        "prior_publication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PriorPublication"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prior_publication_basis": {
+          "enum": [
+            "named",
+            "none",
+            "unidentifiable"
+          ],
+          "title": "Prior Publication Basis",
+          "type": "string"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "epoch",
+        "cause",
+        "profile_ref",
+        "previous_profile_ref",
+        "evidence_counts",
+        "knowledge_floor",
+        "prior_publication_basis",
+        "prior_publication"
+      ],
+      "title": "ScopeReopenedData",
+      "type": "object"
+    },
+    "ScopeReopenedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "items": {
+            "enum": [
+              "currency_lost",
+              "first_publication",
+              "result_changed",
+              "controls_changed",
+              "cited_evidence_changed",
+              "technical_errors_changed",
+              "blocks_changed",
+              "versions_changed",
+              "comparison_incomplete"
+            ],
+            "type": "string"
+          },
+          "title": "Categories",
+          "type": "array"
+        },
+        "data": {
+          "$ref": "#/$defs/ScopeReopenedData"
+        },
+        "event_id": {
+          "pattern": "^ev-[a-f0-9]{64}$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/$defs/OperationSubject"
+        },
+        "type": {
+          "const": "operation.scope_reopened",
+          "title": "Type",
+          "type": "string"
+        },
+        "type_version": {
+          "const": 1,
+          "title": "Type Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "event_id",
+        "type",
+        "type_version",
+        "subject",
+        "provenance",
+        "categories",
+        "data",
+        "links"
+      ],
+      "title": "ScopeReopenedEvent",
+      "type": "object"
+    },
+    "SnapshotTimes": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_clock": {
+          "format": "date-time",
+          "title": "Evaluation Clock",
+          "type": "string"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "valid_at",
+        "known_at",
+        "evaluation_clock"
+      ],
+      "title": "SnapshotTimes",
+      "type": "object"
+    },
+    "TechnicalErrorsChange": {
+      "additionalProperties": false,
+      "description": "Controls whose stored ``reason_code`` is ``EVALUATION_ERROR`` (contract: a technical\nerror, always UNKNOWN). A change is reported as observed; it is never asserted to be a\ncorrection of the earlier error.",
+      "properties": {
+        "current_controls": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Current Controls",
+          "type": "array"
+        },
+        "not_comparable": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NotComparable"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "previous_controls": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Controls"
+        },
+        "status": {
+          "enum": [
+            "changed",
+            "unchanged",
+            "not_comparable",
+            "no_previous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "previous_controls",
+        "current_controls",
+        "not_comparable"
+      ],
+      "title": "TechnicalErrorsChange",
+      "type": "object"
+    },
+    "Versions": {
+      "additionalProperties": false,
+      "properties": {
+        "engine_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Engine Ref",
+          "type": "string"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "rules_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Rules Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile_ref",
+        "rules_ref",
+        "engine_ref"
+      ],
+      "title": "Versions",
+      "type": "object"
+    },
+    "VersionsChange": {
+      "additionalProperties": false,
+      "properties": {
+        "changed_fields": {
+          "items": {
+            "enum": [
+              "profile_ref",
+              "rules_ref",
+              "engine_ref"
+            ],
+            "type": "string"
+          },
+          "title": "Changed Fields",
+          "type": "array"
+        },
+        "not_comparable": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NotComparable"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "previous": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Versions"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "changed",
+            "unchanged",
+            "not_comparable",
+            "no_previous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "changed_fields",
+        "previous",
+        "not_comparable"
+      ],
+      "title": "VersionsChange",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:domain-event-record:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A persisted event: the payload plus record metadata the store assigned.\n``tenant_seq`` is the confirmed derivation order within the tenant: not economic\norder, not the order of the facts, never global.",
+  "properties": {
+    "derived_at": {
+      "format": "date-time",
+      "title": "Derived At",
+      "type": "string"
+    },
+    "event": {
+      "discriminator": {
+        "mapping": {
+          "integrity_report.registered": "#/$defs/ReportRegisteredEvent",
+          "operation.evaluation_published": "#/$defs/EvaluationPublishedEvent",
+          "operation.scope_reopened": "#/$defs/ScopeReopenedEvent"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ScopeReopenedEvent"
+        },
+        {
+          "$ref": "#/$defs/EvaluationPublishedEvent"
+        },
+        {
+          "$ref": "#/$defs/ReportRegisteredEvent"
+        }
+      ],
+      "title": "Event"
+    },
+    "payload_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Payload Sha256",
+      "type": "string"
+    },
+    "tenant_seq": {
+      "title": "Tenant Seq",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "tenant_seq",
+    "derived_at",
+    "payload_sha256",
+    "event"
+  ],
+  "title": "DomainEventRecord",
+  "type": "object"
+}

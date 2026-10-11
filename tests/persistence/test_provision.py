@@ -121,7 +121,15 @@ def test_a_non_superuser_migrator_applies_the_migrations_unchanged(migrator: Mig
             "created schema invaria owned by invaria_owner",
         ]
     with migrator.connect() as conn:
-        assert migrate(conn) == ["0001_initial", "0002_revision", "0003_reader"]
+        assert migrate(conn) == [
+            "0001_initial",
+            "0002_revision",
+            "0003_reader",
+            "0004_integrity_reports",
+            "0005_domain_events",
+            "0006_feed_generations",
+            "0007_disclosures",
+        ]
         stored = dict(conn.execute("SELECT version, sha256 FROM invaria.schema_migrations"))
         assert stored == {v: hashlib.sha256(b).hexdigest() for v, b in available_migrations()}
     with migrator.connect(autocommit=True) as conn:
@@ -133,9 +141,12 @@ def test_a_non_superuser_migrator_applies_the_migrations_unchanged(migrator: Mig
         assert [m for m in before["memberships"] if m[1] in ROLES] == []
 
 
-def _check(conn: psycopg.Connection[Any], statement: str, allowed: bool) -> None:
+def _check(conn: psycopg.Connection[Any], statement: str, allowed: bool | str) -> None:
     try:
-        if allowed:
+        if allowed == "fk":  # privileges pass; the row is refused by its foreign key
+            with pytest.raises(errors.ForeignKeyViolation):
+                conn.execute(statement)
+        elif allowed:
             conn.execute(statement)
         else:
             with pytest.raises(errors.InsufficientPrivilege):
@@ -144,7 +155,23 @@ def _check(conn: psycopg.Connection[Any], statement: str, allowed: bool) -> None
         conn.rollback()
 
 
-APP = {
+REPORT_INSERT = (
+    "INSERT INTO invaria.integrity_reports (tenant_id, report_id, report_sha256, report_format, "
+    "definition, selection_policy, evidence_horizon, registered_by, document, document_sha256) "
+    "SELECT 't', 'ir-' || repeat('a', 64), repeat('a', 64), 'f', 'd', 'p', now(), 'x', "
+    "'\\x7b7d'::bytea, encode(sha256('\\x7b7d'::bytea), 'hex')"
+)
+ISSUANCE_INSERT = (
+    "INSERT INTO invaria.disclosure_issuances (tenant_id, recipient_principal, policy_ref, "
+    "view_format, report_id, issued_by) VALUES ('t', 'r', 'p@1', 'f', 'ir-x', 'o')"
+)
+EVENT_INSERT_WITH_SEQ = (
+    "INSERT INTO invaria.domain_events (tenant_seq, tenant_id, event_id, event_type, "
+    "type_version, operation_ref, epoch, source_event_seq, payload, payload_sha256) "
+    "SELECT 1, 't', 'ev-' || repeat('a', 64), 'operation.scope_reopened', 1, 'op', 1, 1, "
+    "'\\x7b7d'::bytea, encode(sha256('\\x7b7d'::bytea), 'hex')"
+)
+APP: dict[str, bool | str] = {
     "SELECT count(*) FROM invaria.evaluations": True,
     "INSERT INTO invaria.knowledge_cuts (tenant_id, known_at) VALUES ('t', now())": True,
     "UPDATE invaria.evaluations SET result = 'MATCH'": False,
@@ -152,13 +179,68 @@ APP = {
     "TRUNCATE invaria.publications": False,
     "INSERT INTO invaria.schema_migrations (version, sha256) VALUES ('x', repeat('0', 64))": False,
     "CREATE TABLE invaria.extra (x int)": False,
+    # The registry is append-only and the store clock sets registered_at.
+    REPORT_INSERT: True,
+    REPORT_INSERT.replace("document_sha256)", "document_sha256, registered_at)").replace(
+        "'hex')", "'hex'), now() - interval '1 day'"
+    ): False,
+    "UPDATE invaria.integrity_reports SET registered_by = 'x'": False,
+    "DELETE FROM invaria.integrity_reports": False,
+    "TRUNCATE invaria.integrity_reports": False,
+    # Events are append-only and numbered by the database, never by the app.
+    "SELECT count(*) FROM invaria.domain_events": True,
+    EVENT_INSERT_WITH_SEQ: False,
+    "UPDATE invaria.domain_events SET payload = payload": False,
+    "DELETE FROM invaria.domain_events": False,
+    "TRUNCATE invaria.domain_events": False,
+    "SELECT count(*) FROM invaria.domain_event_counters": False,
+    "INSERT INTO invaria.domain_event_counters VALUES ('t', 5)": False,
+    "UPDATE invaria.domain_event_counters SET last_seq = 9": False,
+    "SELECT invaria.assign_domain_event_seq()": False,
+    # The feed generation is read, never written, by the application.
+    "SELECT count(*) FROM invaria.feed_generations": True,
+    "INSERT INTO invaria.feed_generations (reason) VALUES ('restore:x')": False,
+    "UPDATE invaria.feed_generations SET reason = 'initial'": False,
+    "DELETE FROM invaria.feed_generations": False,
+    # Issuances and revocations are append-only; the store sets ids and times.
+    # (The INSERT fails on its foreign key, after the privilege check: allowed means
+    # "not refused for privileges", see _check_fk.)
+    ISSUANCE_INSERT: "fk",
+    ISSUANCE_INSERT.replace("(tenant_id,", "(view_id, tenant_id,").replace(
+        "VALUES ('t',", "VALUES ('dv-' || repeat('a', 32), 't',"
+    ): False,
+    ISSUANCE_INSERT.replace("issued_by)", "issued_by, issued_at)").replace(
+        "'o')", "'o', now())"
+    ): False,
+    "INSERT INTO invaria.disclosure_revocations (view_id, tenant_id, revoked_by) "
+    "VALUES ('dv-x', 't', 'o')": "fk",
+    "INSERT INTO invaria.disclosure_revocations (view_id, tenant_id, revoked_by, revoked_at) "
+    "VALUES ('dv-x', 't', 'o', now())": False,
+    "SELECT count(*) FROM invaria.disclosure_issuances": True,
+    "UPDATE invaria.disclosure_issuances SET policy_ref = 'x@1'": False,
+    "DELETE FROM invaria.disclosure_revocations": False,
+    "TRUNCATE invaria.disclosure_issuances": False,
 }
-READER = {
+READER: dict[str, bool | str] = {
     "SELECT count(*) FROM invaria.evaluations": True,
     "SELECT count(*) FROM invaria.schema_migrations": False,
     "INSERT INTO invaria.knowledge_cuts (tenant_id, known_at) VALUES ('t', now())": False,
     "UPDATE invaria.publications SET epoch = 0": False,
     "CREATE TABLE invaria.extra (x int)": False,
+    "SELECT count(*) FROM invaria.integrity_reports": True,
+    REPORT_INSERT: False,
+    "UPDATE invaria.integrity_reports SET registered_by = 'x'": False,
+    "DELETE FROM invaria.integrity_reports": False,
+    "SELECT count(*) FROM invaria.domain_events": True,
+    "SELECT count(*) FROM invaria.domain_event_counters": True,
+    EVENT_INSERT_WITH_SEQ.replace("tenant_seq, ", "").replace("1, 't'", "'t'"): False,
+    "UPDATE invaria.domain_event_counters SET last_seq = 9": False,
+    "SELECT count(*) FROM invaria.feed_generations": True,
+    "INSERT INTO invaria.feed_generations (reason) VALUES ('restore:x')": False,
+    "SELECT count(*) FROM invaria.disclosure_issuances": True,
+    "SELECT count(*) FROM invaria.disclosure_revocations": True,
+    ISSUANCE_INSERT: False,
+    "DELETE FROM invaria.disclosure_revocations": False,
 }
 
 

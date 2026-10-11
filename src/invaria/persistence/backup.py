@@ -34,6 +34,7 @@ from invaria.contracts.base import Contract, Identifier, NonEmptyText, SchemaVer
 from invaria.persistence.dsn import with_database
 from invaria.persistence.migrate import available_migrations
 from invaria.persistence.store import READER_ROLE, PgStore
+from invaria.query import disclosure, registry
 
 SCHEMA = "invaria"
 ROLES = ("invaria_owner", "invaria_app", "invaria_reader")
@@ -99,15 +100,26 @@ def _tables(conn: Conn) -> list[tuple[str, list[str]]]:
     return [(str(r[0]), [str(x) for x in r[1]]) for r in rows]
 
 
-def state_digest(conn: Conn) -> tuple[dict[str, dict[str, Any]], dict[str, int | None]]:
+def state_digest(
+    conn: Conn, *, restored: bool = False
+) -> tuple[dict[str, dict[str, Any]], dict[str, int | None]]:
     """Row count and sha256 of every table (rows as JSON, in primary-key order), and the
-    last value of every identity sequence. Read in the caller's transaction."""
+    last value of every identity sequence. Read in the caller's transaction.
+
+    ``restored``: the supported restore adds one feed generation after the dump;
+    that last row is left out so the digest is comparable with the manifest's."""
     conn.execute("SET LOCAL TIME ZONE 'UTC'")
     tables: dict[str, dict[str, Any]] = {}
     for table, key in _tables(conn):
-        query = sql.SQL("SELECT row_to_json(t)::text FROM {}.{} t ORDER BY {}").format(
+        where: sql.Composable = sql.SQL("")
+        if restored and table == "feed_generations":
+            where = sql.SQL(
+                " WHERE ordinal < (SELECT max(ordinal) FROM {}.feed_generations)"
+            ).format(sql.Identifier(SCHEMA))
+        query = sql.SQL("SELECT row_to_json(t)::text FROM {}.{} t{} ORDER BY {}").format(
             sql.Identifier(SCHEMA),
             sql.Identifier(table),
+            where,
             sql.SQL(", ").join(sql.Identifier(k) for k in key),
         )
         digest = hashlib.sha256()
@@ -141,6 +153,19 @@ def privilege_matrix(conn: Conn) -> dict[str, list[str]]:
                 ).fetchone()
                 if ok and ok[0]:
                     granted.append(f"{table}:{privilege}")
+                    continue
+                if privilege not in ("SELECT", "INSERT", "UPDATE"):
+                    continue
+                # Column-level grants (registry: INSERT per column): listed only when
+                # the table-level privilege is absent, so earlier manifests are unchanged.
+                columns = conn.execute(
+                    "SELECT array_agg(attname ORDER BY attname) FROM pg_attribute "
+                    "WHERE attrelid = %s::regclass AND attnum > 0 AND NOT attisdropped "
+                    "AND has_column_privilege(%s, attrelid, attnum, %s)",
+                    (f"{SCHEMA}.{table}", role, privilege),
+                ).fetchone()
+                if columns and columns[0]:
+                    granted.append(f"{table}:{privilege}({','.join(columns[0])})")
         matrix[role] = granted
     return matrix
 
@@ -292,6 +317,18 @@ def restore_backup(
         ],
         stdin=data,
     )
+    # A restored history is another feed generation: renewed here, before the
+    # database can be served, so cursors of the original history are refused explicitly.
+    # Event identifiers are not touched. A restore made without this tool does not do it.
+    with psycopg.connect(_dsn_for(admin_dsn, target), autocommit=True) as conn:
+        has_feed = conn.execute(
+            "SELECT to_regclass('invaria.feed_generations') IS NOT NULL"
+        ).fetchone()
+        if has_feed and has_feed[0]:
+            conn.execute(
+                "INSERT INTO invaria.feed_generations (reason) VALUES (%s)",
+                (f"restore:{manifest.backup_id}",),
+            )
     return created
 
 
@@ -345,6 +382,30 @@ def check_invariants(conn: Conn) -> list[str]:
         "AND x.epoch <= p.epoch)"
     ):
         problems.append(f"publication {r} rests on a snapshot older than its epoch evidence")
+    # Domain events: numbering without gaps, counter in step, every event acked.
+    for r in rows(
+        f"SELECT coalesce(e.tenant_id, c.tenant_id), count(e.tenant_seq), max(e.tenant_seq), "
+        f"max(c.last_seq) FROM {SCHEMA}.domain_events e FULL JOIN "
+        f"{SCHEMA}.domain_event_counters c USING (tenant_id) GROUP BY 1 "
+        "HAVING count(e.tenant_seq) <> coalesce(max(e.tenant_seq), 0) "
+        "OR coalesce(max(e.tenant_seq), 0) <> coalesce(max(c.last_seq), 0)"
+    ):
+        problems.append(f"domain event numbering of tenant {r[0]} is not contiguous: {r[1:]}")
+    for r in rows(
+        f"SELECT e.tenant_id, e.tenant_seq FROM {SCHEMA}.domain_events e WHERE NOT EXISTS "
+        f"(SELECT 1 FROM {SCHEMA}.outbox_acks a WHERE a.consumer_id = 'domain-events' "
+        "AND a.event_seq = e.source_event_seq)"
+    ):
+        problems.append(f"domain event {r} has no derivation acknowledgement")
+    # Controlled disclosure: every issuance names an issuable policy and a view
+    # format this code serves; policies live in the code catalogue, never in the database.
+    issuable = sorted(ref for ref, p in disclosure.CATALOGUE.items() if p.issuable)
+    for r in conn.execute(
+        f"SELECT view_id, policy_ref, view_format FROM {SCHEMA}.disclosure_issuances "
+        "WHERE NOT (policy_ref = ANY(%s)) OR view_format <> %s ORDER BY 1",
+        (issuable, disclosure.VIEW_FORMAT),
+    ).fetchall():
+        problems.append(f"disclosure issuance {r[0]} names {r[1]}/{r[2]}, unknown to this code")
     return problems
 
 
@@ -372,6 +433,33 @@ def reproduce_all(reader: PgStore) -> tuple[int, int, list[str], list[str]]:
     return len(rows), reproduced, missing, mismatches
 
 
+def registered_report_problems(reader: PgStore) -> tuple[int, list[str], list[str]]:
+    """Re-verify every registered integrity report as the service reads it: bytes,
+    hash, columns, figures and pinned references. Returns (total, unreadable formats,
+    failures)."""
+    rows = reader.conn.execute(
+        f"SELECT tenant_id, report_id FROM {SCHEMA}.integrity_reports ORDER BY 1, 2"
+    ).fetchall()
+    reader.conn.commit()
+    unsupported: list[str] = []
+    failures: list[str] = []
+    for tenant_id, report_id in rows:
+        record = reader.load_integrity_report(str(tenant_id), str(report_id))
+        if record is None:
+            failures.append(f"integrity report {report_id}: not readable")
+            continue
+        try:
+            report = registry.verify(record, str(tenant_id))
+        except registry.RegistryError as error:
+            target = unsupported if error.code == "UNSUPPORTED_REPORT_VERSION" else failures
+            target.append(f"integrity report {report_id}: {error.code}")
+            continue
+        missing = reader.missing_pins(str(tenant_id), registry.pins(report))
+        if missing:
+            failures.append(f"integrity report {report_id}: pinned references missing {missing}")
+    return len(rows), unsupported, failures
+
+
 def verify_restore(
     admin_dsn: str, database: str, manifest: BackupManifest, dump_path: Path | None = None
 ) -> RestoreReport:
@@ -395,7 +483,14 @@ def verify_restore(
             if stored != manifest.migrations:
                 reasons.append("applied migrations differ from the manifest")
                 integrity_failed = True
-            tables, sequences = state_digest(admin)
+            tables, sequences = state_digest(admin, restored=True)
+            if "feed_generations" in manifest.tables:
+                newest = admin.execute(
+                    "SELECT reason FROM invaria.feed_generations ORDER BY ordinal DESC LIMIT 1"
+                ).fetchone()
+                if newest is None or newest[0] != f"restore:{manifest.backup_id}":
+                    reasons.append("the restored feed has no renewed generation")
+                    integrity_failed = True
             for name in sorted(set(tables) | set(manifest.tables)):
                 if tables.get(name) != manifest.tables.get(name):
                     reasons.append(
@@ -416,9 +511,13 @@ def verify_restore(
     with psycopg.connect(_dsn_for(admin_dsn, database)) as conn:
         reader = PgStore(conn, role=READER_ROLE)
         total, reproduced, missing, mismatches = reproduce_all(reader)
+        _, unsupported, report_failures = registered_report_problems(reader)
     reasons.extend(mismatches)
     reasons.extend(missing)
-    if mismatches:
+    reasons.extend(report_failures)
+    reasons.extend(unsupported)
+    missing = [*missing, *unsupported]
+    if mismatches or report_failures:
         integrity_failed = True
     status: Literal["RESTORE_VERIFIED", "RESTORE_INCOMPLETE", "RESTORE_MISMATCH"]
     if integrity_failed:

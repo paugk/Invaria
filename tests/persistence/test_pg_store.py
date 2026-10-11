@@ -135,17 +135,68 @@ def test_final_privileges_do_not_depend_on_the_migrator(database: str) -> None:
             for name, kind, _, acl in relations
         }
         tables = sorted(name for kind, name in acl if kind == "r")
-        assert len(tables) == 16 and "schema_migrations" in tables
+        assert len(tables) == 22 and "schema_migrations" in tables
+        special = {
+            "schema_migrations": ["invaria_app=r", "invaria_owner=arwdDxtm"],
+            # Report registry and domain events: INSERT is granted per column (never registered_at,
+            # tenant_seq or derived_at); the derivation counter is written only by its
+            # SECURITY DEFINER trigger.
+            "integrity_reports": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
+            "domain_events": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
+            "domain_event_counters": ["invaria_owner=arwdDxtm", "invaria_reader=r"],
+            # Only the owner (or an administrator restoring) adds a generation.
+            "feed_generations": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
+            # INSERT per column (never view_id, issued_at or revoked_at).
+            "disclosure_issuances": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
+            "disclosure_revocations": [
+                "invaria_app=r",
+                "invaria_owner=arwdDxtm",
+                "invaria_reader=r",
+            ],
+        }
         for name in tables:
-            expected = (
-                ["invaria_app=r", "invaria_owner=arwdDxtm"]
-                if name == "schema_migrations"
-                else TABLE_ACL
+            assert acl[("r", name)] == special.get(name, TABLE_ACL), name
+        event_columns: dict[str, Any] = dict(
+            conn.execute(
+                "SELECT attname, attacl::text[] FROM pg_attribute WHERE attrelid = "
+                "'invaria.domain_events'::regclass AND attnum > 0 AND NOT attisdropped"
+            ).fetchall()
+        )
+        assert event_columns.pop("tenant_seq") is None and event_columns.pop("derived_at") is None
+        assert all(a == ["invaria_app=a/invaria_owner"] for a in event_columns.values())
+        function = conn.execute(
+            "SELECT proowner::regrole::text, prosecdef, proacl::text[] FROM pg_proc "
+            "WHERE oid = 'invaria.assign_domain_event_seq'::regproc"
+        ).fetchone()
+        assert function == ("invaria_owner", True, ["invaria_owner=X/invaria_owner"])
+        columns: dict[str, Any] = dict(
+            conn.execute(
+                "SELECT attname, attacl::text[] FROM pg_attribute WHERE attrelid = "
+                "'invaria.integrity_reports'::regclass AND attnum > 0 AND NOT attisdropped"
+            ).fetchall()
+        )
+        assert columns.pop("registered_at") is None
+        assert all(a == ["invaria_app=a/invaria_owner"] for a in columns.values()), columns
+        for table, store_set in (
+            ("disclosure_issuances", ("view_id", "issued_at")),
+            ("disclosure_revocations", ("revoked_at",)),
+        ):
+            granted: dict[str, Any] = dict(
+                conn.execute(
+                    "SELECT attname, attacl::text[] FROM pg_attribute WHERE attrelid = "
+                    f"'invaria.{table}'::regclass AND attnum > 0 AND NOT attisdropped"
+                ).fetchall()
             )
-            assert acl[("r", name)] == expected, name
+            assert all(granted.pop(c) is None for c in store_set), table
+            assert all(a == ["invaria_app=a/invaria_owner"] for a in granted.values()), table
         sequences = [name for kind, name in acl if kind == "S"]
-        assert len(sequences) == 4
-        assert all(acl[("S", name)] == SEQUENCE_ACL for name in sequences)
+        assert len(sequences) == 5
+        assert acl[("S", "feed_generations_ordinal_seq")] == []  # owner only, no grants
+        assert all(
+            acl[("S", name)] == SEQUENCE_ACL
+            for name in sequences
+            if name != "feed_generations_ordinal_seq"
+        )
         assert all(not a for (kind, _), a in acl.items() if kind == "i")  # indexes: no ACL
         # The roles keep their attributes and are members of nothing.
         attrs = conn.execute(

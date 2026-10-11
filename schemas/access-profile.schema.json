@@ -4,6 +4,15 @@
   "additionalProperties": false,
   "description": "Who is asking and what they may read. Chosen by the operator, never by the client.",
   "properties": {
+    "disclosure_policies": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9-]{0,62}@[1-9][0-9]{0,5}$",
+        "type": "string"
+      },
+      "maxItems": 16,
+      "title": "Disclosure Policies",
+      "type": "array"
+    },
     "max_items": {
       "maximum": 500,
       "minimum": 1,
@@ -24,7 +33,13 @@
       "items": {
         "enum": [
           "operations:read",
-          "evidence:read"
+          "evidence:read",
+          "reports:read",
+          "reports:register",
+          "events:read",
+          "disclosures:issue",
+          "disclosures:revoke",
+          "disclosures:read"
         ],
         "type": "string"
       },

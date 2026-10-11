@@ -7,11 +7,12 @@ Result and currency are always written as text, never conveyed by colour alone.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from invaria.console.html import Safe, el, join
+from invaria.console.html import LINK_FILTER, Safe, el, join
 from invaria.contracts.observation import (
     TokenMovementPayload,
     movement_receiver,
@@ -38,6 +39,70 @@ CURRENCY_TEXT = {
     "superseded": "superseded: a later evaluation is published",
     "not_published": "not published",
 }
+NAV = (
+    ("operations", "Operations", "/"),
+    ("reports", "Integrity reports", "/reports"),
+    ("events", "Events", "/events"),
+)
+NAV_DISCLOSURES = (("disclosures", "Disclosures", "/disclosures"),)
+NavItems = tuple[tuple[str, str, str], ...]
+
+
+def target_use_cases(path: str) -> tuple[str, ...] | None:
+    """The use cases an internal console page calls, by its path. None: not a
+    known page, so a link to it is never kept."""
+    segments = tuple(s for s in path.split("?", 1)[0].split("/") if s)
+    match segments:
+        case ():
+            return ("list_operations",)
+        case ("operations", _):
+            return ("trace_operation", "get_timeline")
+        case ("operations", _, "coverage"):
+            return ("get_coverage",)
+        case ("operations", _, "as-known"):
+            return ("get_conclusion_as_known_at",)
+        case ("evaluations", _):
+            return ("get_evaluation",)
+        case ("evaluations", _, "controls", _):
+            return ("explain_discrepancy", "get_missing_evidence")
+        case ("compare",):
+            return ("compare_evaluations",)
+        case ("evidence", _):
+            return ("get_evidence",)
+        case ("reports",):
+            return ("list_integrity_reports",)
+        case ("reports", _):
+            return ("get_integrity_report_summary",)
+        case ("reports", _, "cases"):
+            return ("registered_integrity_cases", "get_integrity_report_summary")
+        case ("events",):
+            return ("list_events",)
+        case ("disclosures",):
+            return ("list_disclosures",)
+        case ("disclosures", _):
+            return ("get_disclosure",)
+    return None
+
+
+def link_filter(allows: Callable[[str], bool]) -> Callable[[str], bool]:
+    """Keep an internal link only if every use case of its page is available."""
+
+    def allowed(href: str) -> bool:
+        if href.startswith("/static/"):
+            return True
+        cases = target_use_cases(href)
+        return cases is not None and all(allows(c) for c in cases)
+
+    return allowed
+
+
+def nav_for(allows: Callable[[str], bool]) -> tuple[NavItems, str]:
+    """(navigation, home page): only destinations available to this access profile."""
+    allowed = link_filter(allows)
+    items = tuple(item for item in NAV + NAV_DISCLOSURES if allowed(item[2]))
+    return items, (items[0][2] if items else "/")
+
+
 CAUSE_TEXT = {
     "registered": "operation registered",
     "evidence_appended": "evidence appended",
@@ -119,8 +184,24 @@ def page(
     *,
     crumbs: list[tuple[str, str]] | None = None,
     nav: str = "operations",
+    root: tuple[str, str] = ("Operations", "/"),
+    nav_items: NavItems | None = None,
+    home: str = "/",
 ) -> bytes:
-    trail = [("Operations", "/"), *(crumbs or [])]
+    # Navigation lists only destinations available to this access profile: the
+    # request's link filter decides, whatever list the page passes; the home page is the
+    # first available one.
+    allowed = LINK_FILTER.get()
+    if nav_items is not None:
+        items = nav_items
+    else:  # pure rendering (no request filter) keeps the historical navigation
+        items = NAV + NAV_DISCLOSURES if allowed is not None else NAV
+    if allowed is not None:
+        items = tuple(i for i in items if allowed(i[2]))
+        if not allowed(home):
+            home = items[0][2] if items else "/"
+    nav_items = items
+    trail = [root, *(crumbs or [])]
     breadcrumb = el(
         "nav",
         el(
@@ -149,7 +230,7 @@ def page(
                     "header",
                     el(
                         "p",
-                        el("a", "Invaria", href="/"),
+                        el("a", "Invaria", href=home),
                         " ",
                         el("span", "evidence console · read-only", class_="tag"),
                         class_="brand",
@@ -158,15 +239,18 @@ def page(
                         "nav",
                         el(
                             "ul",
-                            el(
-                                "li",
+                            [
                                 el(
-                                    "a",
-                                    "Operations",
-                                    href="/",
-                                    aria_current="page" if nav == "operations" else None,
-                                ),
-                            ),
+                                    "li",
+                                    el(
+                                        "a",
+                                        label,
+                                        href=target,
+                                        aria_current="page" if nav == key else None,
+                                    ),
+                                )
+                                for key, label, target in nav_items
+                            ],
                         ),
                         aria_label="Primary",
                     ),
@@ -831,15 +915,17 @@ def evidence_page(view: EvidenceView) -> bytes:
     return page(title, body, crumbs=[])
 
 
-def error_page(status: int, code: str, message: str) -> bytes:
+def error_page(
+    status: int, code: str, message: str, nav_items: NavItems = NAV, home: str = "/"
+) -> bytes:
     body = join(
         el("p", el("strong", code), ": ", message),
         el("p", "Open the address printed when the console started to sign in.")
         if code == "UNAUTHENTICATED"
         else None,
-        el("p", el("a", "Back to operations", href="/")),
+        el("p", el("a", "Back to the start page", href=home)),
     )
-    return page(f"Error {status}", body)
+    return page(f"Error {status}", body, nav_items=nav_items, home=home)
 
 
 CSS = b"""
@@ -918,4 +1004,7 @@ ol.timeline { list-style: none; margin: 0; padding: 0 0 0 16px;
 ol.timeline li { margin: 0 0 12px; padding-left: 8px; }
 ol.timeline p { margin: 0; }
 .tl-evidence { color: var(--muted); }
+table.events, table.cases { display: table; table-layout: fixed; }
+table.events td, table.cases td, table.events th, table.cases th { overflow-wrap: anywhere; }
+table.events th[scope="col"]:first-child { width: 6rem; }
 """

@@ -112,6 +112,13 @@ def profile_file(tmp_path: Path, **overrides: Any) -> Path:
         "tenant_id": TENANT,
         "scopes": ["operations:read", "evidence:read"],
         "max_items": 50,
+        # Explicit full disclosure policies: no implicit policy exists.
+        "disclosure_policies": [
+            "full-operations@1",
+            "full-evidence@1",
+            "full-report-index@1",
+            "full-report-summary@1",
+        ],
         **overrides,
     }
     path = tmp_path / "access.json"

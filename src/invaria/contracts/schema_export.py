@@ -32,10 +32,12 @@ from invaria.contracts.bundle import (
     VerificationReport,
 )
 from invaria.contracts.chain import ChainTarget, ExecutionLinkSet, IngestionCheckpoint
+from invaria.contracts.events import DomainEventRecord
 from invaria.contracts.mapping import CsvMapping
 from invaria.contracts.profile import RedemptionProfile
 from invaria.query.models import (
     AccessProfile,
+    CasesView,
     ComparisonView,
     ConclusionChangeView,
     ConclusionView,
@@ -43,9 +45,11 @@ from invaria.query.models import (
     CoverageReport,
     DiscrepancyView,
     EvidenceView,
+    IntegrityReport,
     MissingEvidenceView,
     OperationObligationsView,
     OperationsView,
+    ReproductionView,
     TimelineView,
     TraceView,
 )
@@ -80,9 +84,13 @@ CONTRACTS: dict[str, type[BaseModel]] = {
     "query-operations": OperationsView,
     "query-timeline": TimelineView,
     "query-comparison": ComparisonView,
+    "query-integrity-report": IntegrityReport,
+    "query-integrity-cases": CasesView,
+    "query-integrity-reproduction": ReproductionView,
     "chain-target": ChainTarget,
     "execution-link-set": ExecutionLinkSet,
     "ingestion-checkpoint": IngestionCheckpoint,
+    "domain-event-record": DomainEventRecord,
 }
 
 

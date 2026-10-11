@@ -1,0 +1,1513 @@
+{
+  "$defs": {
+    "AgeView": {
+      "additionalProperties": false,
+      "description": "Knowledge-time distance from the snapshot known_at of the run's first publication to\nthe report's evidence horizon. Not time since publication, not the age of the evidence,\nnot time open. ``published_run_start`` (definition 1.0.0) crossed unpublished epochs;\n``contiguous_fail_run_start`` (1.1.0) stops at them and at a change of engine.",
+      "properties": {
+        "age_reference": {
+          "anyOf": [
+            {
+              "const": "evidence_horizon",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age Reference"
+        },
+        "age_seconds": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Age Seconds"
+        },
+        "age_undetermined_reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age Undetermined Reason"
+        },
+        "basis": {
+          "enum": [
+            "published_run_start",
+            "contiguous_fail_run_start"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "epochs_without_publication_in_run": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Epochs Without Publication In Run",
+          "type": "array"
+        },
+        "origin_evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Origin Evaluation Id",
+          "type": "string"
+        },
+        "origin_known_at": {
+          "format": "date-time",
+          "title": "Origin Known At",
+          "type": "string"
+        },
+        "publications_in_run": {
+          "title": "Publications In Run",
+          "type": "integer"
+        },
+        "run_stopped_by": {
+          "enum": [
+            "earlier_publication_not_fail",
+            "profile_changed",
+            "engine_changed",
+            "unpublished_epoch_gap",
+            "earlier_publication_after_cut",
+            "no_earlier_publication"
+          ],
+          "title": "Run Stopped By",
+          "type": "string"
+        },
+        "unpublished_epochs_before_run": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unpublished Epochs Before Run"
+        }
+      },
+      "required": [
+        "basis",
+        "origin_evaluation_id",
+        "origin_known_at",
+        "age_seconds",
+        "publications_in_run",
+        "epochs_without_publication_in_run",
+        "run_stopped_by"
+      ],
+      "title": "AgeView",
+      "type": "object"
+    },
+    "BlockGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "cases_key": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Cases Key",
+          "type": "string"
+        },
+        "category": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Category",
+          "type": "string"
+        },
+        "operations": {
+          "title": "Operations",
+          "type": "integer"
+        },
+        "requirements": {
+          "title": "Requirements",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "category",
+        "operations",
+        "requirements",
+        "cases_key"
+      ],
+      "title": "BlockGroup",
+      "type": "object"
+    },
+    "BlockRecord": {
+      "additionalProperties": false,
+      "description": "The undetermined check that fixed an UNKNOWN control's result.",
+      "properties": {
+        "category": {
+          "anyOf": [
+            {
+              "enum": [
+                "missing_evidence",
+                "withdrawn_evidence",
+                "source_conflict",
+                "inconsistent_evidence",
+                "invalid_evidence",
+                "insufficient_coverage",
+                "quarantined_input",
+                "unattributed",
+                "unsupported_capability",
+                "not_yet_due",
+                "technical_error"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Category"
+        },
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "coverage_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Coverage Ids",
+          "type": "array"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "fact_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "order_accepted",
+                "cash_settled",
+                "units_registered",
+                "token_movement",
+                "redemption_accepted",
+                "redemption_cancelled",
+                "position_held",
+                "price_approved",
+                "position_changed",
+                "redemption_reactivated",
+                "chain_effect"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Fact Type"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "EXACT_MATCH",
+                "CASH_AMOUNT_MISMATCH",
+                "UNITS_MISMATCH",
+                "ORDER_TERMS_INCONSISTENT",
+                "MISSING_EVIDENCE",
+                "INSUFFICIENT_COVERAGE",
+                "LOSS_OF_SUPPORT",
+                "SOURCE_CONFLICT",
+                "AMBIGUOUS_MATCH",
+                "QUARANTINED_INPUT",
+                "UNSUPPORTED_CAPABILITY",
+                "EVALUATION_ERROR",
+                "NOT_APPLICABLE_BY_PROFILE",
+                "PRICE_MISMATCH",
+                "UNITS_EXCEED_POSITION",
+                "PAYMENT_LATE",
+                "PAYMENT_MISSED",
+                "SETTLED_DESPITE_CANCELLATION",
+                "INEXACT_AMOUNT",
+                "PAYMENT_NOT_DUE",
+                "INVALID_CANCELLATION",
+                "EXTINGUISHED_BY_CANCELLATION",
+                "NO_CANCELLATION",
+                "DEADLINE_DATA_CONFLICT",
+                "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+                "AMBIGUOUS_SEQUENCE",
+                "POSITION_NOT_BEFORE_ACCEPTANCE",
+                "REACTIVATION_UNSUPPORTED",
+                "PAYMENT_TO_WRONG_ACCOUNT",
+                "INVALID_RETRACTION"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason Code"
+        },
+        "required_from_source": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Required From Source"
+        },
+        "requirement_id": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Requirement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_ref",
+        "evaluation_id",
+        "control_id",
+        "requirement_id",
+        "category",
+        "reason_code",
+        "fact_type",
+        "required_from_source",
+        "evidence_refs",
+        "coverage_ids"
+      ],
+      "title": "BlockRecord",
+      "type": "object"
+    },
+    "BlockersView": {
+      "additionalProperties": false,
+      "properties": {
+        "blocked_requirements": {
+          "title": "Blocked Requirements",
+          "type": "integer"
+        },
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/BlockRecord"
+          },
+          "title": "Blocks",
+          "type": "array"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "diagnosis_unavailable": {
+          "items": {
+            "$ref": "#/$defs/ControlRef"
+          },
+          "title": "Diagnosis Unavailable",
+          "type": "array"
+        },
+        "evaluations_requiring_diagnosis": {
+          "title": "Evaluations Requiring Diagnosis",
+          "type": "integer"
+        },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/BlockGroup"
+          },
+          "title": "Groups",
+          "type": "array"
+        },
+        "max_replays": {
+          "title": "Max Replays",
+          "type": "integer"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricView"
+          },
+          "title": "Metrics",
+          "type": "array"
+        },
+        "not_evaluated": {
+          "items": {
+            "$ref": "#/$defs/ControlRef"
+          },
+          "title": "Not Evaluated",
+          "type": "array"
+        },
+        "not_processed": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Not Processed",
+          "type": "array"
+        },
+        "operations_with_block": {
+          "title": "Operations With Block",
+          "type": "integer"
+        },
+        "reconstruction_mismatch": {
+          "items": {
+            "$ref": "#/$defs/ControlRef"
+          },
+          "title": "Reconstruction Mismatch",
+          "type": "array"
+        },
+        "replayed": {
+          "title": "Replayed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "complete",
+        "max_replays",
+        "evaluations_requiring_diagnosis",
+        "replayed",
+        "not_processed",
+        "operations_with_block",
+        "blocked_requirements",
+        "groups",
+        "blocks",
+        "not_evaluated",
+        "diagnosis_unavailable",
+        "reconstruction_mismatch",
+        "metrics"
+      ],
+      "title": "BlockersView",
+      "type": "object"
+    },
+    "ControlRef": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "requirement_id": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Requirement Id"
+        }
+      },
+      "required": [
+        "operation_ref",
+        "evaluation_id",
+        "control_id",
+        "requirement_id"
+      ],
+      "title": "ControlRef",
+      "type": "object"
+    },
+    "DiscrepanciesView": {
+      "additionalProperties": false,
+      "properties": {
+        "control_discrepancies": {
+          "title": "Control Discrepancies",
+          "type": "integer"
+        },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/DiscrepancyGroup"
+          },
+          "title": "Groups",
+          "type": "array"
+        },
+        "incidents": {
+          "items": {
+            "$ref": "#/$defs/DiscrepancyIncident"
+          },
+          "title": "Incidents",
+          "type": "array"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricView"
+          },
+          "title": "Metrics",
+          "type": "array"
+        },
+        "operations_with_discrepancy": {
+          "title": "Operations With Discrepancy",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "operations_with_discrepancy",
+        "control_discrepancies",
+        "groups",
+        "incidents",
+        "metrics"
+      ],
+      "title": "DiscrepanciesView",
+      "type": "object"
+    },
+    "DiscrepancyGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "cases_key": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Cases Key",
+          "type": "string"
+        },
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "incidents": {
+          "title": "Incidents",
+          "type": "integer"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "oldest_age_seconds": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Oldest Age Seconds"
+        },
+        "operations": {
+          "title": "Operations",
+          "type": "integer"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "reason_codes": {
+          "items": {
+            "$ref": "#/$defs/ReasonCount"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "profile_ref",
+        "control_id",
+        "mandatory",
+        "incidents",
+        "operations",
+        "reason_codes",
+        "oldest_age_seconds",
+        "cases_key"
+      ],
+      "title": "DiscrepancyGroup",
+      "type": "object"
+    },
+    "DiscrepancyIncident": {
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "$ref": "#/$defs/AgeView"
+        },
+        "control_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "reason_code": {
+          "enum": [
+            "EXACT_MATCH",
+            "CASH_AMOUNT_MISMATCH",
+            "UNITS_MISMATCH",
+            "ORDER_TERMS_INCONSISTENT",
+            "MISSING_EVIDENCE",
+            "INSUFFICIENT_COVERAGE",
+            "LOSS_OF_SUPPORT",
+            "SOURCE_CONFLICT",
+            "AMBIGUOUS_MATCH",
+            "QUARANTINED_INPUT",
+            "UNSUPPORTED_CAPABILITY",
+            "EVALUATION_ERROR",
+            "NOT_APPLICABLE_BY_PROFILE",
+            "PRICE_MISMATCH",
+            "UNITS_EXCEED_POSITION",
+            "PAYMENT_LATE",
+            "PAYMENT_MISSED",
+            "SETTLED_DESPITE_CANCELLATION",
+            "INEXACT_AMOUNT",
+            "PAYMENT_NOT_DUE",
+            "INVALID_CANCELLATION",
+            "EXTINGUISHED_BY_CANCELLATION",
+            "NO_CANCELLATION",
+            "DEADLINE_DATA_CONFLICT",
+            "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+            "AMBIGUOUS_SEQUENCE",
+            "POSITION_NOT_BEFORE_ACCEPTANCE",
+            "REACTIVATION_UNSUPPORTED",
+            "PAYMENT_TO_WRONG_ACCOUNT",
+            "INVALID_RETRACTION"
+          ],
+          "title": "Reason Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_ref",
+        "evaluation_id",
+        "profile_ref",
+        "control_id",
+        "mandatory",
+        "reason_code",
+        "age"
+      ],
+      "title": "DiscrepancyIncident",
+      "type": "object"
+    },
+    "DistributionView": {
+      "additionalProperties": false,
+      "properties": {
+        "admitted": {
+          "title": "Admitted",
+          "type": "integer"
+        },
+        "break_count": {
+          "title": "Break Count",
+          "type": "integer"
+        },
+        "evaluations_not_selected": {
+          "title": "Evaluations Not Selected",
+          "type": "integer"
+        },
+        "included": {
+          "title": "Included",
+          "type": "integer"
+        },
+        "match_count": {
+          "title": "Match Count",
+          "type": "integer"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricView"
+          },
+          "title": "Metrics",
+          "type": "array"
+        },
+        "statuses": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Statuses",
+          "type": "object"
+        },
+        "stored_evaluations": {
+          "title": "Stored Evaluations",
+          "type": "integer"
+        },
+        "technical_error": {
+          "title": "Technical Error",
+          "type": "integer"
+        },
+        "technical_error_operations": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Technical Error Operations",
+          "type": "array"
+        },
+        "unknown_count": {
+          "title": "Unknown Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "included",
+        "admitted",
+        "match_count",
+        "break_count",
+        "unknown_count",
+        "technical_error",
+        "technical_error_operations",
+        "statuses",
+        "stored_evaluations",
+        "evaluations_not_selected",
+        "metrics"
+      ],
+      "title": "DistributionView",
+      "type": "object"
+    },
+    "ExclusionView": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "operations": {
+          "title": "Operations",
+          "type": "integer"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason",
+        "operations",
+        "description"
+      ],
+      "title": "ExclusionView",
+      "type": "object"
+    },
+    "IntegrityMember": {
+      "additionalProperties": false,
+      "description": "One included operation and the facts of its selection, pinned at the read.",
+      "properties": {
+        "epochs_without_publication": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Epochs Without Publication",
+          "type": "array"
+        },
+        "latest_stored_evaluation_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Latest Stored Evaluation Id"
+        },
+        "operation_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Operation Ref",
+          "type": "string"
+        },
+        "profile_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Profile Ref"
+        },
+        "published_history": {
+          "items": {
+            "$ref": "#/$defs/PublishedRef"
+          },
+          "title": "Published History",
+          "type": "array"
+        },
+        "scope_epoch": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scope Epoch"
+        },
+        "selected": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SelectedEvaluation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "admitted",
+            "published_after_cut",
+            "engine_not_admissible",
+            "engine_retired_requires_reevaluation",
+            "stale_publication",
+            "stored_not_published",
+            "registered_not_evaluated",
+            "unregistered"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_detail": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Status Detail",
+          "type": "array"
+        },
+        "stored_evaluations": {
+          "title": "Stored Evaluations",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "operation_ref",
+        "status",
+        "status_detail",
+        "profile_ref",
+        "scope_epoch",
+        "stored_evaluations",
+        "latest_stored_evaluation_id",
+        "selected",
+        "published_history",
+        "epochs_without_publication"
+      ],
+      "title": "IntegrityMember",
+      "type": "object"
+    },
+    "MetricView": {
+      "additionalProperties": false,
+      "description": "A count, or a ratio with both terms; never a bare percentage.",
+      "properties": {
+        "cases_key": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Cases Key",
+          "type": "string"
+        },
+        "denominator": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Denominator"
+        },
+        "denominator_definition": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Denominator Definition"
+        },
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "count",
+            "ratio"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "metric_id": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "numerator": {
+          "title": "Numerator",
+          "type": "integer"
+        },
+        "numerator_definition": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Numerator Definition",
+          "type": "string"
+        },
+        "undefined_reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "denominator_zero",
+                "incomplete"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Undefined Reason"
+        },
+        "unknown_excluded": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unknown Excluded"
+        },
+        "value_percent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value Percent"
+        }
+      },
+      "required": [
+        "metric_id",
+        "kind",
+        "description",
+        "numerator",
+        "numerator_definition",
+        "denominator",
+        "denominator_definition",
+        "value_percent",
+        "undefined_reason",
+        "unknown_excluded",
+        "cases_key"
+      ],
+      "title": "MetricView",
+      "type": "object"
+    },
+    "PublishedRef": {
+      "additionalProperties": false,
+      "properties": {
+        "epoch": {
+          "title": "Epoch",
+          "type": "integer"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "evaluation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evaluation Sha256",
+          "type": "string"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "epoch",
+        "evaluation_id",
+        "evaluation_sha256",
+        "known_at"
+      ],
+      "title": "PublishedRef",
+      "type": "object"
+    },
+    "ReasonCount": {
+      "additionalProperties": false,
+      "properties": {
+        "incidents": {
+          "title": "Incidents",
+          "type": "integer"
+        },
+        "reason_code": {
+          "enum": [
+            "EXACT_MATCH",
+            "CASH_AMOUNT_MISMATCH",
+            "UNITS_MISMATCH",
+            "ORDER_TERMS_INCONSISTENT",
+            "MISSING_EVIDENCE",
+            "INSUFFICIENT_COVERAGE",
+            "LOSS_OF_SUPPORT",
+            "SOURCE_CONFLICT",
+            "AMBIGUOUS_MATCH",
+            "QUARANTINED_INPUT",
+            "UNSUPPORTED_CAPABILITY",
+            "EVALUATION_ERROR",
+            "NOT_APPLICABLE_BY_PROFILE",
+            "PRICE_MISMATCH",
+            "UNITS_EXCEED_POSITION",
+            "PAYMENT_LATE",
+            "PAYMENT_MISSED",
+            "SETTLED_DESPITE_CANCELLATION",
+            "INEXACT_AMOUNT",
+            "PAYMENT_NOT_DUE",
+            "INVALID_CANCELLATION",
+            "EXTINGUISHED_BY_CANCELLATION",
+            "NO_CANCELLATION",
+            "DEADLINE_DATA_CONFLICT",
+            "BURN_BEFORE_ACCEPTANCE_UNSUPPORTED",
+            "AMBIGUOUS_SEQUENCE",
+            "POSITION_NOT_BEFORE_ACCEPTANCE",
+            "REACTIVATION_UNSUPPORTED",
+            "PAYMENT_TO_WRONG_ACCOUNT",
+            "INVALID_RETRACTION"
+          ],
+          "title": "Reason Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason_code",
+        "incidents"
+      ],
+      "title": "ReasonCount",
+      "type": "object"
+    },
+    "ReportScopeView": {
+      "additionalProperties": false,
+      "properties": {
+        "access_scopes": {
+          "items": {
+            "enum": [
+              "operations:read",
+              "evidence:read",
+              "reports:read",
+              "reports:register",
+              "events:read",
+              "disclosures:issue",
+              "disclosures:revoke",
+              "disclosures:read"
+            ],
+            "type": "string"
+          },
+          "title": "Access Scopes",
+          "type": "array"
+        },
+        "isolation": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Isolation",
+          "type": "string"
+        },
+        "population": {
+          "const": "registered_accessible_operations",
+          "title": "Population",
+          "type": "string"
+        },
+        "principal_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Principal Id",
+          "type": "string"
+        },
+        "tenant_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "principal_id",
+        "access_scopes",
+        "population",
+        "isolation"
+      ],
+      "title": "ReportScopeView",
+      "type": "object"
+    },
+    "SegmentView": {
+      "additionalProperties": false,
+      "properties": {
+        "admitted": {
+          "title": "Admitted",
+          "type": "integer"
+        },
+        "break_count": {
+          "title": "Break Count",
+          "type": "integer"
+        },
+        "engine_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Engine Ref",
+          "type": "string"
+        },
+        "engine_status": {
+          "enum": [
+            "current",
+            "retired",
+            "blocked",
+            "unknown"
+          ],
+          "title": "Engine Status",
+          "type": "string"
+        },
+        "match_count": {
+          "title": "Match Count",
+          "type": "integer"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "unknown_count": {
+          "title": "Unknown Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "profile_ref",
+        "engine_ref",
+        "engine_status",
+        "admitted",
+        "match_count",
+        "break_count",
+        "unknown_count"
+      ],
+      "title": "SegmentView",
+      "type": "object"
+    },
+    "SelectedEvaluation": {
+      "additionalProperties": false,
+      "description": "The publication the selection policy picked for an operation (admitted or not).",
+      "properties": {
+        "engine_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Engine Ref",
+          "type": "string"
+        },
+        "engine_status": {
+          "enum": [
+            "current",
+            "retired",
+            "blocked",
+            "unknown"
+          ],
+          "title": "Engine Status",
+          "type": "string"
+        },
+        "evaluation_clock": {
+          "format": "date-time",
+          "title": "Evaluation Clock",
+          "type": "string"
+        },
+        "evaluation_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "evaluation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evaluation Sha256",
+          "type": "string"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "profile_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "title": "Profile Ref",
+          "type": "string"
+        },
+        "published_epoch": {
+          "title": "Published Epoch",
+          "type": "integer"
+        },
+        "result": {
+          "enum": [
+            "MATCH",
+            "BREAK",
+            "UNKNOWN"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "valid_at": {
+          "format": "date-time",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evaluation_id",
+        "evaluation_sha256",
+        "snapshot_id",
+        "published_epoch",
+        "valid_at",
+        "known_at",
+        "evaluation_clock",
+        "result",
+        "profile_ref",
+        "engine_ref",
+        "engine_status"
+      ],
+      "title": "SelectedEvaluation",
+      "type": "object"
+    },
+    "StoreReadView": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of_within_closed_cut": {
+          "title": "As Of Within Closed Cut",
+          "type": "boolean"
+        },
+        "closed_knowledge_cut": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Closed Knowledge Cut"
+        },
+        "isolation": {
+          "const": "repeatable_read_read_only",
+          "title": "Isolation",
+          "type": "string"
+        },
+        "read_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Read At"
+        }
+      },
+      "required": [
+        "isolation",
+        "read_at",
+        "closed_knowledge_cut",
+        "as_of_within_closed_cut"
+      ],
+      "title": "StoreReadView",
+      "type": "object"
+    },
+    "TemporalView": {
+      "additionalProperties": false,
+      "description": "What each time of a report means (report format 1.1).",
+      "properties": {
+        "age_reference": {
+          "const": "evidence_horizon",
+          "title": "Age Reference",
+          "type": "string"
+        },
+        "economic_time": {
+          "const": "not_filtered",
+          "title": "Economic Time",
+          "type": "string"
+        },
+        "economic_time_reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Economic Time Reason",
+          "type": "string"
+        },
+        "evidence_horizon": {
+          "format": "date-time",
+          "title": "Evidence Horizon",
+          "type": "string"
+        },
+        "evidence_horizon_applies_to": {
+          "const": "snapshot_known_at",
+          "title": "Evidence Horizon Applies To",
+          "type": "string"
+        },
+        "notes": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "publication_state": {
+          "const": "present_at_store_read",
+          "title": "Publication State",
+          "type": "string"
+        },
+        "publication_state_read_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Publication State Read At"
+        },
+        "publication_state_reconstructed_at_horizon": {
+          "const": false,
+          "title": "Publication State Reconstructed At Horizon",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "evidence_horizon",
+        "evidence_horizon_applies_to",
+        "publication_state",
+        "publication_state_read_at",
+        "publication_state_reconstructed_at_horizon",
+        "economic_time",
+        "economic_time_reason",
+        "age_reference",
+        "notes"
+      ],
+      "title": "TemporalView",
+      "type": "object"
+    }
+  },
+  "$id": "urn:invaria:schema:query-integrity-report:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Reproducible operational integrity report. Not a verified financial bundle.\n\n``report_sha256`` is computed over this same content: it detects edits made without a\nnew hash, but it does not authenticate the issuer, and anyone can edit the report and\nrecompute it. Access never comes from the file: details and reproduction re-check every\nreference against the store of the authenticated scope.",
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "blockers": {
+      "$ref": "#/$defs/BlockersView"
+    },
+    "definition": {
+      "enum": [
+        "integrity-analytics@1.0.0",
+        "integrity-analytics@1.1.0"
+      ],
+      "title": "Definition",
+      "type": "string"
+    },
+    "diagnostic_engines": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+        "type": "string"
+      },
+      "title": "Diagnostic Engines",
+      "type": "array"
+    },
+    "discrepancies": {
+      "$ref": "#/$defs/DiscrepanciesView"
+    },
+    "distribution": {
+      "$ref": "#/$defs/DistributionView"
+    },
+    "exclusions": {
+      "items": {
+        "$ref": "#/$defs/ExclusionView"
+      },
+      "title": "Exclusions",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "max_replays": {
+      "title": "Max Replays",
+      "type": "integer"
+    },
+    "members": {
+      "items": {
+        "$ref": "#/$defs/IntegrityMember"
+      },
+      "title": "Members",
+      "type": "array"
+    },
+    "profile_filter": {
+      "anyOf": [
+        {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,63}@[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Profile Filter"
+    },
+    "report_format": {
+      "enum": [
+        "invaria-integrity-report@1.0",
+        "invaria-integrity-report@1.1"
+      ],
+      "title": "Report Format",
+      "type": "string"
+    },
+    "report_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Report Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/ReportScopeView"
+    },
+    "segments": {
+      "items": {
+        "$ref": "#/$defs/SegmentView"
+      },
+      "title": "Segments",
+      "type": "array"
+    },
+    "selection_description": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Selection Description",
+      "type": "string"
+    },
+    "selection_policy": {
+      "enum": [
+        "current-publication@1",
+        "current-publication@2"
+      ],
+      "title": "Selection Policy",
+      "type": "string"
+    },
+    "store_read": {
+      "$ref": "#/$defs/StoreReadView"
+    },
+    "temporal": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TemporalView"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "schema_version",
+    "report_format",
+    "definition",
+    "selection_policy",
+    "selection_description",
+    "scope",
+    "as_of",
+    "store_read",
+    "profile_filter",
+    "max_replays",
+    "diagnostic_engines",
+    "members",
+    "distribution",
+    "segments",
+    "discrepancies",
+    "blockers",
+    "exclusions",
+    "limitations",
+    "report_sha256"
+  ],
+  "title": "IntegrityReport",
+  "type": "object"
+}

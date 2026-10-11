@@ -6,10 +6,16 @@ module) is emitted as is. There is no way to pass raw markup from data.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
+from contextvars import ContextVar
 from html import escape
 
 VOID = frozenset({"meta", "link", "input", "br"})
+# Set by the console for each request: whether an internal destination is
+# available to this access profile. An internal link whose destination is not available is
+# rendered as its text only: the text was already authorized in the page; the anchor would
+# only point at a refusal. None (pure rendering in tests): every link is kept.
+LINK_FILTER: ContextVar[Callable[[str], bool] | None] = ContextVar("link_filter", default=None)
 
 
 class Safe(str):
@@ -34,6 +40,11 @@ def _children(items: Iterable[object]) -> Iterable[str]:
 
 def el(tag: str, *children: object, **attrs: str | bool | None) -> Safe:
     """``el("a", "text", href="/x", aria_current="page")``; ``class_`` sets ``class``."""
+    href = attrs.get("href")
+    allowed = LINK_FILTER.get()
+    if tag == "a" and isinstance(href, str) and href.startswith("/") and allowed is not None:
+        if not allowed(href):
+            return Safe("".join(_children(children)))
     parts = [tag]
     for name, value in attrs.items():
         if value is None or value is False:
