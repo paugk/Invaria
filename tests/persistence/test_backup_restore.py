@@ -13,6 +13,7 @@ import os
 import secrets
 import socket
 import subprocess
+import tempfile
 import time
 import uuid
 from collections.abc import Iterator
@@ -30,6 +31,7 @@ from psycopg.types.json import Jsonb
 from invaria.contracts.observation import Observation
 from invaria.corpus_loader import Corpus, load_corpus
 from invaria.engine.evaluate import evaluate
+from invaria.export_writer import ExportTarget
 from invaria.persistence.backup import (
     ROLES,
     BackupError,
@@ -48,7 +50,7 @@ from invaria.persistence.dsn import with_database
 from invaria.persistence.events import derive, events_of
 from invaria.persistence.migrate import migrate
 from invaria.persistence.provision import prepare_for_migrator
-from invaria.persistence.store import APP_ROLE, READER_ROLE, PgStore
+from invaria.persistence.store import APP_ROLE, EXPORTER_ROLE, READER_ROLE, PgStore
 from invaria.persistence.worker import Clocks, reevaluate
 from invaria.query.models import AccessProfile
 from invaria.query.service import QueryError, QueryService
@@ -181,6 +183,24 @@ def populate(dsn: str, subscription: Corpus, redemption: Corpus) -> None:
             "SELECT view_id FROM invaria.disclosure_issuances ORDER BY issued_at DESC LIMIT 1"
         ).fetchone()  # type: ignore[misc]
         operator.revoke_disclosure(str(last))
+        # One completed export and one attempt left without outcome (a crash).
+        exporter_access = ACCESS.model_copy(
+            update={
+                "scopes": [*ACCESS.scopes, "exports:create"],
+                "disclosure_policies": [
+                    *ACCESS.disclosure_policies,
+                    "export-integrity-report-file@1",
+                ],
+            }
+        )
+        with psycopg.connect(dsn) as econn, tempfile.TemporaryDirectory() as out:
+            exporter = PgStore(econn, role=EXPORTER_ROLE)
+            QueryService(exporter, exporter_access).export_integrity_report_file(
+                "2026-10-20T00:00:00Z", None, 10, ExportTarget(Path(out) / "report.json")
+            )
+            exporter.record_export_attempt(
+                TENANT, "analyst-1", ["export-integrity-report-file@1"], "a" * 64, "b" * 64, 9
+            )
         # The domain events derived so far (all pending rows).
         derived = derive(store, limit=1000)
         assert derived.errors == [] and derived.pending == 0 and derived.derived > 0
@@ -315,6 +335,16 @@ def test_restore_reproduces_every_evaluation(
                 )
             )
     assert served[0] == served[1] and served[0][2] == "NOT_FOUND"
+    # The export record survives as is, the attempt without outcome included (never
+    # turned into a failure by a restore).
+    assert manifest.tables["export_attempts"]["rows"] == 2
+    assert manifest.tables["export_outcomes"]["rows"] == 1
+    records = []
+    for dsn in (source.dsn, _dsn_for(source.admin, target)):
+        with psycopg.connect(dsn) as conn:
+            records.append(PgStore(conn, role=READER_ROLE).export_records(TENANT))
+    assert records[0] == records[1]
+    assert [r["outcome"] for r in records[1]] == ["completed", None]
     # Events, counters and derivation state survive; nothing is derived twice
     # and numbering continues without a gap after the restore.
     assert manifest.tables["domain_events"]["rows"] > 0
@@ -499,6 +529,17 @@ def _assert_privileges(connect: Any) -> None:
             "tenant_id, 'r', policy_ref, view_format, report_id, 'o' FROM "
             "invaria.disclosure_issuances LIMIT 1": False,
         },
+        EXPORTER_ROLE: {
+            "SELECT count(*) FROM invaria.evaluations": True,
+            "SELECT count(*) FROM invaria.export_attempts": True,
+            "INSERT INTO invaria.knowledge_cuts (tenant_id, known_at) VALUES ('t', now())": False,
+            "UPDATE invaria.export_attempts SET principal_id = 'x'": False,
+            "DELETE FROM invaria.export_outcomes": False,
+            "INSERT INTO invaria.export_attempts (tenant_id, principal_id, kind, file_format, "
+            "policy_refs, report_sha256, content_sha256, content_bytes) VALUES ('t', 'p', "
+            "'integrity_report_file', 'integrity-report-file@1', ARRAY['x@1'], repeat('a', 64), "
+            "repeat('b', 64), 1)": True,
+        },
         READER_ROLE: {
             "SELECT count(*) FROM invaria.evaluations": True,
             "SELECT count(*) FROM invaria.schema_migrations": False,
@@ -591,7 +632,7 @@ def test_clean_cluster_rebuilds_roles_and_restores(
     # Real logins: a member role per NOLOGIN role, password generated here and discarded.
     password = secrets.token_urlsafe(24)
     with psycopg.connect(admin, autocommit=True) as conn:
-        for role in (APP_ROLE, READER_ROLE):
+        for role in (APP_ROLE, READER_ROLE, EXPORTER_ROLE):
             conn.execute(
                 sql.SQL("CREATE ROLE {} LOGIN INHERIT PASSWORD {} IN ROLE {}").format(
                     sql.Identifier(f"{role}_login"), sql.Literal(password), sql.Identifier(role)

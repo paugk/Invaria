@@ -26,6 +26,7 @@ from invaria.contracts.observation import FactType
 from invaria.engine.evaluate import Evaluation, EvaluationInputs, replay
 from invaria.engine.explain import explain_change
 from invaria.engine.versions import engine_status
+from invaria.export_writer import DestinationError, ExportTarget, Unconfirmed, WriteFailure
 from invaria.persistence.store import CurrentView, ImmutableConflict, PgStore
 from invaria.query import analytics, disclosure, feed, registry
 from invaria.query.analytics import (
@@ -63,6 +64,7 @@ from invaria.query.models import (
     EventPageView,
     EvidenceEntry,
     EvidenceView,
+    ExportView,
     HistoryItem,
     IntegrityReport,
     IntegrityReportListItem,
@@ -145,6 +147,12 @@ _NOTES = {
 }
 
 
+def report_file_bytes(report: IntegrityReport) -> bytes:
+    """The exact bytes of ``analytics report --out`` (format integrity-report-file@1): the
+    same as before exports were controlled, with no envelope or export metadata."""
+    return (json.dumps(report.model_dump(mode="json"), indent=2) + "\n").encode("utf-8")
+
+
 class QueryError(Exception):
     def __init__(
         self,
@@ -159,6 +167,28 @@ class QueryError(Exception):
         self.message = message
         self.retryable = retryable
         self.details = details
+
+
+class ExportError(QueryError):
+    """An export that did not complete. ``EXPORT_DESTINATION``: refused before anything was
+    computed or recorded. ``EXPORT_FAILED``: not published under the requested name and its
+    temporary removed; ``failure`` says why and ``outcome_recorded`` whether the failure is
+    in the record. ``EXPORT_UNCONFIRMED``: the file may have been published complete, but
+    its completion is not recorded. Messages never contain the path."""
+
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        export_id: str | None = None,
+        failure: str | None = None,
+        outcome_recorded: bool = False,
+    ) -> None:
+        super().__init__(code, message)
+        self.export_id = export_id
+        self.failure = failure
+        self.outcome_recorded = outcome_recorded
 
 
 @dataclass(frozen=True)
@@ -1165,6 +1195,114 @@ class QueryService:
             return report, self._register(report, max_document_bytes)
 
         return self._call("register_integrity_report", "reports:register", args, body)
+
+    def export_integrity_report_file(
+        self,
+        as_of: str | datetime,
+        profile_refs: list[str] | None,
+        max_replays: int,
+        target: ExportTarget,
+    ) -> tuple[IntegrityReport, ExportView]:
+        """Compute a report and create ``target`` with exactly its file bytes.
+
+        Order: export scope and policy (``_call``), then the query's own scope and policy,
+        all before the destination is opened or anything read; destination checks; the
+        report, computed by ``integrity_report``; the attempt recorded with the content's
+        hashes; the file written and published without replacement; the outcome recorded.
+        There is no atomicity between the store and the file system: an attempt whose
+        outcome could not be recorded stays without one (``EXPORT_UNCONFIRMED`` if the file
+        was published), and is never turned into a failure."""
+        args = {"as_of": as_of, "profile_refs": profile_refs, "max_replays": max_replays}
+
+        def body() -> tuple[IntegrityReport, ExportView]:
+            # The query's own scope and policy, checked here too so that nothing is opened
+            # or read before every permission of the export holds.
+            self._require("operations:read", "export_integrity_report_file")
+            try:
+                disclosure.require("integrity_report", self.access.disclosure_policies)
+            except disclosure.DisclosureError as error:
+                raise QueryError("DISCLOSURE_POLICY_UNAVAILABLE", str(error)) from error
+            try:
+                target.prepare()
+            except DestinationError as error:
+                raise ExportError("EXPORT_DESTINATION", str(error)) from error
+            report = self.integrity_report(as_of, profile_refs, max_replays)
+            content = report_file_bytes(report)
+            policies = [disclosure.EXPORT_REPORT_FILE_POLICY, disclosure.FULL_OPERATIONS_POLICY]
+            content_sha256 = hashlib.sha256(content).hexdigest()
+            # Nothing is written if the attempt cannot be recorded.
+            export_id, attempted_at = self.store.record_export_attempt(
+                self.tenant,
+                self.access.principal_id,
+                policies,
+                report.report_sha256,
+                content_sha256,
+                len(content),
+            )
+            try:
+                target.publish(content)
+            except WriteFailure as failed:
+                recorded = self._export_outcome(export_id, "failed", failed.failure)
+                raise ExportError(
+                    "EXPORT_FAILED",
+                    f"export {export_id} not published ({failed.failure}); no file was left "
+                    "under the requested name"
+                    + ("" if recorded else "; its outcome could not be recorded"),
+                    export_id=export_id,
+                    failure=failed.failure,
+                    outcome_recorded=recorded,
+                ) from failed
+            except Unconfirmed as unconfirmed:
+                raise self._unconfirmed(export_id) from unconfirmed
+            try:
+                completed_at = self.store.record_export_outcome(
+                    self.tenant, export_id, "completed", None
+                )
+            except BaseException as error:
+                raise self._unconfirmed(export_id) from error
+            return report, ExportView(
+                export_id=export_id,
+                kind="integrity_report_file",
+                file_format=disclosure.EXPORT_FILE_FORMAT,
+                policy_refs=policies,
+                report_sha256=report.report_sha256,
+                content_sha256=content_sha256,
+                content_bytes=len(content),
+                attempted_at=attempted_at,
+                completed_at=completed_at,
+                limitations=[
+                    "The record is this service's declaration of what it executed; it does "
+                    "not prove delivery to anyone or later custody of the file.",
+                    "The file is the computed report, not a reproducible bundle, and it is "
+                    "not signed; report_sha256 checks internal consistency only.",
+                    "The export permission governs files this application creates. It does "
+                    "not stop copies of a query's output (a redirected --json is one).",
+                ],
+            )
+
+        try:
+            return self._call("export_integrity_report_file", "exports:create", args, body)
+        finally:
+            target.close()
+
+    def _export_outcome(self, export_id: str, outcome: str, failure: str | None) -> bool:
+        try:
+            self.store.record_export_outcome(self.tenant, export_id, outcome, failure)
+        except Exception:
+            self._rollback()
+            return False
+        return True
+
+    def _unconfirmed(self, export_id: str) -> ExportError:
+        self._rollback()
+        return ExportError(
+            "EXPORT_UNCONFIRMED",
+            f"export {export_id}: the file may have been created complete under the "
+            "requested name, but its completion could not be confirmed or recorded; the "
+            "record keeps the attempt without an outcome. Check the destination before "
+            "retrying: a retry never overwrites it.",
+            export_id=export_id,
+        )
 
     def _register(self, report: IntegrityReport, max_document_bytes: int) -> RegistrationView:
         if report.scope.tenant_id != self.tenant:

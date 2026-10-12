@@ -103,9 +103,17 @@ def test_migrations_are_idempotent_and_tamper_evident(connect: Any) -> None:
         migrate(conn, [(version, sql + b"\n-- edited after being applied\n")])
 
 
-ROLES = ("invaria_owner", "invaria_app", "invaria_reader")
-TABLE_ACL = ["invaria_app=ar", "invaria_owner=arwdDxtm", "invaria_reader=r"]
+ROLES = ("invaria_owner", "invaria_app", "invaria_reader", "invaria_exporter")
+# Invaria_exporter reads every table (as invaria_reader) and appends only to the
+# export record.
+TABLE_ACL = ["invaria_app=ar", "invaria_exporter=r", "invaria_owner=arwdDxtm", "invaria_reader=r"]
 SEQUENCE_ACL = ["invaria_app=U", "invaria_owner=rwU"]
+APP_R, EXP_R, OWNER, READ_R = (
+    "invaria_app=r",
+    "invaria_exporter=r",
+    "invaria_owner=arwdDxtm",
+    "invaria_reader=r",
+)
 
 
 def test_final_privileges_do_not_depend_on_the_migrator(database: str) -> None:
@@ -122,6 +130,7 @@ def test_final_privileges_do_not_depend_on_the_migrator(database: str) -> None:
         assert schema[0] == "invaria_owner"
         assert sorted(schema[1]) == [
             "invaria_app=U/invaria_owner",
+            "invaria_exporter=U/invaria_owner",
             "invaria_owner=UC/invaria_owner",
             "invaria_reader=U/invaria_owner",
         ]
@@ -135,24 +144,23 @@ def test_final_privileges_do_not_depend_on_the_migrator(database: str) -> None:
             for name, kind, _, acl in relations
         }
         tables = sorted(name for kind, name in acl if kind == "r")
-        assert len(tables) == 22 and "schema_migrations" in tables
+        assert len(tables) == 24 and "schema_migrations" in tables
         special = {
             "schema_migrations": ["invaria_app=r", "invaria_owner=arwdDxtm"],
             # Report registry and domain events: INSERT is granted per column (never registered_at,
             # tenant_seq or derived_at); the derivation counter is written only by its
             # SECURITY DEFINER trigger.
-            "integrity_reports": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
-            "domain_events": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
-            "domain_event_counters": ["invaria_owner=arwdDxtm", "invaria_reader=r"],
+            "integrity_reports": [APP_R, EXP_R, OWNER, READ_R],
+            "domain_events": [APP_R, EXP_R, OWNER, READ_R],
+            "domain_event_counters": [EXP_R, OWNER, READ_R],
             # Only the owner (or an administrator restoring) adds a generation.
-            "feed_generations": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
+            "feed_generations": [APP_R, EXP_R, OWNER, READ_R],
             # INSERT per column (never view_id, issued_at or revoked_at).
-            "disclosure_issuances": ["invaria_app=r", "invaria_owner=arwdDxtm", "invaria_reader=r"],
-            "disclosure_revocations": [
-                "invaria_app=r",
-                "invaria_owner=arwdDxtm",
-                "invaria_reader=r",
-            ],
+            "disclosure_issuances": [APP_R, EXP_R, OWNER, READ_R],
+            "disclosure_revocations": [APP_R, EXP_R, OWNER, READ_R],
+            # The application role has no access; the exporter inserts per column.
+            "export_attempts": [EXP_R, OWNER, READ_R],
+            "export_outcomes": [EXP_R, OWNER, READ_R],
         }
         for name in tables:
             assert acl[("r", name)] == special.get(name, TABLE_ACL), name
@@ -189,6 +197,18 @@ def test_final_privileges_do_not_depend_on_the_migrator(database: str) -> None:
             )
             assert all(granted.pop(c) is None for c in store_set), table
             assert all(a == ["invaria_app=a/invaria_owner"] for a in granted.values()), table
+        for table, store_set in (
+            ("export_attempts", ("export_id", "attempted_at")),
+            ("export_outcomes", ("recorded_at",)),
+        ):
+            granted = dict(
+                conn.execute(
+                    "SELECT attname, attacl::text[] FROM pg_attribute WHERE attrelid = "
+                    f"'invaria.{table}'::regclass AND attnum > 0 AND NOT attisdropped"
+                ).fetchall()
+            )
+            assert all(granted.pop(c) is None for c in store_set), table
+            assert all(a == ["invaria_exporter=a/invaria_owner"] for a in granted.values()), table
         sequences = [name for kind, name in acl if kind == "S"]
         assert len(sequences) == 5
         assert acl[("S", "feed_generations_ordinal_seq")] == []  # owner only, no grants

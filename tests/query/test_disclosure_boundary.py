@@ -33,6 +33,7 @@ from invaria.query.service import QueryError, QueryService
 ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT = ROOT / "tests/fixtures/disclosure/full-policy-fields.json"
 PINNED_REPORT = ROOT / "tests/fixtures/analytics/integrity-report-1.0.json"
+EXPORT = disclosure.EXPORT_REPORT_FILE_POLICY
 FULL = [
     disclosure.FULL_OPERATIONS_POLICY,
     disclosure.FULL_EVIDENCE_POLICY,
@@ -48,6 +49,7 @@ ALL_SCOPES = [
     "disclosures:issue",
     "disclosures:revoke",
     "disclosures:read",
+    "exports:create",
 ]
 EVENT_MODELS = {
     "operation.scope_reopened": ScopeReopenedEvent,
@@ -152,6 +154,24 @@ def test_every_channel_reaches_data_only_through_the_bounded_use_cases() -> None
 # ------------------------------------------------- refusal before any read
 
 
+class UntouchedTarget:
+    """An export destination that fails the test if it is opened or written."""
+
+    def __init__(self) -> None:
+        self.touched: list[str] = []
+
+    def prepare(self) -> None:
+        self.touched.append("prepare")
+        raise AssertionError("the destination was opened")
+
+    def publish(self, content: bytes) -> None:
+        self.touched.append("publish")
+        raise AssertionError("the destination was written")
+
+    def close(self) -> None:
+        pass
+
+
 class Untouchable:
     """A store that fails the test if anything is read from it."""
 
@@ -192,6 +212,7 @@ def arguments() -> dict[str, tuple[Any, ...]]:
         "issue_disclosure": ("ir-" + "a" * 64, "reviewer-1", disclosure.AGGREGATE_POLICY),
         "list_disclosures": (),
         "get_disclosure": ("dv-" + "0" * 32,),
+        "export_integrity_report_file": ("2026-10-20T00:00:00Z", None, 10, UntouchedTarget()),
     }
 
 
@@ -216,6 +237,27 @@ def test_without_a_policy_every_bounded_use_case_refuses_before_reading(
         assert caught.value.code == "DISCLOSURE_POLICY_UNAVAILABLE", name
         assert caught.value.message == disclosure.POLICY_MESSAGE
         assert store.touched == [], (name, store.touched)
+
+
+@pytest.mark.parametrize(
+    ("scopes", "policies", "code"),
+    [
+        (["operations:read"], [*FULL, EXPORT], "FORBIDDEN"),
+        (["exports:create"], [*FULL, EXPORT], "FORBIDDEN"),
+        (["exports:create", "operations:read"], FULL, "DISCLOSURE_POLICY_UNAVAILABLE"),
+        (["exports:create", "operations:read"], [EXPORT], "DISCLOSURE_POLICY_UNAVAILABLE"),
+    ],
+)
+def test_an_export_needs_its_own_and_the_querys_permissions_before_anything(
+    scopes: list[str], policies: list[str], code: str
+) -> None:
+    """Export scope and policy, then the query's: nothing read, opened or written."""
+    store, target = Untouchable(), UntouchedTarget()
+    service = QueryService(store, profile(scopes, policies))  # type: ignore[arg-type]
+    with pytest.raises(QueryError) as caught:
+        service.export_integrity_report_file("2026-10-20T00:00:00Z", None, 10, target)  # type: ignore[arg-type]
+    assert caught.value.code == code
+    assert store.touched == [] and target.touched == []
 
 
 def test_a_scope_is_checked_first_and_a_policy_grants_no_scope() -> None:
@@ -316,7 +358,13 @@ def test_startup_warnings_name_scopes_and_policies_only() -> None:
     assert "full-report-summary@1" in text and "full-report-index@1 " not in text
     assert "event type operation.evaluation_published not delivered" in text
     assert "p-1" not in text and "t-1" not in text
-    assert disclosure.startup_warnings(ALL_SCOPES, [*FULL, disclosure.AGGREGATE_POLICY]) == []
+    assert (
+        disclosure.startup_warnings(ALL_SCOPES, [*FULL, EXPORT, disclosure.AGGREGATE_POLICY]) == []
+    )
+    assert disclosure.startup_warnings(["exports:create", "operations:read"], FULL) == [
+        "scope exports:create,operations:read without disclosure policy "
+        f"{EXPORT}: 1 outputs refused"
+    ]
 
 
 def test_the_console_and_mcp_print_the_warnings_to_the_operator_only(
@@ -335,7 +383,7 @@ def test_the_console_and_mcp_print_the_warnings_to_the_operator_only(
 def policy_models() -> dict[str, set[type[Any]]]:
     """The contracts each full policy delivers: the return types of its use cases (both
     elements of a tuple) and the event types it makes readable."""
-    models: dict[str, set[type[Any]]] = {p: set() for p in FULL}
+    models: dict[str, set[type[Any]]] = {p: set() for p in [*FULL, EXPORT]}
     for name, req in disclosure.USE_CASES.items():
         hints = typing.get_type_hints(getattr(QueryService, name))
         returned = hints["return"]

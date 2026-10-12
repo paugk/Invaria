@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from invaria.bundle import build_bundle, verify_bundle
+from invaria.bundle.build import canonical_json
 from invaria.bundle.signing import TrustPolicy, load_private_key, sign_bundle
 from invaria.contracts.base import parse_contract
 from invaria.contracts.bundle import TrustStore
@@ -97,13 +98,47 @@ def cmd_check(corpus: Corpus) -> int:
     return 1 if failures else 0
 
 
+def write_problem(error: Exception, what: str) -> str:
+    """The operator's message for a safe-write problem: refused before writing,
+    not written, or published without confirmation. Never a verification result."""
+    from invaria.safe_write import DestinationError, Unconfirmed, WriteFailure
+
+    if isinstance(error, DestinationError):
+        return f"error: {what} not written: {error} (repeat with a new destination)"
+    if isinstance(error, WriteFailure):
+        extra = (
+            "; a temporary of this run was left in place because it holds something it did "
+            "not create"
+            if error.leftover
+            else ""
+        )
+        return f"error: {what} not written ({error.failure}); nothing under that name{extra}"
+    assert isinstance(error, Unconfirmed)
+    return (
+        f"error: {what} may have been written complete under that name, but it was not "
+        f"confirmed ({error}); check it before using it, and repeat with a new destination"
+    )
+
+
 def cmd_evaluate(corpus: Corpus, scenario_id: str, out: Path | None) -> int:
-    evaluation = _evaluate(corpus, scenario_id)
-    print("\n".join(explain(evaluation)))
-    if out is not None:
-        snapshot = corpus.scenarios[scenario_id].snapshot
-        out.write_text(export_evaluation(snapshot, evaluation), encoding="utf-8")
-        print(f"exported {out}")
+    from invaria.safe_write import DestinationError, NewFile, Unconfirmed, WriteFailure
+
+    target = None if out is None else NewFile(out)
+    try:
+        if target is not None:
+            target.prepare()  # before evaluating: a refused destination costs nothing
+        evaluation = _evaluate(corpus, scenario_id)
+        print("\n".join(explain(evaluation)))
+        if target is not None:
+            snapshot = corpus.scenarios[scenario_id].snapshot
+            target.publish(export_evaluation(snapshot, evaluation).encode("utf-8"))
+            print(f"exported {target.name} in the directory opened for {out} (mode 0600)")
+    except (DestinationError, WriteFailure, Unconfirmed) as error:
+        print(write_problem(error, "export"), file=sys.stderr)
+        return 2
+    finally:
+        if target is not None:
+            target.close()
     return 0
 
 
@@ -270,22 +305,32 @@ def _utc(text: str) -> datetime:
 
 
 def cmd_bundle(corpus: Corpus, scenario_id: str, out: Path, r2: bool) -> int:
+    from invaria.safe_write import DestinationError, Unconfirmed, WriteFailure
+
     evaluation = _evaluate(corpus, scenario_id)
     raw_sources = (
         {f"raw/{f.name}": f.read_bytes() for f in sorted((corpus.root / "raw").iterdir())}
         if r2
         else None
     )
-    manifest = build_bundle(
-        out,
-        corpus.inputs_for(scenario_id),
-        evaluation,
-        mode=corpus.scenarios[scenario_id].query_mode,
-        raw_sources=raw_sources,
-        mappings=corpus.mappings if r2 else None,
+    try:
+        manifest = build_bundle(
+            out,
+            corpus.inputs_for(scenario_id),
+            evaluation,
+            mode=corpus.scenarios[scenario_id].query_mode,
+            raw_sources=raw_sources,
+            mappings=corpus.mappings if r2 else None,
+        )
+    except (DestinationError, WriteFailure, Unconfirmed) as error:
+        print(write_problem(error, "bundle"), file=sys.stderr)
+        return 2
+    # The manifest's own bytes: never re-read through the path, which may have changed.
+    digest = hashlib.sha256(canonical_json(manifest)).hexdigest()
+    print(
+        f"bundle {manifest.bundle_id} -> {out.name} in the directory opened for {out} "
+        "(new directory 0700, files 0600)"
     )
-    digest = hashlib.sha256((out / "manifest.json").read_bytes()).hexdigest()
-    print(f"bundle {manifest.bundle_id} -> {out}")
     print(f"result {manifest.expected_result}; manifest sha256 {digest}")
     print("unsigned: sign it, or share the manifest sha256 through a separate channel")
     return 0
@@ -441,12 +486,15 @@ def cmd_console_serve(
     return 0
 
 
-def _reader_service(access_profile: Path, *, writer: bool = False) -> QueryService:
+def _reader_service(
+    access_profile: Path, *, writer: bool = False, exporter: bool = False
+) -> QueryService:
     """Read-only role by default; ``writer`` (registering a report) uses the
-    application role, which can only SELECT and INSERT."""
+    application role, which can only SELECT and INSERT; ``exporter`` the export
+    role, which reads and only inserts into the export record."""
     import psycopg
 
-    from invaria.persistence.store import APP_ROLE, READER_ROLE, PgStore
+    from invaria.persistence.store import APP_ROLE, EXPORTER_ROLE, READER_ROLE, PgStore
     from invaria.query.models import AccessProfile
     from invaria.query.service import QueryService
 
@@ -454,7 +502,7 @@ def _reader_service(access_profile: Path, *, writer: bool = False) -> QueryServi
     if not dsn:
         raise ValueError("set INVARIA_DATABASE_URL (kept outside the repository)")
     access = parse_contract(AccessProfile, access_profile.read_text("utf-8"))
-    role = APP_ROLE if writer else READER_ROLE
+    role = APP_ROLE if writer else EXPORTER_ROLE if exporter else READER_ROLE
     return QueryService(PgStore(psycopg.connect(dsn), role=role), access)
 
 
@@ -602,6 +650,20 @@ def cmd_analytics(args: argparse.Namespace) -> int:
     from invaria.query.service import QueryError
 
     register = args.analytics_command == "report" and args.register
+    export = args.analytics_command == "report" and args.out is not None
+    if export:
+        if register:
+            print(
+                "error: --out cannot be combined with --register in this version: exporting "
+                "and registering are separate use cases, each with its own database role and "
+                "its own computation of the report; run them separately",
+                file=sys.stderr,
+            )
+            return 2
+        if args.out.endswith("/"):
+            print("error: --out must name a file, not a directory", file=sys.stderr)
+            return 2
+        return _export_report(args)
     service = _reader_service(args.access_profile, writer=register)
     try:
         if args.analytics_command == "report":
@@ -614,21 +676,10 @@ def cmd_analytics(args: argparse.Namespace) -> int:
                 report = service.integrity_report(
                     args.evidence_horizon, args.profile, args.max_replays
                 )
-            if args.out:
-                if args.out.exists():
-                    raise FileExistsError(f"{args.out} exists; reports are never overwritten")
-                args.out.write_text(
-                    json.dumps(report.model_dump(mode="json"), indent=2) + "\n", "utf-8"
-                )
             if args.json:
                 print(json.dumps(report.model_dump(mode="json"), indent=2))
             else:
                 print("\n".join(integrity_report_lines(report)))
-                if args.out:
-                    print(
-                        f"\nreport written to {args.out}; report_sha256 {report.report_sha256} "
-                        "checks internal consistency only: it does not authenticate the report"
-                    )
             if registration is not None:
                 state = "registered" if registration.created else "already registered"
                 print(
@@ -664,6 +715,53 @@ def cmd_analytics(args: argparse.Namespace) -> int:
     except QueryError as error:
         print(f"error: {error.code}: {error.message}", file=sys.stderr)
         return 2
+
+
+def _export_report(args: argparse.Namespace) -> int:
+    """``analytics report --out``: export scope and policy, then the query's own,
+    then a safe write without replacement and the export record (export role)."""
+    from invaria.export_writer import ExportTarget
+    from invaria.query.service import ExportError, QueryError
+
+    service = _reader_service(args.access_profile, exporter=True)
+    target = ExportTarget(Path(args.out))
+    try:
+        report, view = service.export_integrity_report_file(
+            args.evidence_horizon, args.profile, args.max_replays, target
+        )
+    except ExportError as error:
+        print(f"error: {error.code}: {error.message}", file=sys.stderr)
+        if error.code == "EXPORT_UNCONFIRMED":
+            return 1
+        return 130 if error.failure == "interrupted" else 2
+    except QueryError as error:
+        print(f"error: {error.code}: {error.message}", file=sys.stderr)
+        print("nothing was written and no export was recorded", file=sys.stderr)
+        return 2
+    # The report itself, as before (a query output); the export goes to stderr with
+    # --json so that stdout stays the report contract.
+    if args.json:
+        print(json.dumps(report.model_dump(mode="json"), indent=2))
+    else:
+        print("\n".join(integrity_report_lines(report)))
+    out = sys.stderr if args.json else sys.stdout
+    print(
+        f"\nexport {view.export_id} completed: {Path(args.out).name} written in the directory "
+        f"opened for {args.out} (the path is not re-resolved afterwards; {view.content_bytes} "
+        "bytes, "
+        f"content sha256 {view.content_sha256}, mode 0600) under "
+        f"{', '.join(view.policy_refs)}; recorded at {view.completed_at.isoformat()} "
+        "(store clock)",
+        file=out,
+    )
+    print(
+        f"report_sha256 {view.report_sha256} checks internal consistency only: it does not "
+        "authenticate the report",
+        file=out,
+    )
+    for note in view.limitations:
+        print(f"  note: {note}", file=out)
+    return 0
 
 
 def cmd_disclosure(args: argparse.Namespace) -> int:
@@ -825,7 +923,11 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("evaluate", help="evaluate one scenario and explain it")
     run.add_argument("corpus", type=Path)
     run.add_argument("scenario")
-    run.add_argument("--out", type=Path, help="write canonical JSON export (unsigned)")
+    run.add_argument(
+        "--out",
+        type=Path,
+        help="write canonical JSON export (unsigned) to a new file; never overwritten",
+    )
     diag = sub.add_parser(
         "diagnose", help="what the engine checked per control of a scenario, and where it stopped"
     )
@@ -855,7 +957,11 @@ def build_parser() -> argparse.ArgumentParser:
     bundle = sub.add_parser("bundle", help="write a directory evidence bundle for a scenario")
     bundle.add_argument("corpus", type=Path)
     bundle.add_argument("scenario")
-    bundle.add_argument("out", type=Path)
+    bundle.add_argument(
+        "out",
+        type=Path,
+        help="new directory (must not exist, not even empty; never overwritten)",
+    )
     bundle.add_argument("--r2", action="store_true", help="include raw CSV bytes and mappings")
     sign = sub.add_parser("sign", help="add a detached Ed25519 signature to a bundle")
     sign.add_argument("bundle", type=Path)
@@ -917,13 +1023,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     rep.add_argument("--profile", action="append", help="profile_ref filter (repeatable)")
     rep.add_argument("--max-replays", type=int, default=100, help="work limit for the blocks")
-    rep.add_argument("--out", type=Path, help="write the report JSON (never overwritten)")
-    rep.add_argument("--json", action="store_true", help="print the report contract as JSON")
+    rep.add_argument(
+        "--out",
+        help="export the report JSON to a new file (scope exports:create and policy "
+        "export-integrity-report-file@1 on top of the query's; export role). Never "
+        "overwrites, never follows a symbolic link; recorded without the path. Not "
+        "combinable with --register in this version",
+    )
+    rep.add_argument(
+        "--json",
+        action="store_true",
+        help="print the report contract as JSON (a query output: redirecting it saves a "
+        "copy outside the export record)",
+    )
     rep.add_argument(
         "--register",
         action="store_true",
         help="store the computed report in the registry (scope reports:register; application "
-        "role). Never takes a file or a hash",
+        "role). Never takes a file or a hash. Not combinable with --out in this version",
     )
     rep.add_argument(
         "--max-report-bytes",

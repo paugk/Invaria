@@ -47,6 +47,7 @@ Without that variable the tests are skipped when the CLI is absent, and a skip i
 ```bash
 export F=tests/fixtures/stellar/ledger-archive/checkpoint-5027711
 export STORE=$(mktemp -d)/store
+export OUT=$(mktemp -d)   # reports: a new directory, so the guide can be repeated
 uv run --locked invaria stellar ingest --target tests/fixtures/stellar/targets/demoa-own.json \
   --start-ledger 5027650 --end-ledger 5027672 --store "$STORE" \
   --links tests/fixtures/stellar/links/demoa-own.json --page-limit 2 \
@@ -55,12 +56,14 @@ uv run --locked invaria stellar ingest --target tests/fixtures/stellar/targets/d
 
 The adapter replays the recorded Horizon responses (`--page-limit 2` matches the recorded requests) and writes three Classic observations: T1, T2 (a failed transaction) and T3.
 
+**Writing reports.** `--out` creates a **new** file and never overwrites: an existing destination (a file, a directory or a symbolic link, dangling ones included) is refused before verifying, and no symbolic link in the path is followed. The report is written with mode 0600. To repeat a step, use a new name or a new `OUT` directory. A write problem exits with code 2, which is never a verification result: 0 still means `CONSISTENT` and 1 any other overall result, with the report written. If the write fails after verifying, the command says so and that the verification itself ran.
+
 ## 2. Anchored inclusion
 
 ```bash
 uv run --locked invaria stellar ledger-verify --archive-dir "$F/archive" --ledger 5027711 \
   --anchor-run "$F/anchor-run/anchor-run.json" \
-  --target tests/fixtures/stellar/targets/demoa-own.json --store "$STORE" --out inclusion.json
+  --target tests/fixtures/stellar/targets/demoa-own.json --store "$STORE" --out "$OUT/inclusion.json"
 ```
 
 Expected: `evidence VERIFIED (checkpoint 5027711, anchor mode imported_with_provenance)`, T1, T2 and T3 `SUPPORTED`, and `overall CONSISTENT` (exit code 0).
@@ -77,7 +80,7 @@ uv run --locked invaria stellar ledger-verify --archive-dir "$F/archive" --ledge
   --replay-dir "$F/replay" \
   --expect-replay-record-sha256 b7459be8c89d05d360e990cdf81bec4c7a5c7930deca6aa8f8d55c48deb9cdc2 \
   --expect-replay-revision-sha256 89b1b95f79f78710cd4ed89228e2947e6b4dea766b6bb0b427348110cab66ddd \
-  --out replay.json
+  --out "$OUT/replay.json"
 ```
 
 Every kept file is checked against `replay-run.json` (and the files added after the run, against its revision) **before** anything is decoded. A missing, altered, undeclared or symlinked file fails closed.
@@ -111,7 +114,7 @@ uv run --locked invaria stellar ledger-verify --archive-dir "$F/archive" --ledge
   --anchor-run "$F/anchor-run/anchor-run.json" \
   --target tests/fixtures/stellar/targets/demoa-own.json --store "$STORE" \
   --completeness-ledgers 5027650 5027672 \
-  --horizon-recording tests/fixtures/stellar/recordings/demoa-own --out completeness.json
+  --horizon-recording tests/fixtures/stellar/recordings/demoa-own --out "$OUT/completeness.json"
 ```
 
 Expected: `classic payment completeness COMPLETE_IN_SCOPE in ledgers [5027650, 5027672]` and `overall CONSISTENT` (exit code 0).
@@ -143,7 +146,7 @@ uv run --locked invaria stellar ledger-verify --archive-dir "$F/archive" --ledge
   --expect-replay-revision-sha256 89b1b95f79f78710cd4ed89228e2947e6b4dea766b6bb0b427348110cab66ddd \
   --trustline-reconciliation 2026-10-05T00:57:20Z 2026-10-05T00:59:00Z \
   --approved-links tests/fixtures/corpus/subscription-testnet-1.6.0/identity_links.json \
-  --account-ref acct-pseudo-0001 --out trustline.json
+  --account-ref acct-pseudo-0001 --out "$OUT/trustline.json"
 ```
 
 Expected: `trustline reconciliation RECONCILED_IN_SCOPE (authenticated_replay)` over ledgers 5027651 to 5027670, and `overall CONSISTENT` (exit code 0):

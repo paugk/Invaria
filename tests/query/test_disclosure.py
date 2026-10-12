@@ -42,9 +42,11 @@ AGGREGATE = disclosure.CATALOGUE[disclosure.AGGREGATE_POLICY]
 
 def test_the_catalogue_is_valid_versioned_and_minimal() -> None:
     # 1.1.0 (D-029-8) adds three full policies; the two of 1.0.0 are unchanged.
-    assert disclosure.CATALOGUE_REF == "disclosure-catalogue@1.1.0"
+    # 1.2.0 adds the export policy; the earlier five are unchanged.
+    assert disclosure.CATALOGUE_REF == "disclosure-catalogue@1.2.0"
     assert sorted(disclosure.CATALOGUE) == [
         "aggregate-outcome-counts@1",
+        "export-integrity-report-file@1",
         "full-evidence@1",
         "full-operations@1",
         "full-report-index@1",

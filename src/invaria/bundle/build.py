@@ -20,6 +20,7 @@ from invaria.contracts.bundle import (
 from invaria.contracts.mapping import CsvMapping
 from invaria.engine.evaluate import Evaluation, EvaluationInputs
 from invaria.ingest.csv_import import PARSER_REF as CSV_PARSER_REF
+from invaria.safe_write import NewDirectory
 
 MANIFEST = "manifest.json"
 R1_ARTIFACTS = ("evaluation.json", "evidence.json", "profile.json", "snapshot.json")
@@ -74,8 +75,29 @@ def build_bundle(
     snapshot = inputs.snapshot
     if evaluation.result.snapshot_id != snapshot.snapshot_id:
         raise ValueError("evaluation does not belong to this snapshot")
-    if out_dir.exists() and (not out_dir.is_dir() or any(out_dir.iterdir())):
-        raise FileExistsError(f"{out_dir} exists and is not an empty directory")
+    # The destination must not exist (an empty directory included); it is opened
+    # without following links before anything is computed, built in a private temporary
+    # directory and published without replacement (safe_write.NewDirectory).
+    # Missing parent directories are created (0700), as before.
+    target = NewDirectory(out_dir, temp_prefix=".invaria-bundle-", create_parents=True)
+    target.prepare()
+    try:
+        manifest, files = _contents(inputs, evaluation, mode, raw_sources, mappings)
+        target.publish(files)
+    finally:
+        target.close()
+    return manifest
+
+
+def _contents(
+    inputs: EvaluationInputs,
+    evaluation: Evaluation,
+    mode: Literal["as_known", "as_known_now"],
+    raw_sources: Mapping[str, bytes] | None,
+    mappings: Mapping[str, CsvMapping] | None,
+) -> tuple[EvidenceBundleManifest, dict[str, bytes]]:
+    """The manifest and every file of the bundle, in writing order (manifest last)."""
+    snapshot = inputs.snapshot
     evidence = snapshot_evidence(inputs)
     payloads: dict[str, bytes] = {
         "evaluation.json": canonical_json(evaluation.result),
@@ -138,9 +160,6 @@ def build_bundle(
             export_format="directory_v1",
         ),
     )
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for path, data in [*payloads.items(), *((p, d) for p, (d, _) in r2.items())]:
-        (out_dir / path).parent.mkdir(parents=True, exist_ok=True)
-        (out_dir / path).write_bytes(data)
-    (out_dir / MANIFEST).write_bytes(canonical_json(manifest))
-    return manifest
+    files = {**payloads, **{p: d for p, (d, _) in r2.items()}}
+    files[MANIFEST] = canonical_json(manifest)
+    return manifest, files

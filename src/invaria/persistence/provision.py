@@ -7,15 +7,15 @@ migrator, and nothing grants ``invaria_owner`` CREATE on it before the transfer,
 managed server (e.g. Neon) the first migration stops there. Migrations are immutable
 (sha256), so the requirement is met beforehand:
 
-- the three NOLOGIN roles exist, as the migrations would create them;
+- the NOLOGIN roles exist, as the migrations would create them;
 - the migrator is a member of ``invaria_owner`` (SET and INHERIT: it acts as the owner, as
-  a superuser would) and of ``invaria_app`` and ``invaria_reader`` (SET only: the store
-  connects as the migrator and switches with ``SET ROLE``);
+  a superuser would) and of ``invaria_app``, ``invaria_reader`` and ``invaria_exporter``
+  (SET only: the store connects as the migrator and switches with ``SET ROLE``);
 - the database has the schema ``invaria`` already owned by ``invaria_owner``.
 
 These are the MIGRATOR's privileges. The application should log in as a role that is only a
-member of ``invaria_app`` (or ``invaria_reader``): such a role cannot become the owner.
-Nothing is granted to ``invaria_app``, ``invaria_reader`` or PUBLIC: their final privileges
+member of ``invaria_app`` (or ``invaria_reader``, or ``invaria_exporter`` for exports): such
+a role cannot become the owner. Nothing is granted to those roles or PUBLIC: their final privileges
 are the ones the migrations grant.
 
 Before acting, existing roles are checked: a role with attributes or memberships the
@@ -32,7 +32,7 @@ import psycopg
 from psycopg import sql
 
 OWNER_ROLE = "invaria_owner"
-SWITCH_ROLES = ("invaria_app", "invaria_reader")
+SWITCH_ROLES = ("invaria_app", "invaria_reader", "invaria_exporter")
 ROLES = (OWNER_ROLE, *SWITCH_ROLES)
 SCHEMA = "invaria"
 # Attributes the migrations never give these roles: any of them widens what they can do.

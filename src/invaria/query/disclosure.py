@@ -27,7 +27,7 @@ from invaria.query.models import (
     WithheldCategory,
 )
 
-CATALOGUE_REF = "disclosure-catalogue@1.1.0"
+CATALOGUE_REF = "disclosure-catalogue@1.2.0"
 VIEW_FORMAT: Literal["invaria-disclosure-view@1"] = "invaria-disclosure-view@1"
 FULL_SUMMARY_POLICY = "full-report-summary@1"
 AGGREGATE_POLICY = "aggregate-outcome-counts@1"
@@ -35,6 +35,11 @@ AGGREGATE_POLICY = "aggregate-outcome-counts@1"
 FULL_OPERATIONS_POLICY = "full-operations@1"
 FULL_EVIDENCE_POLICY = "full-evidence@1"
 FULL_REPORT_INDEX_POLICY = "full-report-index@1"
+# Creating a file with a computed report, on top of the query's
+# own policy. It governs what file the application creates and records; it does not stop
+# copies of what a query returned, nor control a file once delivered.
+EXPORT_REPORT_FILE_POLICY = "export-integrity-report-file@1"
+EXPORT_FILE_FORMAT: Literal["integrity-report-file@1"] = "integrity-report-file@1"
 POLICY_MESSAGE = "no disclosure policy of this access profile covers this output"
 
 WITHHELD: tuple[WithheldCategory, ...] = (
@@ -123,6 +128,8 @@ FIELDS_SHA256: dict[str, str] = {
     FULL_OPERATIONS_POLICY: "0608c2cfce90bef9f53dbf60bd2451c440dffe865b150f14c97d7798eabedd4f",
     FULL_EVIDENCE_POLICY: "2a0e8f68373e6e490f6665581b232252aa7c1342aa0fe2906682c437336ca0de",
     FULL_REPORT_INDEX_POLICY: "f8927c1bd22db29b008da5ae86116bc9d86dcc9c7739bb5bf0817579de2064a2",
+    # The returned ExportView and the file content (IntegrityReport).
+    EXPORT_REPORT_FILE_POLICY: "cf13624232c708db2438f67dafccf3e44acbf2fdbbcf9a911b076a1861ed9098",
     FULL_SUMMARY_POLICY: "1720d389bba98dcb8859fb066fa82737623bd591b500cd006a267e4c4fea791e",
 }
 
@@ -134,9 +141,14 @@ class DisclosurePolicy:
 
     policy_ref: str
     resource_kind: Literal[
-        "integrity_report_summary", "operation_data", "evidence", "integrity_report_index"
+        "integrity_report_summary",
+        "operation_data",
+        "evidence",
+        "integrity_report_index",
+        "integrity_report_file",
     ]
-    modality: Literal["full", "selected_aggregates"]
+    # full_export: an unprojected contract written to a file by the application.
+    modality: Literal["full", "selected_aggregates", "full_export"]
     issuable: bool
     declared_purpose: str
     # (definition, selection_policy) the projection's texts are written for; None: any.
@@ -188,6 +200,18 @@ CATALOGUE: dict[str, DisclosurePolicy] = {
             fields_sha256=FIELDS_SHA256[FULL_REPORT_INDEX_POLICY],
         ),
         DisclosurePolicy(
+            policy_ref=EXPORT_REPORT_FILE_POLICY,
+            resource_kind="integrity_report_file",
+            modality="full_export",
+            issuable=False,
+            declared_purpose=(
+                "a copy of the computed report for the operator or an auditor of the same "
+                "controller (declared purpose, not a technical guarantee on later use)"
+            ),
+            supported_reports=None,
+            fields_sha256=FIELDS_SHA256[EXPORT_REPORT_FILE_POLICY],
+        ),
+        DisclosurePolicy(
             policy_ref=AGGREGATE_POLICY,
             resource_kind="integrity_report_summary",
             modality="selected_aggregates",
@@ -218,9 +242,10 @@ def validate_catalogue(catalogue: dict[str, DisclosurePolicy]) -> list[str]:
         name, _, version = ref.partition("@")
         if ref != p.policy_ref or not name or not version.isdigit() or version.startswith("0"):
             problems.append(f"{ref}: malformed policy_ref")
-        if p.modality == "full" and (p.issuable or p.supported_reports is not None):
+        unprojected = p.modality in ("full", "full_export")
+        if unprojected and (p.issuable or p.supported_reports is not None):
             problems.append(f"{ref}: a full policy is never issued and supports every report")
-        if (p.modality == "full") != (p.fields_sha256 is not None):
+        if unprojected != (p.fields_sha256 is not None):
             problems.append(f"{ref}: a full policy pins its field scope; a projection does not")
         if p.modality == "selected_aggregates" and not p.supported_reports:
             problems.append(f"{ref}: a projection must name the reports its texts describe")
@@ -392,6 +417,12 @@ USE_CASES: dict[str, Requirement] = {
         mode="restricted_view",
         reason="checks the issuance's own policy against the assigned ones",
     ),
+    # Exports: creating a file is its own decision. The content is computed by
+    # integrity_report, whose scope (operations:read) and policy (full-operations@1) are
+    # checked too, before the destination is opened and before anything is read.
+    "export_integrity_report_file": _full(
+        "exports:create", "operations:read", policies=(EXPORT_REPORT_FILE_POLICY,)
+    ),
     # Event feed (group B): each type needs its scope and its policy; the feed's positions
     # and volume stay revealed by events:read (an accepted local decision).
     "list_events": Requirement(
@@ -422,7 +453,7 @@ def validate_requirements(
     for name, policies in named:
         for ref in policies:
             found = CATALOGUE.get(ref)
-            if found is None or found.modality != "full":
+            if found is None or found.modality not in ("full", "full_export"):
                 problems.append(f"{name}: {ref} is not a full policy of {CATALOGUE_REF}")
     for name, req in use_cases.items():
         if (req.mode == "policies") != bool(req.policies) or not req.scopes:

@@ -44,6 +44,9 @@ Scope = Literal[
     "disclosures:issue",
     "disclosures:revoke",
     "disclosures:read",
+    # Lets the application create an export file (and record it). It does not stop
+    # anyone from copying what a query already returned, nor control a file once delivered.
+    "exports:create",
 ]
 # A disclosure policy of the code catalogue, name@version. Unknown names are
 # accepted here and refused where an output needs them: the refusal is the route's.
@@ -890,6 +893,27 @@ class RegistrationView(Contract):
     # Store clock at registration; distinct from the evidence horizon and the store read.
     registered_at: UtcDatetime
     document_bytes: int
+    limitations: list[NonEmptyText]
+
+
+class ExportView(Contract):
+    """A completed export of a computed report: the service declares it published
+    the final name inside the directory it opened and validated, after syncing the file,
+    removing its temporary and syncing the directory. It does not claim that the requested
+    path still resolves to that directory. A failed or unconfirmed export is an error
+    carrying its ``export_id``. The record is the service's declaration, not proof of
+    delivery or custody."""
+
+    export_id: Annotated[str, Field(pattern=r"^ex-[0-9a-f]{32}$")]
+    kind: Literal["integrity_report_file"]
+    file_format: Literal["integrity-report-file@1"]
+    policy_refs: list[PolicyRef]
+    report_sha256: Sha256Hex
+    content_sha256: Sha256Hex
+    content_bytes: int
+    # Store clock, both.
+    attempted_at: UtcDatetime
+    completed_at: UtcDatetime
     limitations: list[NonEmptyText]
 
 

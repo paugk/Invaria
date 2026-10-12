@@ -37,7 +37,8 @@ Invaria keeps the evidence needed to explain that conclusion.
 | Integrity analytics: population, distribution with numerator and denominator, discrepancies, diagnosed blocks, pinned cases and reproduction | `src/invaria/query/analytics.py` | Implemented; CLI `invaria analytics` and query service; counts stored conclusions, never re-evaluates |
 | Registry of integrity reports and its local REST API (OpenAPI 3.1) | `src/invaria/query/registry.py`, `src/invaria/console/`, `docs/api/console-v1.openapi.json` | Implemented; append-only, `ir-<sha256>`; not a signature (see [CONSOLE_AND_API.md](CONSOLE_AND_API.md)) |
 | Domain events and the event feed by cursor | `src/invaria/contracts/events.py`, `src/invaria/domain_events.py`, `src/invaria/persistence/events.py`, `src/invaria/query/feed.py` | Implemented; local derivation and `GET /v1/events`; no webhooks or server-sent events |
-| Controlled disclosure: explicit policies for every interactive query, restricted revocable views of a report summary | `src/invaria/query/disclosure.py`, `src/invaria/console/disclosure_pages.py` | Implemented for interactive queries and event types; exports, bundles, logs and backups not covered yet |
+| Controlled disclosure: explicit policies for every interactive query, restricted revocable views of a report summary | `src/invaria/query/disclosure.py`, `src/invaria/console/disclosure_pages.py` | Implemented for interactive queries, event types and one export (`analytics report --out`); bundles, other exports, logs and backups not covered yet |
+| Safe writing of every file the commands write (`analytics report --out`, `evaluate --out`, `bundle`, `stellar ledger-verify --out`) | `src/invaria/safe_write.py`, `src/invaria/export_writer.py` | Implemented; never overwrites or follows links; verified on Linux only (see below); not a disclosure policy |
 
 ### Contracts
 - **Exact quantities.** Integer atoms as a string, plus an explicit scale (0–38) and unit. Floats, exponents, NaN and duplicate JSON keys are rejected before validation.
@@ -155,6 +156,7 @@ It needs Stellar CLI 28.1.0 to decode XDR, and its tests fail rather than skip w
 `invaria.persistence` stores observations, coverage certificates, identity links, profiles, closed snapshots and evaluations append-only. Install it with the `db` extra (`psycopg` 3).
 - **Migrations:** SQL files whose sha256 is recorded. A migration changed after being applied is rejected.
 - **Application role:** `invaria_app` has SELECT and INSERT only. UPDATE, DELETE and TRUNCATE of history fail inside the database.
+- **Export role:** `invaria_exporter` (migration `0008`) reads what a report computation reads and can only append to the export record of `analytics report --out`; it cannot write business data or change the record.
 - **Idempotent writes:** the same id with different content raises `ImmutableConflict`.
 - **Snapshots:** persisted with explicit membership. A snapshot rebuilt "as known at" a time excludes later corrections, and a commit that lands later never changes an existing snapshot.
 - **Same results:** evaluating from the database gives exactly the same result as from files.
@@ -215,6 +217,18 @@ INVARIA_DATABASE_URL=postgresql://... uv run invaria mcp serve \
 
 With stdio, authentication is that of the operating-system user who starts the process. There is no network API, OAuth or token yet; the local evidence console serves REST and HTML on 127.0.0.1 only, with a per-process token. The typed answers are exported as JSON Schemas (`schemas/query-*.schema.json`, `schemas/access-profile.schema.json`).
 
+### Files written by the commands
+`analytics report --out`, `evaluate --out`, `bundle` (destination **positional**: `invaria bundle CORPUS SCENARIO DIR`) and `stellar ledger-verify --out` write through `invaria.safe_write`:
+- **New destinations only.** An existing destination is refused before anything is written: a file, a directory (for a bundle, an empty one too), or a symbolic link, dangling ones included. There is no `--force`. To repeat a command, use a new name.
+- **No symbolic link is followed** in any component of the path; the directories are opened one by one and then used by descriptor.
+- **Files** are written to an unpredictable temporary in the same directory, synced, and published under the final name with a hard link that never replaces anything; the temporary is then removed and the directory synced. **Bundles** are built in a private temporary directory and published with `renameat2(RENAME_NOREPLACE)`, which fails even if an empty directory appeared at that name in the meantime (a plain rename would replace it). Missing parent directories of a bundle are still created.
+- **Modes:** new files 0600; a bundle's own directories, and parent directories it creates, 0700. Existing parent directories keep their mode. The bytes and formats are unchanged; the bundle manifest declares no file modes.
+- **Exit codes.** `evaluate --out`, `bundle` and `ledger-verify --out` exit with **2** on any write problem, with a message that says whether nothing was written or the result may have been published without confirmation; never 0, and never the code of a result (`ledger-verify` keeps 0 for `CONSISTENT` and 1 for any other overall result when its report is written). `analytics report --out` keeps its own codes (2 refused or failed, 1 unconfirmed, 130 interrupted): see [CONSOLE_AND_API.md](CONSOLE_AND_API.md), section 3.
+- **Limits:** the result is published in the directory that was opened and checked; if a directory of the path is renamed or replaced meanwhile, the textual path may lead elsewhere afterwards. A crash can leave a temporary (`.invaria-write-*`, `.invaria-export-*` or `.invaria-bundle-*`) under another name; it is never taken for a result and is not removed automatically. Only entries a run created are ever removed.
+- **Library change:** `build_bundle` raises `invaria.safe_write.DestinationError` (with a `reason`) for an existing or unusable destination, where it used to raise `FileExistsError` for a non-empty directory.
+- **Platform.** Verified on **Linux** only. What the code requires, and refuses before writing when absent: for single files, `dir_fd` support for `open`, `link`, `unlink`, `stat`, `mkdir` and `rmdir`, plus `O_NOFOLLOW` and `O_DIRECTORY` (other platforms that have them are allowed by the code but untested; macOS is not verified); for bundles, additionally **Linux** and a C library that exports `renameat2` (glibc does from 2.28): **on any other platform the implementation refuses bundles**. A file system without hard links (files) or without `RENAME_NOREPLACE` (bundles) gives a publication error and leaves nothing under the requested name.
+- **Not a disclosure policy.** Safe writing governs how a file is created. Bundles, `evaluate --out` and `ledger-verify --out` still have no export permission, policy or projection; see [CONSOLE_AND_API.md](CONSOLE_AND_API.md), section 6.
+
 ## Synthetic data only
 
 Everything under `tests/fixtures/` except `tests/fixtures/stellar/` (real testnet data) is synthetic. The testnet demo corpus mixes synthetic institutional files with that real on-chain evidence. The synthetic part:
@@ -245,8 +259,9 @@ Run the offline CLI against the synthetic corpus:
 uv run --locked invaria check tests/fixtures/corpus/subscription-synthetic        # 9/9 scenarios
 uv run --locked invaria demo tests/fixtures/corpus/subscription-synthetic         # raw CSV -> K1/K2/K3
 uv run --locked invaria explain-change tests/fixtures/corpus/subscription-synthetic K2 K3
-uv run --locked invaria bundle tests/fixtures/corpus/subscription-synthetic K2 /tmp/k2-bundle
-uv run --locked invaria verify /tmp/k2-bundle
+B=$(mktemp -d)/k2-bundle   # the destination must not exist: a new name each time
+uv run --locked invaria bundle tests/fixtures/corpus/subscription-synthetic K2 "$B"
+uv run --locked invaria verify "$B"
 ```
 
 In `demo`, institutional evidence is imported from the raw CSV files. The on-chain movement and its coverage are frozen synthetic fixtures, and the output says so: the demo issuer does not exist on any network.
@@ -264,7 +279,7 @@ Runtime dependencies: `pydantic`, `cryptography` (Ed25519 only). Optional: `psyc
 - **Stellar:** independent verification of ledger checkpoints (on-chain coverage is `provider_claimed`); custom Soroban tokens; contracts as approved investor addresses; mainnet.
 - **Evidence bundles:** compressed archives, R3 (source proofs), R2 for on-chain evidence, third-party timestamping of signatures, and Windows-specific path rules.
 - **Infrastructure:** worker leases, scheduler and outbox retention; row-level security / multi-tenant; object storage for raw bytes; a network API or MCP transport with tokens; institutional or remote authentication (OIDC, SSO); point-in-time recovery or high availability.
-- **Events and disclosure:** webhooks, server-sent events, signed events and event retention; disclosure policies for exports, bundles, logs and backups; restricted views of outputs other than a report summary; techniques against inference from small counts.
+- **Events and disclosure:** webhooks, server-sent events, signed events and event retention; disclosure policies for bundles and other exports (beyond `analytics report --out`), logs and backups; restricted views of outputs other than a report summary; techniques against inference from small counts.
 - **Cryptographic privacy:** zero-knowledge proofs and fully homomorphic encryption are not implemented.
 - **Other operations:** fees, partial fills, multiple payments, FX, omnibus accounts; business calendars for deadlines.
 - **Other sources:** XLSX, SFTP, encodings other than UTF-8, locale-specific number formats.

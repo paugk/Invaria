@@ -47,7 +47,8 @@ A policy is immutable: if what it delivers changes, a new version is created. A 
 | Operations list, trace, timeline, conclusion as known, coverage; evaluation, discrepancy, missing evidence, comparison of two evaluations (REST, console pages, six MCP tools) | `operations:read` | `full-operations@1` |
 | Evidence: one observation or certificate (REST, console page, MCP `get_evidence`) | `evidence:read` | `full-evidence@1` |
 | Requirement diagnosis and obligations through the query service | `operations:read` | `full-operations@1` |
-| `invaria analytics report` (stdout, `--json` or `--out`), `analytics cases`, `analytics reproduce` | `operations:read` | `full-operations@1` |
+| `invaria analytics report` (stdout or `--json`), `analytics cases`, `analytics reproduce` | `operations:read` | `full-operations@1` |
+| `invaria analytics report --out FILE` (a controlled export, section 3) | `operations:read` **and** `exports:create` | `full-operations@1` **and** `export-integrity-report-file@1` |
 | `invaria analytics report --register` | `reports:register` (and `operations:read` to compute the report) | `full-operations@1` |
 | List of registered reports (`/v1/integrity-reports`, `/reports`) | `reports:read` | `full-report-index@1` |
 | Summary of a registered report (`/v1/integrity-reports/{id}`, `/reports/{id}`) | `reports:read` | `full-report-summary@1` |
@@ -60,7 +61,7 @@ A policy is immutable: if what it delivers changes, a new version is created. A 
 
 An operator who should keep everything they had needs the four full policies (`full-operations@1`, `full-evidence@1`, `full-report-index@1`, `full-report-summary@1`) plus the scopes of the new features they use. The startup warnings list what a profile is still missing. A policy assigned without its scope grants nothing.
 
-**Database.** `migrate` applies the new migrations `0004` to `0007` to an existing database: the registry of reports, domain events, the feed generation and the disclosure issuances. It changes no existing row; only `schema_migrations` gains their entries. After the upgrade, `invaria events derive` turns the outbox rows written by the earlier version into events marked `historical`, since those rows carry no pinned publication references.
+**Database.** `migrate` applies the new migrations to an existing database: `0004` to `0007` (the registry of reports, domain events, the feed generation and the disclosure issuances) and `0008` (the export record and the role `invaria_exporter`). It changes no existing row; only `schema_migrations` gains their entries. A server whose migrator is not a superuser must run the provisioning step first, which now also creates `invaria_exporter` (NOLOGIN) and makes the migrator able to `SET ROLE` to it. To use `analytics report --out`, the login in `INVARIA_DATABASE_URL` must be a member of `invaria_exporter`. After the upgrade, `invaria events derive` turns the outbox rows written by the earlier version into events marked `historical`, since those rows carry no pinned publication references.
 
 ## 2. Console and REST API
 
@@ -124,7 +125,22 @@ uv run --locked invaria analytics reproduce --access-profile access.json --repor
 - **Time:** the publication state read is the present one. The evidence horizon is compared with snapshot `known_at` only; it does not reconstruct what was published at that time.
 - **`--register`** (scope `reports:register`) stores the exact bytes of the report this service just computed, append-only, under the id `ir-<report_sha256>`. It never accepts a file or a hash from the caller.
 - **`report_sha256` checks internal consistency only:** anyone can edit a report and recompute it. It does not authenticate the issuer or show that the population covers all real activity.
-- **`--out`** writes the report to a new file. The query passes the disclosure boundary when it is **computed**; the file, once written, is outside any policy (section 6).
+- **stdout and `--json`** are the output of the query, under its own permissions. Redirecting them with the shell saves a copy that the application does not record: an authorized output is not a way to stop the user from keeping one.
+
+### Controlled export of a computed report (`--out`)
+
+`--out FILE` is an export: creating a file with the report is a decision of its own, on top of the query.
+- **Permissions:** the scope `exports:create` and the policy `export-integrity-report-file@1` (catalogue `disclosure-catalogue@1.2.0`, a full policy that is never issued as a restricted view), **plus** `operations:read` and `full-operations@1`. All of them are checked before the destination is opened or anything is read; a refusal leaves no file and no record.
+- **Database role:** the command runs as `invaria_exporter`, which reads what a report computation reads and can only append to the export record. It can neither write business data nor change or delete the record.
+- **Content:** exactly the bytes `--out` wrote before (the report as indented JSON), with no envelope or export metadata. `analytics cases` and `analytics reproduce` read the file as before.
+- **Record:** an attempt row (export id, tenant, principal, policies applied, `report_sha256`, the content's sha256 and size, store time) and, separately, at most one outcome row: `completed` or `failed` with a reason. No path, file name, host, recipient or content is stored. Nothing is updated or deleted.
+  - `completed` means the service published the final name in the directory it opened and validated, after syncing the file, removing its temporary and syncing the directory. It does not mean that the textual path still leads to that directory, nor that anyone received the file.
+  - An attempt without an outcome (a crash, or an error recording it) stays so; it is never turned into a failure, because the file may or may not exist. The reader role can list such attempts.
+  - There is no atomicity between the database and the file system, and no recovery service.
+- **Writing:** as every file the commands write (see the README, "Files written by the commands"): a new file only, mode 0600, no symbolic link followed, published without replacement.
+- **Exit codes:** 0 completed; 2 refused (permissions or destination) or failed (nothing left under that name); 1 when the file may have been published but its completion is not confirmed (the message gives the export id; check the destination before retrying); 130 interrupted before publishing.
+- **`--out` cannot be combined with `--register` in this version.** The command refuses the combination before connecting. It is a limit of the current design (each is its own use case, with its own database role and its own computation of the report), not a property of the data; run them separately.
+- **What it does not do:** it governs the files this application creates. It does not stop copies of a query's output, it does not authenticate any recipient (none is asked for), and revoking the policy affects later exports only (after restarting), never files already delivered.
 
 ## 4. Domain events and the feed by cursor
 
@@ -209,12 +225,11 @@ uv run --locked invaria disclosure revoke --access-profile operator.json --view 
 ## 6. What the disclosure boundary does not cover yet
 
 The boundary applies to every interactive query (REST, console, MCP and the CLI query commands) and to each event type of the feed. It does **not** yet cover:
-- **Exports:**
-  - the file written by `analytics report --out`, once written;
+- **Exports, beyond `analytics report --out`:**
   - evidence bundles (`invaria bundle`, `sign`);
-  - the offline commands over corpus files (`check`, `evaluate --out`, `diagnose`, `obligations`, `explain-change`, `demo*`).
-  
-  A file or a terminal output can be copied by anyone with access to the system. The `disclosure: private | synthetic_public` field of a bundle manifest is a label, not an executable policy.
+  - the offline commands over corpus files (`check`, `evaluate --out`, `diagnose`, `obligations`, `explain-change`, `demo*`) and `stellar ledger-verify --out`.
+
+  These now write safely (no overwriting, no symbolic links followed), but **safe writing is not a disclosure policy**: they still have no export permission, policy or projection. Once written, any file, including the one `analytics report --out` creates, is in the custody of whoever controls the file system. A file or a terminal output can be copied by anyone with access to the system. The `disclosure: private | synthetic_public` field of a bundle manifest is a label, not an executable policy.
 - **Operational outputs:**
   - the access audit log (it stores a sha256 of the arguments);
   - the console's request log on stderr, which includes requested paths;
@@ -230,7 +245,7 @@ The restrictions are enforced by the application. They do **not** protect agains
 - Zero-knowledge proofs, fully homomorphic encryption or any other cryptographic privacy technique.
 - Webhooks, server-sent events, signed events, event retention.
 - Institutional or remote authentication (OIDC, SSO), per-user sessions, hosted or multi-tenant operation, row-level security. One access profile per local process is the only identity.
-- Restricted views of any other output than a report summary; a controlled export.
+- Restricted views of any other output than a report summary; controlled exports of other outputs (a restricted view, bundles, `evaluate --out`, `ledger-verify --out`).
 - Techniques against inference from small or repeated counts.
 
 ## 8. Results and coverage keep their limits

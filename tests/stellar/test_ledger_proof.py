@@ -9,11 +9,13 @@ never passed.
 
 from __future__ import annotations
 
+import errno
 import gzip
 import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 import tempfile
 from dataclasses import replace
@@ -1254,8 +1256,11 @@ def ledger_verify(xdr: CachedCli, monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
     tool.version = xdr.cli.version  # type: ignore[attr-defined]
     monkeypatch.setattr(stellar_cli, "StellarCli", lambda: tool)
 
+    runs = iter(range(1, 1000))
+
     def run(store: Path, replay_dir: Path | None, *extra: str) -> tuple[int, dict[str, Any]]:
-        out = tmp_path / "report.json"
+        # A new report file per run: --out never overwrites.
+        out = tmp_path / f"report-{next(runs)}.json"
         replay = [] if replay_dir is None else ["--replay-dir", str(replay_dir)]
         code = invaria_cli.main(
             [
@@ -1281,6 +1286,68 @@ def ledger_verify(xdr: CachedCli, monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
         return code, result
 
     return run
+
+
+def test_a_write_problem_is_never_a_verification_result(
+    xdr: CachedCli,
+    store_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--out never overwrites; a write problem exits 2, distinct from 0 (CONSISTENT)
+    and 1 (any other overall result, with the report written)."""
+    from invaria import cli as invaria_cli
+    from invaria.stellar import cli as stellar_cli
+
+    tool = xdr
+    tool.version = xdr.cli.version  # type: ignore[attr-defined]
+    monkeypatch.setattr(stellar_cli, "StellarCli", lambda: tool)
+
+    def run(out: Path) -> int:
+        return invaria_cli.main(
+            [
+                "stellar",
+                "ledger-verify",
+                "--archive-dir",
+                str(FIXTURE / "archive"),
+                "--ledger",
+                str(CHECKPOINT),
+                "--anchor-run",
+                str(RUN / "anchor-run.json"),
+                "--target",
+                str(STELLAR / "targets/demoa-own.json"),
+                "--store",
+                str(store_dir),
+                "--out",
+                str(out),
+            ]
+        )
+
+    existing = tmp_path / "existing.json"
+    existing.write_bytes(b"theirs")
+    assert run(existing) == 2  # refused before verifying
+    assert "not written" in capsys.readouterr().err and existing.read_bytes() == b"theirs"
+    (tmp_path / "elsewhere").mkdir()
+    (tmp_path / "link.json").symlink_to(tmp_path / "elsewhere/report.json")
+    assert run(tmp_path / "link.json") == 2
+    assert not (tmp_path / "elsewhere/report.json").exists()
+    capsys.readouterr()
+
+    def no_link(*args: Any, **kwargs: Any) -> None:
+        raise PermissionError(errno.EPERM, "no hard links here")
+
+    monkeypatch.setattr(os, "link", no_link)
+    failed = tmp_path / "failed.json"
+    assert run(failed) == 2
+    err = capsys.readouterr().err
+    assert "verification itself ran (overall CONSISTENT)" in err and "not a verification" in err
+    assert not failed.exists()
+    monkeypatch.undo()
+    monkeypatch.setattr(stellar_cli, "StellarCli", lambda: tool)
+    written = tmp_path / "written.json"
+    assert run(written) == 0 and stat.S_IMODE(written.stat().st_mode) == 0o600
+    assert json.loads(written.read_text("utf-8"))["overall"]["status"] == "CONSISTENT"
 
 
 def _trusted_flags() -> list[str]:

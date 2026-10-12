@@ -125,6 +125,9 @@ def world(database: str, corpus: Corpus) -> Iterator[World]:
     reader.conn.close()
 
 
+EXPORT_POLICY = "export-integrity-report-file@1"
+
+
 def access(tenant: str = TENANT, **overrides: Any) -> AccessProfile:
     return AccessProfile.model_validate_json(
         json.dumps(
@@ -279,7 +282,12 @@ def test_cli_report_cases_and_reproduce(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     profile = tmp_path / "access.json"
-    profile.write_text(access().model_dump_json(), "utf-8")
+    # Writing the file is an export, with its own scope and policy.
+    exporter = access(scopes=["operations:read", "exports:create"])
+    exporter = exporter.model_copy(
+        update={"disclosure_policies": [*exporter.disclosure_policies, EXPORT_POLICY]}
+    )
+    profile.write_text(exporter.model_dump_json(), "utf-8")
     monkeypatch.setenv("INVARIA_DATABASE_URL", world.dsn)
     out = tmp_path / "report.json"
     moment = as_of(world, "K2").isoformat().replace("+00:00", "Z")

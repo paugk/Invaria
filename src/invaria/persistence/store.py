@@ -36,6 +36,8 @@ from invaria.query.registry import Pins, ReportRecord
 
 APP_ROLE = "invaria_app"
 READER_ROLE = "invaria_reader"
+# Reads what a report computation reads and only inserts into the export record.
+EXPORTER_ROLE = "invaria_exporter"
 Conn = psycopg.Connection[tuple[Any, ...]]
 
 
@@ -1059,6 +1061,69 @@ class PgStore:
         return [tuple(r) for r in rows]
 
     # ------------------------------------------- controlled disclosure
+
+    # ------------------------------------------------------------ exports
+
+    def record_export_attempt(
+        self,
+        tenant_id: str,
+        principal_id: str,
+        policy_refs: list[str],
+        report_sha256: str,
+        content_sha256: str,
+        content_bytes: int,
+    ) -> tuple[str, datetime]:
+        """Record that an export of this exact content is about to be written; the store
+        chooses export_id and attempted_at. No path, file name or recipient is recorded."""
+        with self.conn.transaction():
+            row = self.conn.execute(
+                "INSERT INTO invaria.export_attempts (tenant_id, principal_id, kind, "
+                "file_format, policy_refs, report_sha256, content_sha256, content_bytes) "
+                "VALUES (%s, %s, 'integrity_report_file', 'integrity-report-file@1', %s, %s, "
+                "%s, %s) RETURNING export_id, attempted_at",
+                (
+                    tenant_id,
+                    principal_id,
+                    policy_refs,
+                    report_sha256,
+                    content_sha256,
+                    content_bytes,
+                ),
+            ).fetchone()
+        assert row is not None
+        return str(row[0]), row[1]
+
+    def record_export_outcome(
+        self, tenant_id: str, export_id: str, outcome: str, failure: str | None
+    ) -> datetime:
+        """Record the one outcome of an attempt (a new row; a second outcome is refused by
+        the primary key). Returns the store clock of the record."""
+        with self.conn.transaction():
+            row = self.conn.execute(
+                "INSERT INTO invaria.export_outcomes (export_id, tenant_id, outcome, failure) "
+                "VALUES (%s, %s, %s, %s) RETURNING recorded_at",
+                (export_id, tenant_id, outcome, failure),
+            ).fetchone()
+        assert row is not None
+        return row[0]  # type: ignore[no-any-return]
+
+    def export_records(self, tenant_id: str) -> list[dict[str, Any]]:
+        """This tenant's export attempts with their outcome (None: no outcome recorded),
+        in attempt order. For the reader role and for tests."""
+        with self.conn.transaction():
+            rows = self.conn.execute(
+                "SELECT a.export_id, a.principal_id, a.kind, a.file_format, a.policy_refs, "
+                "a.report_sha256, a.content_sha256, a.content_bytes, a.attempted_at, "
+                "o.outcome, o.failure, o.recorded_at FROM invaria.export_attempts a "
+                "LEFT JOIN invaria.export_outcomes o ON o.export_id = a.export_id "
+                "WHERE a.tenant_id = %s ORDER BY a.attempted_at, a.export_id",
+                (tenant_id,),
+            ).fetchall()
+        names = (
+            "export_id principal_id kind file_format policy_refs report_sha256 content_sha256 "
+            "content_bytes attempted_at outcome failure recorded_at"
+        ).split()
+        return [dict(zip(names, r, strict=True)) for r in rows]
 
     def issue_disclosure(
         self,

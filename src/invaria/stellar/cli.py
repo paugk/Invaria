@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from invaria.contracts.base import parse_contract
 from invaria.contracts.chain import ChainTarget, ExecutionLinkSet
 from invaria.contracts.corpus import IdentityLinkSet
 from invaria.contracts.observation import TokenMovementPayload
+from invaria.safe_write import DestinationError, NewFile
 from invaria.stellar.adapter import (
     RunResult,
     ingest_horizon_payments,
@@ -294,6 +296,27 @@ def _ledger_anchor(args: argparse.Namespace) -> int:
 
 
 def _ledger_verify(args: argparse.Namespace) -> int:
+    """With ``--out``, the destination is opened before verifying and the report written
+    without overwriting. A write problem exits 2, never 0 or 1: those keep meaning
+    the verification's overall result, with the report written."""
+    report_file = None if args.out is None else NewFile(args.out)
+    if report_file is not None:
+        try:
+            report_file.prepare()
+        except DestinationError as error:
+            from invaria.cli import write_problem
+
+            print(write_problem(error, "verification report"), file=sys.stderr)
+            report_file.close()
+            return 2
+    try:
+        return _ledger_verify_with(args, report_file)
+    finally:
+        if report_file is not None:
+            report_file.close()
+
+
+def _ledger_verify_with(args: argparse.Namespace, report_file: NewFile | None) -> int:
     checkpoint = checkpoint_of(args.ledger)
     anchor: Anchor | None
     anchor_problems: list[str] = []
@@ -390,8 +413,14 @@ def _ledger_verify(args: argparse.Namespace) -> int:
         trustline_section,
     )
     text = json.dumps(out, indent=1, sort_keys=True) + "\n"
-    if args.out is not None:
-        args.out.write_text(text, "utf-8")
+    write_error: Exception | None = None
+    if report_file is not None:
+        from invaria.safe_write import Unconfirmed, WriteFailure
+
+        try:
+            report_file.publish(text.encode("utf-8"))
+        except (WriteFailure, Unconfirmed) as error:
+            write_error = error
     mode = "none" if anchor is None else anchor.mode
     print(f"evidence {evidence.status} (checkpoint {checkpoint}, anchor mode {mode})")
     for problem in evidence.problems:
@@ -469,4 +498,14 @@ def _ledger_verify(args: argparse.Namespace) -> int:
     for key in ("contradictions", "not_established", "unauthenticated"):
         for item in overall[key]:
             print(f"  {key.replace('_', ' ')}: {item}")
+    if write_error is not None:
+        from invaria.cli import write_problem
+
+        print(write_problem(write_error, "verification report"), file=sys.stderr)
+        print(
+            f"the verification itself ran (overall {overall['status']}); exit 2 "
+            "reports the write problem, not a verification result",
+            file=sys.stderr,
+        )
+        return 2
     return int(overall["exit_code"])

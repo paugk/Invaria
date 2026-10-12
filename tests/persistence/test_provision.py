@@ -2,7 +2,7 @@
 
 Opt-in like the other PostgreSQL tests (INVARIA_TEST_DATABASE_URL, an admin URL). Each test
 creates a disposable NON-superuser migrator (LOGIN, CREATEDB, CREATEROLE) holding only ADMIN
-on the three Invaria roles, so the path a managed server takes is exercised even when the
+on the Invaria roles, so the path a managed server takes is exercised even when the
 admin is a superuser. Role changes made to test refusals are reverted; the migrator, its
 database and its login roles are dropped. Passwords are generated here and never printed.
 """
@@ -88,7 +88,7 @@ def migrator() -> Iterator[Migrator]:
 
 
 def roles_state(conn: psycopg.Connection[Any], migrator: str) -> dict[str, Any]:
-    """Attributes and memberships of the three roles and of the migrator, and the schema."""
+    """Attributes and memberships of the Invaria roles and of the migrator, and the schema."""
     names = [*ROLES, migrator]
     return {
         "attributes": conn.execute(
@@ -118,6 +118,7 @@ def test_a_non_superuser_migrator_applies_the_migrations_unchanged(migrator: Mig
             "migrator member of invaria_owner (SET, INHERIT)",
             "migrator member of invaria_app (SET)",
             "migrator member of invaria_reader (SET)",
+            "migrator member of invaria_exporter (SET)",
             "created schema invaria owned by invaria_owner",
         ]
     with migrator.connect() as conn:
@@ -129,6 +130,7 @@ def test_a_non_superuser_migrator_applies_the_migrations_unchanged(migrator: Mig
             "0005_domain_events",
             "0006_feed_generations",
             "0007_disclosures",
+            "0008_exports",
         ]
         stored = dict(conn.execute("SELECT version, sha256 FROM invaria.schema_migrations"))
         assert stored == {v: hashlib.sha256(b).hexdigest() for v, b in available_migrations()}
@@ -137,7 +139,7 @@ def test_a_non_superuser_migrator_applies_the_migrations_unchanged(migrator: Mig
         assert prepare_for_migrator(conn) == []  # repeating grants nothing more
         assert prepare_for_migrator(conn) == []
         assert roles_state(conn, migrator.name) == before
-        # Only the migrator gained memberships; the three roles are members of nothing.
+        # Only the migrator gained memberships; the Invaria roles are members of nothing.
         assert [m for m in before["memberships"] if m[1] in ROLES] == []
 
 
@@ -170,6 +172,16 @@ EVENT_INSERT_WITH_SEQ = (
     "type_version, operation_ref, epoch, source_event_seq, payload, payload_sha256) "
     "SELECT 1, 't', 'ev-' || repeat('a', 64), 'operation.scope_reopened', 1, 'op', 1, 1, "
     "'\\x7b7d'::bytea, encode(sha256('\\x7b7d'::bytea), 'hex')"
+)
+ATTEMPT_INSERT = (
+    "INSERT INTO invaria.export_attempts (tenant_id, principal_id, kind, file_format, "
+    "policy_refs, report_sha256, content_sha256, content_bytes) VALUES ('t', 'p', "
+    "'integrity_report_file', 'integrity-report-file@1', ARRAY['export-integrity-report-file@1'], "
+    "repeat('a', 64), repeat('b', 64), 10)"
+)
+OUTCOME_INSERT = (
+    "INSERT INTO invaria.export_outcomes (export_id, tenant_id, outcome, failure) "
+    "VALUES ('ex-' || repeat('a', 32), 't', 'completed', NULL)"
 )
 APP: dict[str, bool | str] = {
     "SELECT count(*) FROM invaria.evaluations": True,
@@ -220,6 +232,10 @@ APP: dict[str, bool | str] = {
     "UPDATE invaria.disclosure_issuances SET policy_ref = 'x@1'": False,
     "DELETE FROM invaria.disclosure_revocations": False,
     "TRUNCATE invaria.disclosure_issuances": False,
+    # The application role has no access to the export record.
+    "SELECT count(*) FROM invaria.export_attempts": False,
+    ATTEMPT_INSERT: False,
+    OUTCOME_INSERT: False,
 }
 READER: dict[str, bool | str] = {
     "SELECT count(*) FROM invaria.evaluations": True,
@@ -241,7 +257,43 @@ READER: dict[str, bool | str] = {
     "SELECT count(*) FROM invaria.disclosure_revocations": True,
     ISSUANCE_INSERT: False,
     "DELETE FROM invaria.disclosure_revocations": False,
+    "SELECT count(*) FROM invaria.export_attempts": True,
+    "SELECT count(*) FROM invaria.export_outcomes": True,
+    ATTEMPT_INSERT: False,
+    OUTCOME_INSERT: False,
 }
+# The export role reads what a report computation reads and only appends to the
+# export record; the store sets export_id and the times; nothing is updated or deleted.
+EXPORTER: dict[str, bool | str] = {
+    "SELECT count(*) FROM invaria.evaluations": True,
+    "SELECT count(*) FROM invaria.integrity_reports": True,
+    "SELECT count(*) FROM invaria.schema_migrations": False,
+    "INSERT INTO invaria.knowledge_cuts (tenant_id, known_at) VALUES ('t', now())": False,
+    "UPDATE invaria.publications SET epoch = 0": False,
+    "DELETE FROM invaria.evaluations": False,
+    REPORT_INSERT: False,
+    ISSUANCE_INSERT: False,
+    "INSERT INTO invaria.feed_generations (reason) VALUES ('restore:x')": False,
+    "CREATE TABLE invaria.extra (x int)": False,
+    ATTEMPT_INSERT: True,
+    ATTEMPT_INSERT.replace("(tenant_id,", "(export_id, tenant_id,").replace(
+        "VALUES ('t',", "VALUES ('ex-' || repeat('c', 32), 't',"
+    ): False,
+    ATTEMPT_INSERT.replace("content_bytes)", "content_bytes, attempted_at)").replace(
+        "10)", "10, now())"
+    ): False,
+    OUTCOME_INSERT: "fk",
+    OUTCOME_INSERT.replace("failure)", "failure, recorded_at)").replace(
+        "NULL)", "NULL, now())"
+    ): False,
+    "SELECT count(*) FROM invaria.export_attempts": True,
+    "UPDATE invaria.export_attempts SET principal_id = 'x'": False,
+    "UPDATE invaria.export_outcomes SET outcome = 'failed'": False,
+    "DELETE FROM invaria.export_attempts": False,
+    "DELETE FROM invaria.export_outcomes": False,
+    "TRUNCATE invaria.export_attempts": False,
+}
+ROLE_STATEMENTS = (("invaria_app", APP), ("invaria_reader", READER), ("invaria_exporter", EXPORTER))
 
 
 def test_effective_permissions_after_set_role_and_for_application_logins(
@@ -252,7 +304,7 @@ def test_effective_permissions_after_set_role_and_for_application_logins(
     with migrator.connect() as conn:
         migrate(conn)
     # The migrator's session after SET ROLE: the application roles' privileges, nothing more.
-    for role, statements in (("invaria_app", APP), ("invaria_reader", READER)):
+    for role, statements in ROLE_STATEMENTS:
         with migrator.connect() as conn:
             conn.execute(sql.SQL("SET ROLE {}").format(sql.Identifier(role)))
             conn.commit()
@@ -263,7 +315,7 @@ def test_effective_permissions_after_set_role_and_for_application_logins(
     tag = migrator.name.removeprefix("invaria_mig_")
     password = secrets.token_hex(24)
     with migrator.connect(autocommit=True) as conn:
-        for role in ("invaria_app", "invaria_reader"):
+        for role, _ in ROLE_STATEMENTS:
             conn.execute(
                 sql.SQL("CREATE ROLE {} LOGIN PASSWORD {} IN ROLE {}").format(
                     sql.Identifier(f"{role}_login_{tag}"),
@@ -271,16 +323,14 @@ def test_effective_permissions_after_set_role_and_for_application_logins(
                     sql.Identifier(role),
                 )
             )
-    for role, statements in (("invaria_app", APP), ("invaria_reader", READER)):
+    for role, statements in ROLE_STATEMENTS:
         dsn = _as(migrator.dsn, user=f"{role}_login_{tag}", password=password)
         with psycopg.connect(dsn) as conn:
             conn.execute(sql.SQL("SET ROLE {}").format(sql.Identifier(role)))
             conn.commit()
             for statement, allowed in statements.items():
                 _check(conn, statement, allowed)
-            for target in {"invaria_owner", "invaria_app", "invaria_reader", migrator.name} - {
-                role
-            }:
+            for target in {*ROLES, migrator.name} - {role}:
                 with pytest.raises(errors.InsufficientPrivilege):
                     conn.execute(sql.SQL("SET ROLE {}").format(sql.Identifier(target)))
                 conn.rollback()

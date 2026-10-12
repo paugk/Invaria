@@ -19,6 +19,7 @@ from invaria.contracts import OperationProfile, SnapshotRef, parse_contract
 from invaria.contracts.bundle import BundleEvidence
 from invaria.corpus_loader import Corpus, load_corpus
 from invaria.engine.evaluate import ENGINE_REF, EvaluationInputs, evaluate, replay
+from invaria.safe_write import DestinationError
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 CORPUS_DIR = FIXTURES / "corpus/subscription-synthetic"
@@ -269,10 +270,20 @@ def test_verification_runs_with_network_disabled(monkeypatch: pytest.MonkeyPatch
     assert report.status == "REPRODUCED"
 
 
-def test_build_refuses_non_empty_destination(corpus: Corpus, k3: Path) -> None:
+def test_build_refuses_an_existing_destination_even_empty(
+    corpus: Corpus, k3: Path, tmp_path: Path
+) -> None:
+    """The destination must not exist; never overwritten or mixed."""
     inputs = corpus.inputs_for("K3")
-    with pytest.raises(FileExistsError):
-        build_bundle(k3, inputs, evaluate(inputs), mode="as_known_now")
+    before = {p.name: p.read_bytes() for p in k3.iterdir()}
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    for existing in (k3, empty):
+        with pytest.raises(DestinationError) as caught:
+            build_bundle(existing, inputs, evaluate(inputs), mode="as_known_now")
+        assert caught.value.reason == "exists"
+    assert {p.name: p.read_bytes() for p in k3.iterdir()} == before
+    assert list(empty.iterdir()) == []
 
 
 # --------------------------------------------------------------- REJECTED

@@ -1055,7 +1055,8 @@
               "events:read",
               "disclosures:issue",
               "disclosures:revoke",
-              "disclosures:read"
+              "disclosures:read",
+              "exports:create"
             ],
             "type": "string"
           },

@@ -37,12 +37,13 @@ from invaria.persistence.store import READER_ROLE, PgStore
 from invaria.query import disclosure, registry
 
 SCHEMA = "invaria"
-ROLES = ("invaria_owner", "invaria_app", "invaria_reader")
+ROLES = ("invaria_owner", "invaria_app", "invaria_reader", "invaria_exporter")
 PRIVILEGES = ("SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE")
 EXTERNAL_DEPENDENCIES = (
     "trusted engine runtimes for every stored engine_ref (bundle.runtime.TRUSTED_ENGINES)",
     "trusted migration files (persistence/migrations): expected hashes come from the code",
-    "server-level roles invaria_owner, invaria_app, invaria_reader (rebuilt, NOLOGIN)",
+    "server-level roles invaria_owner, invaria_app, invaria_reader, invaria_exporter "
+    "(rebuilt, NOLOGIN)",
     "not needed for R1 replay: raw evidence files (replay uses stored documents; R2 is out "
     "of scope); DSNs and access profiles (configuration outside the repository)",
 )
@@ -140,10 +141,14 @@ def state_digest(
 
 
 def privilege_matrix(conn: Conn) -> dict[str, list[str]]:
-    """Effective table privileges per role: ``{"role": ["table:PRIV", ...]}``."""
+    """Effective table privileges per role: ``{"role": ["table:PRIV", ...]}``. A role the
+    server does not have (``invaria_exporter`` before migration 0008) is left out: it can
+    hold no privilege, and a restore rebuilds it with none."""
     matrix: dict[str, list[str]] = {}
     tables = [t for t, _ in _tables(conn)]
     for role in ROLES:
+        if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role,)).fetchone() is None:
+            continue
         granted = []
         for table in tables:
             for privilege in PRIVILEGES:
@@ -406,6 +411,17 @@ def check_invariants(conn: Conn) -> list[str]:
         (issuable, disclosure.VIEW_FORMAT),
     ).fetchall():
         problems.append(f"disclosure issuance {r[0]} names {r[1]}/{r[2]}, unknown to this code")
+    # Exports: every attempt names policies of the code catalogue. An attempt
+    # without outcome is valid (never turned into a failure); it is not a problem.
+    if conn.execute("SELECT to_regclass('invaria.export_attempts') IS NOT NULL").fetchone() == (
+        True,
+    ):
+        for r in conn.execute(
+            f"SELECT export_id FROM {SCHEMA}.export_attempts "
+            "WHERE NOT (policy_refs <@ %s::text[]) ORDER BY 1",
+            (sorted(disclosure.CATALOGUE),),
+        ).fetchall():
+            problems.append(f"export attempt {r[0]} names a policy unknown to this code")
     return problems
 
 
