@@ -300,6 +300,60 @@ def test_build_snapshot_as_known_excludes_later_correction(connect: Any, corpus:
     assert k3_eval.result == "BREAK"
 
 
+@pytest.fixture
+def linguistic_database() -> Iterator[str]:
+    """A fresh, migrated database whose default collation is linguistic (en_US.utf8), where
+    mixed-case identifiers sort differently from the contract's byte order."""
+    if not ADMIN_DSN:
+        pytest.skip("set INVARIA_TEST_DATABASE_URL to an admin PostgreSQL URL to run DB tests")
+    name = f"invaria_test_{uuid.uuid4().hex[:12]}"
+    with psycopg.connect(ADMIN_DSN, autocommit=True) as admin:
+        admin.execute(
+            f"CREATE DATABASE {name} TEMPLATE template0 ENCODING 'UTF8' "
+            "LC_COLLATE 'en_US.utf8' LC_CTYPE 'en_US.utf8'"
+        )
+    try:
+        with psycopg.connect(_dsn_for(name)) as conn:
+            prepare_for_migrator(conn)
+            migrate(conn)
+        yield _dsn_for(name)
+    finally:
+        with psycopg.connect(ADMIN_DSN, autocommit=True) as admin:
+            admin.execute(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)")
+
+
+def test_build_snapshot_orders_members_by_bytes_under_any_collation(
+    linguistic_database: str, corpus: Corpus
+) -> None:
+    """The snapshot lists its members in the contract's order (byte order), not in the
+    database's collation: with mixed-case identifiers the two disagree."""
+    with psycopg.connect(linguistic_database) as conn:
+        # The precondition that makes the case meaningful: this collation puts the
+        # lower-case identifier first, the contract puts it last.
+        first = conn.execute("SELECT min(x) FROM (VALUES ('obs-B1'), ('obs-a1')) AS v(x)")
+        assert first.fetchone() == ("obs-a1",)
+        store = PgStore(conn)
+        load_timeline(store, corpus, "main", main_coverage(corpus))
+        k2 = corpus.scenarios["K2"].snapshot
+        registry = corpus.journals["main"]["obs-R1"]
+        source = registry.source.model_copy(
+            update={"record_key": f"{registry.source.record_key}-lower"}
+        )
+        lower = registry.model_copy(update={"observation_id": "obs-a1", "source": source})
+        store.append_observations([lower])
+        built = store.build_snapshot(
+            snapshot_id="db-K2-mixed-case",
+            tenant_id=TENANT,
+            operation_ref="SUB-0001",
+            profile_ref=k2.profile_ref,
+            valid_at=k2.valid_at,
+            known_at=k2.known_at,
+            evaluation_clock=k2.known_at,
+        )
+    assert built.observation_ids == sorted([*k2.observation_ids, "obs-a1"])
+    assert built.observation_ids[-1] == "obs-a1"
+
+
 def test_late_commit_does_not_change_existing_snapshot(connect: Any, corpus: Corpus) -> None:
     writer, builder = PgStore(connect()), PgStore(connect())
     load_timeline(builder, corpus, "main", main_coverage(corpus))

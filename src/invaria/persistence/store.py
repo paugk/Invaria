@@ -662,8 +662,11 @@ class PgStore:
 
             def ids(table: str, column: str) -> list[str]:
                 rows = self.conn.execute(
+                    # Byte order (COLLATE "C") is the contract's order (Python sorts by code
+                    # point; UTF-8 bytes sort the same). The database's default collation can
+                    # disagree on mixed case and then the snapshot is invalid.
                     f"SELECT {column} FROM invaria.{table} "
-                    "WHERE tenant_id = %s AND recorded_at <= %s ORDER BY 1",
+                    f'WHERE tenant_id = %s AND recorded_at <= %s ORDER BY {column} COLLATE "C"',
                     (tenant_id, known_at),
                 ).fetchall()
                 return [r[0] for r in rows]
